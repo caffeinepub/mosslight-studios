@@ -1,224 +1,609 @@
 {
   "kind": "build_request",
-  "title": "Add discussion board for customer questions and admin responses",
+  "title": "Add customer notifications, product reviews, analytics dashboard, search/filtering, About/FAQ pages, and social media links",
   "projectName": "Mosslight Studios",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-10",
-      "text": "Create a backend data model for discussion board posts with fields for question text, author principal, timestamp, status (open/answered), and associated replies",
+      "id": "REQ-27",
+      "text": "Create a backend data model for notifications with fields for recipient principal, notification type (order_update, admin_alert, low_inventory), message text, timestamp, read status, and optional order ID reference",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-last"
+          "msg-5",
+          "msg-7"
         ],
         "quotes": [
-          "can you create a new section a message board or forum where people can ask questions and i can respond"
+          "yes in app notification is perfect !",
+          "In-app notification system for order updates and admin alerts"
         ]
       },
       "acceptanceCriteria": [
-        "Discussion post type includes question text, author principal, creation timestamp, and status field",
-        "Reply type includes reply text, author principal, timestamp, and reference to parent post",
-        "Data structures support querying all posts and replies by post ID"
+        "Notification model includes recipient, type, message, timestamp, read status, and optional order ID",
+        "Supports notification types: order_update, admin_alert, low_inventory"
       ]
     },
     {
-      "id": "REQ-11",
-      "text": "Implement backend methods for customers to create new discussion posts with questions",
+      "id": "REQ-28",
+      "text": "Implement backend methods for creating notifications when order status changes, inventory falls below threshold (5 units), and for admin broadcast alerts",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-last"
+          "msg-5",
+          "msg-7"
         ],
         "quotes": [
-          "where people can ask questions"
+          "In-app notification system for order updates and admin alerts",
+          "Inventory alerts - Notifications when products run low or out of stock"
         ]
       },
       "acceptanceCriteria": [
-        "createDiscussionPost method accepts question text and creates a new post with caller principal as author",
-        "Method validates that question text is not empty",
-        "Returns the newly created post ID"
+        "Automatically create customer notification when order status is updated",
+        "Create admin notification when product inventory drops below 5 units",
+        "Support admin creating broadcast alert notifications"
       ]
     },
     {
-      "id": "REQ-12",
-      "text": "Implement backend methods for admins to reply to discussion posts",
+      "id": "REQ-29",
+      "text": "Implement backend query methods to retrieve unread notifications for the current user and mark notifications as read",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-last"
+          "msg-5"
         ],
         "quotes": [
-          "and i can respond"
+          "in-app notification system where customers see order updates when they log in, and you get admin alerts in your dashboard"
         ]
       },
       "acceptanceCriteria": [
-        "replyToDiscussionPost method accepts post ID and reply text",
-        "Method validates caller has admin role using existing access control",
-        "Reply is associated with the parent post and includes admin principal as author"
+        "Query method returns all unread notifications for authenticated user",
+        "Method to mark individual notification as read",
+        "Method to mark all notifications as read for a user"
       ]
     },
     {
-      "id": "REQ-13",
-      "text": "Implement backend query methods to retrieve all discussion posts with their replies",
+      "id": "REQ-30",
+      "text": "Create a backend data model for product reviews with fields for product ID, reviewer principal, star rating (1-5), review text, timestamp, and verified purchase flag",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-last"
+          "msg-6",
+          "msg-7"
         ],
         "quotes": [
-          "message board or forum"
+          "verified customers can leave a review",
+          "Product reviews - Only verified purchasers can review"
         ]
       },
       "acceptanceCriteria": [
-        "getDiscussionPosts method returns all posts with basic information",
-        "getDiscussionPostWithReplies method returns a specific post with all associated replies",
-        "Posts are ordered by creation timestamp (newest first)"
+        "Review model includes productId, reviewer principal, star rating, review text, timestamp, and verified purchase flag",
+        "Star rating is constrained to integers 1-5"
       ]
     },
     {
-      "id": "REQ-14",
-      "text": "Create a public-facing discussion board page accessible from the main navigation that displays all questions and replies in a forum-style layout",
-      "target": "frontend",
+      "id": "REQ-31",
+      "text": "Implement backend method for verified customers to submit product reviews only for products they have purchased, validating purchase history before allowing review submission",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-last"
+          "msg-6",
+          "msg-7"
         ],
         "quotes": [
-          "create a new section a message board or forum"
+          "verified customers can leave a review",
+          "only verified purchasers can review"
         ]
       },
       "acceptanceCriteria": [
-        "New route /forum displays the discussion board",
-        "Navigation link added to Header component for 'Forum' or 'Discussion Board'",
-        "Page is publicly accessible without authentication"
+        "Method checks if user has purchased the product before allowing review",
+        "Returns error if user has not purchased the product",
+        "Stores review with verified purchase flag set to true"
       ]
     },
     {
-      "id": "REQ-15",
-      "text": "Build a discussion post list component that displays all questions with author information, timestamps, status badges, and reply counts",
-      "target": "frontend",
+      "id": "REQ-32",
+      "text": "Implement backend query methods to retrieve all reviews for a specific product with average rating calculation and reviewer anonymization (showing only partial principal)",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-last"
+          "msg-8"
         ],
         "quotes": [
-          "message board or forum where people can ask questions"
+          "product reviews should show up under the listing when you click on it"
         ]
       },
       "acceptanceCriteria": [
-        "Each post shows the question text, author (anonymized as 'Customer' for non-admins), and timestamp",
-        "Status badge indicates if question is 'Open' or 'Answered'",
-        "Reply count is displayed for each post",
-        "Posts are clickable to view full thread with replies"
+        "Query returns all reviews for a given product ID",
+        "Calculates and returns average star rating for the product",
+        "Returns review count for the product"
       ]
     },
     {
-      "id": "REQ-16",
-      "text": "Create a form component that allows authenticated customers to submit new questions to the discussion board",
-      "target": "frontend",
+      "id": "REQ-33",
+      "text": "Create a backend data model for analytics events tracking product clicks, content gallery views, and order completions with timestamp, user principal (optional for anonymous), event type, and target ID",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-last"
+          "msg-7",
+          "msg-9"
         ],
         "quotes": [
-          "where people can ask questions"
+          "what items were clicked on the most , what content is most viewed , and normal small business analytics , financial ,content etc",
+          "Analytics tracking - Starting fresh with real data"
         ]
       },
       "acceptanceCriteria": [
-        "Form includes textarea for question text",
-        "Submit button is disabled when user is not authenticated",
-        "Form shows loading state during submission",
-        "Success toast notification appears after question is posted",
-        "Form clears after successful submission"
+        "Event model includes timestamp, optional user principal, event type, and target ID",
+        "Supports event types: product_click, product_view, content_view, order_completed",
+        "Allows anonymous event tracking (no principal required)"
       ]
     },
     {
-      "id": "REQ-17",
-      "text": "Build a discussion thread detail view that displays the full question and all replies with author identification for admin responses",
-      "target": "frontend",
+      "id": "REQ-34",
+      "text": "Implement backend methods to record analytics events when products are clicked, content items are viewed, and orders are completed",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-last"
+          "msg-7"
         ],
         "quotes": [
-          "and i can respond"
+          "what items were clicked on the most , what content is most viewed"
         ]
       },
       "acceptanceCriteria": [
-        "Thread view shows the original question at the top",
-        "All replies are displayed below in chronological order",
-        "Admin replies are visually distinguished with a badge or different styling",
-        "Each reply shows author role (Admin or Customer) and timestamp"
+        "Method to record product click with product ID",
+        "Method to record content view with content ID",
+        "Automatically record order completion event when checkout succeeds"
       ]
     },
     {
-      "id": "REQ-18",
-      "text": "Create a reply form component that allows admins to respond to questions directly in the thread view",
-      "target": "frontend",
+      "id": "REQ-35",
+      "text": "Implement backend query methods to retrieve analytics data including most clicked products, most viewed content, total revenue, order count by date range, and low inventory products (below 5 units)",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-last"
+          "msg-7"
         ],
         "quotes": [
-          "and i can respond"
+          "what items were clicked on the most , what content is most viewed , and normal small business analytics , financial ,content etc"
         ]
       },
       "acceptanceCriteria": [
-        "Reply form is only visible to authenticated admin users",
-        "Form includes textarea for reply text and submit button",
-        "Shows loading state during submission",
-        "New reply appears immediately in the thread after successful submission",
-        "Form clears after reply is posted"
+        "Query returns top 10 most clicked products with click counts",
+        "Query returns top 10 most viewed content items with view counts",
+        "Query calculates total revenue from all orders",
+        "Query returns order count and revenue for specified date ranges",
+        "Query returns products with inventory below 5 units"
       ]
     },
     {
-      "id": "REQ-19",
-      "text": "Create React Query hooks for discussion board operations including fetching posts, creating posts, fetching thread details, and adding replies",
+      "id": "REQ-36",
+      "text": "Create React Query hook for fetching unread notifications for the current user and marking notifications as read",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-last"
+          "msg-5"
+        ],
+        "quotes": [
+          "in-app notification system where customers see order updates when they log in, and you get admin alerts in your dashboard"
         ]
       },
       "acceptanceCriteria": [
-        "useDiscussionPosts hook fetches all posts",
-        "useDiscussionThread hook fetches a specific post with replies",
-        "useCreateDiscussionPost mutation creates new posts",
-        "useReplyToPost mutation adds admin replies",
-        "All mutations invalidate relevant queries on success"
+        "Hook fetches unread notifications with loading and error states",
+        "Mutation to mark notification as read with cache invalidation",
+        "Mutation to mark all notifications as read"
       ]
     },
     {
-      "id": "REQ-20",
-      "text": "Apply Mosslight Studios brand styling to all discussion board components using the existing dark emerald green and cool light nude color palette",
+      "id": "REQ-37",
+      "text": "Create a NotificationBell component in the Header that displays unread notification count badge and opens a dropdown panel showing recent notifications with timestamps and read/unread status",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-last"
+          "msg-5"
+        ],
+        "quotes": [
+          "in-app notification system where customers see order updates when they log in, and you get admin alerts in your dashboard"
         ]
       },
       "acceptanceCriteria": [
-        "Discussion board components use the existing Tailwind color system from tailwind.config.js",
-        "Layout and typography follow the established design patterns from other pages",
-        "Status badges and admin identification follow the brand styling guidelines"
+        "Bell icon displays in Header with unread count badge",
+        "Clicking bell opens dropdown showing notifications",
+        "Notifications show message, timestamp, and read/unread status",
+        "Clicking notification marks it as read",
+        "Shows empty state when no notifications exist"
+      ]
+    },
+    {
+      "id": "REQ-38",
+      "text": "Add a Notifications section to the admin dashboard displaying admin-specific alerts including low inventory warnings and system notifications",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-5",
+          "msg-7"
+        ],
+        "quotes": [
+          "you get admin alerts in your dashboard",
+          "Inventory alerts - Notifications when products run low or out of stock"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Admin dashboard shows notifications section with recent alerts",
+        "Low inventory alerts are prominently displayed",
+        "Admin can mark alerts as read or dismiss them"
+      ]
+    },
+    {
+      "id": "REQ-39",
+      "text": "Create React Query hook for fetching product reviews, submitting new reviews, and retrieving average ratings for products",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-6",
+          "msg-7"
+        ],
+        "quotes": [
+          "verified customers can leave a review",
+          "Product reviews - Only verified purchasers can review"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Hook fetches all reviews for a product with loading states",
+        "Mutation to submit new review with star rating and text",
+        "Retrieves average rating and review count for products",
+        "Handles verification errors when user hasn't purchased product"
+      ]
+    },
+    {
+      "id": "REQ-40",
+      "text": "Create a ProductReviews component that displays all reviews for a product with star ratings, review text, timestamps, and verified purchaser badges, shown on the ProductDetailPage below the product information",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-8"
+        ],
+        "quotes": [
+          "product reviews should show up under the listing when you click on it"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Component displays all reviews in chronological order",
+        "Shows star rating, review text, and timestamp for each review",
+        "Displays verified purchaser badge on reviews",
+        "Shows average rating and total review count at the top",
+        "Shows empty state when no reviews exist"
+      ]
+    },
+    {
+      "id": "REQ-41",
+      "text": "Create a ReviewForm component that allows authenticated customers who have purchased the product to submit a review with a star rating selector (1-5 stars) and text input",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-6",
+          "msg-7"
+        ],
+        "quotes": [
+          "verified customers can leave a review",
+          "star ratings (1-5 stars) plus written comments"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Form includes star rating selector (1-5 stars)",
+        "Form includes textarea for review text",
+        "Only shows form to authenticated users who purchased the product",
+        "Shows error message if user hasn't purchased product",
+        "Validates review text is not empty before submission"
+      ]
+    },
+    {
+      "id": "REQ-42",
+      "text": "Update ProductCard component to display average star rating and review count for each product in the catalog grid",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "Product Reviews: Allow customers to leave reviews/ratings on products"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Shows average star rating as visual stars or numeric value",
+        "Displays review count next to rating",
+        "Handles products with no reviews gracefully"
+      ]
+    },
+    {
+      "id": "REQ-43",
+      "text": "Create React Query hook for fetching analytics data including most clicked products, most viewed content, revenue metrics, and inventory alerts",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-7"
+        ],
+        "quotes": [
+          "what items were clicked on the most , what content is most viewed , and normal small business analytics , financial ,content etc"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Hook fetches top clicked products with counts",
+        "Hook fetches top viewed content with counts",
+        "Hook fetches revenue and order statistics",
+        "Hook fetches low inventory products"
+      ]
+    },
+    {
+      "id": "REQ-44",
+      "text": "Create an AdminAnalyticsPage displaying dashboard cards with key metrics including total revenue, order count, top clicked products, most viewed content, and low inventory alerts",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-7"
+        ],
+        "quotes": [
+          "Admin analytics dashboard with financial metrics, content performance, and inventory alerts",
+          "what items were clicked on the most , what content is most viewed , and normal small business analytics , financial ,content etc"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Displays total revenue and order count metrics",
+        "Shows top 10 most clicked products with click counts",
+        "Shows top 10 most viewed gallery content with view counts",
+        "Displays low inventory alerts prominently",
+        "Uses charts or visual representations for data where appropriate",
+        "Protected by AdminGuard component"
+      ]
+    },
+    {
+      "id": "REQ-45",
+      "text": "Add Analytics navigation card to the AdminDashboardPage linking to the new analytics page",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-7"
+        ],
+        "quotes": [
+          "Admin Analytics: A dashboard showing key metrics"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Analytics card appears on admin dashboard with appropriate icon",
+        "Card links to /admin/analytics route",
+        "Card styling matches existing dashboard cards"
+      ]
+    },
+    {
+      "id": "REQ-46",
+      "text": "Update ProductCard component click handler to record product click analytics event when users click on products in the catalog",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-7"
+        ],
+        "quotes": [
+          "what items were clicked on the most"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Records analytics event when product card is clicked",
+        "Event tracking does not block navigation",
+        "Works for both authenticated and anonymous users"
+      ]
+    },
+    {
+      "id": "REQ-47",
+      "text": "Update GalleryItem component to record content view analytics event when gallery content is viewed",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-7"
+        ],
+        "quotes": [
+          "what content is most viewed"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Records analytics event when gallery item is rendered or viewed",
+        "Event tracking does not impact performance",
+        "Works for both authenticated and anonymous users"
+      ]
+    },
+    {
+      "id": "REQ-48",
+      "text": "Create a ProductSearch component with text input for searching products by name or description and dropdown filters for category and price range",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-7"
+        ],
+        "quotes": [
+          "Product search & filtering - By category, price range, etc."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Text search input filters products by name and description",
+        "Category filter dropdown (if categories exist in product data)",
+        "Price range filter with min/max inputs or predefined ranges",
+        "Filters update product list in real-time",
+        "Clear filters button to reset all filters"
+      ]
+    },
+    {
+      "id": "REQ-49",
+      "text": "Update ProductsPage to include the ProductSearch component above the product grid and filter displayed products based on search criteria",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-7"
+        ],
+        "quotes": [
+          "Product search & filtering - By category, price range, etc."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Search component appears above product grid",
+        "Product list updates based on active filters",
+        "Shows filtered count (e.g., 'Showing 5 of 20 products')",
+        "Shows empty state when no products match filters"
+      ]
+    },
+    {
+      "id": "REQ-50",
+      "text": "Create an AboutPage displaying Mosslight Studios business story, mission statement, and contact information with brand styling",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-9"
+        ],
+        "quotes": [
+          "About/Contact page - Your business story, mission, and contact information"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Page includes business story section",
+        "Page includes mission statement",
+        "Page includes contact information (email, social media)",
+        "Uses Mosslight Studios brand colors (dark emerald green and cool light nude)",
+        "Responsive layout for mobile and desktop"
+      ]
+    },
+    {
+      "id": "REQ-51",
+      "text": "Create an FAQPage displaying common questions and answers about shipping, returns, product care, and ordering process with collapsible accordion sections",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-9"
+        ],
+        "quotes": [
+          "FAQ section - Common questions about shipping, returns, and product care"
+        ]
+      },
+      "acceptanceCriteria": [
+        "FAQ items organized in collapsible accordion sections",
+        "Covers shipping information and timeframes",
+        "Covers return and exchange policies",
+        "Covers product care instructions",
+        "Covers ordering and payment questions",
+        "Uses brand styling consistently"
+      ]
+    },
+    {
+      "id": "REQ-52",
+      "text": "Update Header navigation to include links to About and FAQ pages in the main menu",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-9"
+        ],
+        "quotes": [
+          "About/Contact page",
+          "FAQ section"
+        ]
+      },
+      "acceptanceCriteria": [
+        "About link appears in main navigation menu",
+        "FAQ link appears in main navigation menu",
+        "Links are properly highlighted when on respective pages",
+        "Navigation remains responsive on mobile"
+      ]
+    },
+    {
+      "id": "REQ-53",
+      "text": "Create a SocialMediaLinks component displaying clickable icon links to Mosslight Studios social media profiles (Instagram, TikTok, Facebook, etc.)",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-7"
+        ],
+        "quotes": [
+          "Social media links - Clickable profile links integrated with your content gallery"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Component displays social media icons as clickable links",
+        "Icons open social media profiles in new tabs",
+        "Component uses brand styling",
+        "Icons are visually consistent and properly sized"
+      ]
+    },
+    {
+      "id": "REQ-54",
+      "text": "Update GalleryPage to display the SocialMediaLinks component prominently above or below the gallery content grid",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-7"
+        ],
+        "quotes": [
+          "adding clickable links to your actual social profiles (Instagram, TikTok, etc.)"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Social media links appear on gallery page",
+        "Links are positioned prominently for visibility",
+        "Layout remains responsive on mobile devices"
+      ]
+    },
+    {
+      "id": "REQ-55",
+      "text": "Update Footer component to include the SocialMediaLinks component for consistent access to social profiles across all pages",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-7"
+        ],
+        "quotes": [
+          "Social media links"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Social media icons appear in footer",
+        "Footer layout accommodates social links without breaking existing content",
+        "Links are visible but not overwhelming in footer context"
+      ]
+    },
+    {
+      "id": "REQ-56",
+      "text": "Add routes in App.tsx for /about, /faq, and /admin/analytics pages with appropriate route configuration",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-9"
+        ],
+        "quotes": [
+          "About/Contact page",
+          "FAQ section",
+          "Admin analytics dashboard"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Route /about loads AboutPage component",
+        "Route /faq loads FAQPage component",
+        "Route /admin/analytics loads AdminAnalyticsPage with AdminGuard",
+        "All routes are properly registered with TanStack Router"
       ]
     }
   ],
   "constraints": [
-    "Use the existing single-actor architecture in backend/main.mo",
-    "Do not modify read-only files in frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui",
-    "Use existing access control patterns for admin-only operations",
-    "Follow the established authentication flow using Internet Identity"
+    "Do not modify files in frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui directory",
+    "Backend must remain single-actor architecture with all logic in backend/main.mo",
+    "Use only Internet Identity for customer authentication, not third-party auth providers",
+    "Do not integrate external email services (SendGrid, SMTP) - use in-app notifications only",
+    "Admin passcode must remain 09131991 as hardcoded",
+    "Maintain Mosslight Studios brand colors: dark emerald green primary and cool light nude secondary"
   ],
   "nonGoals": [
-    "Real-time updates or WebSocket integration for live forum updates",
-    "Post editing or deletion functionality",
-    "Upvoting or reaction features for posts",
-    "Email notifications for new questions or replies",
-    "User reputation or karma system",
-    "Post categories or tagging system",
-    "Search functionality within the discussion board"
+    "External email notification system",
+    "Third-party authentication providers",
+    "Real-time WebSocket notifications",
+    "Multi-language internationalization",
+    "Advanced analytics with external services like Google Analytics",
+    "Integration with external inventory management systems",
+    "Automated chatbot for customer support",
+    "Mobile native applications"
   ],
   "imageRequirements": {
     "required": [],

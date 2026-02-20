@@ -2,8 +2,11 @@ import { useParams, useNavigate } from '@tanstack/react-router';
 import { useGetProduct } from '../hooks/useProducts';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import AddToCartButton from '../components/AddToCartButton';
+import ProductReviews from '../components/ProductReviews';
+import ReviewForm from '../components/ReviewForm';
 
 export default function ProductDetailPage() {
   const { id } = useParams({ from: '/products/$id' });
@@ -87,7 +90,22 @@ export default function ProductDetailPage() {
           </div>
         </div>
       </div>
+
+      <Separator className="my-12" />
+
+      <div className="max-w-4xl mx-auto space-y-12">
+        <div className="space-y-6">
+          <h2 className="font-serif text-3xl font-bold">Write a Review</h2>
+          <ReviewForm productId={id} />
+        </div>
+
+        <Separator />
+
+        <div className="space-y-6">
+          <h2 className="font-serif text-3xl font-bold">Customer Reviews</h2>
+          <ProductReviews productId={id} />
+        </div>
+      </div>
     </div>
   );
 }
-

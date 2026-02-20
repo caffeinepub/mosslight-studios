@@ -1,6 +1,7 @@
 import { RouterProvider, createRouter, createRoute, createRootRoute } from '@tanstack/react-router';
 import { ThemeProvider } from 'next-themes';
 import { Toaster } from '@/components/ui/sonner';
+import { AdminAuthProvider } from './hooks/useAdminAuth';
 import Layout from './components/Layout';
 import HomePage from './pages/HomePage';
 import ProductsPage from './pages/ProductsPage';
@@ -12,10 +13,14 @@ import MyOrdersPage from './pages/MyOrdersPage';
 import GalleryPage from './pages/GalleryPage';
 import ForumPage from './pages/ForumPage';
 import ForumThreadPage from './pages/ForumThreadPage';
+import AboutPage from './pages/AboutPage';
+import FAQPage from './pages/FAQPage';
+import AdminDashboardPage from './pages/AdminDashboardPage';
 import AdminProductsPage from './pages/AdminProductsPage';
 import AdminOrdersPage from './pages/AdminOrdersPage';
 import AdminMessagesPage from './pages/AdminMessagesPage';
 import AdminGalleryPage from './pages/AdminGalleryPage';
+import AdminAnalyticsPage from './pages/AdminAnalyticsPage';
 
 const rootRoute = createRootRoute({
   component: Layout,
@@ -81,6 +86,24 @@ const forumThreadRoute = createRoute({
   component: ForumThreadPage,
 });
 
+const aboutRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/about',
+  component: AboutPage,
+});
+
+const faqRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/faq',
+  component: FAQPage,
+});
+
+const adminDashboardRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/admin-dashboard',
+  component: AdminDashboardPage,
+});
+
 const adminProductsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/admin/products',
@@ -105,6 +128,12 @@ const adminGalleryRoute = createRoute({
   component: AdminGalleryPage,
 });
 
+const adminAnalyticsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/admin/analytics',
+  component: AdminAnalyticsPage,
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   productsRoute,
@@ -116,10 +145,14 @@ const routeTree = rootRoute.addChildren([
   galleryRoute,
   forumRoute,
   forumThreadRoute,
+  aboutRoute,
+  faqRoute,
+  adminDashboardRoute,
   adminProductsRoute,
   adminOrdersRoute,
   adminMessagesRoute,
   adminGalleryRoute,
+  adminAnalyticsRoute,
 ]);
 
 const router = createRouter({ routeTree });
@@ -133,8 +166,10 @@ declare module '@tanstack/react-router' {
 export default function App() {
   return (
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-      <RouterProvider router={router} />
-      <Toaster />
+      <AdminAuthProvider>
+        <RouterProvider router={router} />
+        <Toaster />
+      </AdminAuthProvider>
     </ThemeProvider>
   );
 }

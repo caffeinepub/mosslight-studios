@@ -1,17 +1,14 @@
 # Specification
 
 ## Summary
-**Goal:** Add a discussion board feature where customers can ask questions and admins can respond.
+**Goal:** Add customer notifications, product reviews, analytics dashboard, search/filtering, About/FAQ pages, and social media links to enhance user engagement and admin insights.
 
 **Planned changes:**
-- Create backend data model for discussion posts and replies with author, timestamp, and status tracking
-- Implement backend methods for creating posts, adding replies, and querying discussions
-- Add a public-facing forum page accessible from main navigation
-- Build post list component showing questions with status badges and reply counts
-- Create form for authenticated customers to submit new questions
-- Build thread detail view displaying full questions and all replies
-- Add admin-only reply form with visual distinction for admin responses
-- Create React Query hooks for all discussion board operations
-- Apply Mosslight Studios brand styling (dark emerald green and cool light nude palette) to all components
+- Add in-app notification system for order updates, admin alerts, and low inventory warnings
+- Implement product reviews system where verified purchasers can leave star ratings and written feedback
+- Create admin analytics dashboard tracking product clicks, content views, revenue, and inventory levels
+- Add product search and filtering by category and price range
+- Create About and FAQ pages with business story, mission, and common questions
+- Add social media profile links in gallery and footer
 
-**User-visible outcome:** Customers can visit a new Discussion Board section to view existing questions and replies, post their own questions when authenticated, and see admin responses. Admins can respond to customer questions directly in the thread view.
+**User-visible outcome:** Customers receive in-app notifications about their orders, can leave reviews on purchased products, and use search filters to find products. Admins access an analytics dashboard showing business metrics and inventory alerts. New About and FAQ pages provide business information, and social media links connect customers to Mosslight Studios profiles.

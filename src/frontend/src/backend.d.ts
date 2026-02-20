@@ -14,16 +14,18 @@ export class ExternalBlob {
     static fromBytes(blob: Uint8Array<ArrayBuffer>): ExternalBlob;
     withUploadProgress(onProgress: (percentage: number) => void): ExternalBlob;
 }
+export interface Product {
+    id: string;
+    inventory: bigint;
+    name: string;
+    description: string;
+    price: bigint;
+    images: Array<ExternalBlob>;
+}
 export interface UserProfile {
     name: string;
     email: string;
     shippingAddress: string;
-}
-export interface SocialMediaContent {
-    id: string;
-    media: Array<ExternalBlob>;
-    content: string;
-    timestamp: Time;
 }
 export interface Reply {
     content: string;
@@ -31,6 +33,12 @@ export interface Reply {
     timestamp: Time;
 }
 export type Time = bigint;
+export interface SocialMediaContent {
+    id: string;
+    media: Array<ExternalBlob>;
+    content: string;
+    timestamp: Time;
+}
 export interface OrderItem {
     productId: string;
     quantity: bigint;
@@ -57,19 +65,38 @@ export interface CreateProductData {
     description: string;
     price: bigint;
 }
+export type NotificationType = {
+    __kind__: "adminAlert";
+    adminAlert: null;
+} | {
+    __kind__: "orderUpdate";
+    orderUpdate: string;
+} | {
+    __kind__: "lowInventory";
+    lowInventory: string;
+};
+export interface Notification {
+    id: string;
+    notifType: NotificationType;
+    read: boolean;
+    recipient: Principal;
+    message: string;
+    timestamp: Time;
+    relatedOrderId?: string;
+}
 export interface Message {
     id: string;
     content: string;
     recipient?: Customer;
     timestamp: Time;
 }
-export interface Product {
-    id: string;
-    inventory: bigint;
-    name: string;
-    description: string;
-    price: bigint;
-    images: Array<ExternalBlob>;
+export interface Review {
+    reviewText: string;
+    productId: string;
+    timestamp: Time;
+    rating: bigint;
+    reviewer: Principal;
+    verifiedPurchase: boolean;
 }
 export enum OrderStatus {
     shipped = "shipped",
@@ -96,6 +123,13 @@ export interface backendInterface {
     createDiscussionPost(question: string): Promise<string>;
     deleteProduct(productId: string): Promise<void>;
     getAllDiscussionPosts(): Promise<Array<DiscussionPost>>;
+    getAnalyticsData(): Promise<{
+        mostClickedProducts: Array<[string, bigint]>;
+        mostViewedContent: Array<[string, bigint]>;
+        orderCount: bigint;
+        totalRevenue: bigint;
+        lowInventoryProducts: Array<Product>;
+    }>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getMessages(): Promise<Array<Message>>;
@@ -104,12 +138,27 @@ export interface backendInterface {
     getMyOrders(): Promise<Array<Order>>;
     getOrders(): Promise<Array<Order>>;
     getProduct(productId: string): Promise<Product | null>;
+    getProductReviews(productId: string): Promise<[Array<Review>, number]>;
     getProducts(): Promise<Array<Product>>;
     getSocialMediaContent(): Promise<Array<SocialMediaContent>>;
+    getUnreadNotifications(): Promise<Array<Notification>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
+    markNotificationAsRead(notificationId: string): Promise<void>;
+    recordAnalyticsEvent(eventType: {
+        __kind__: "orderComplete";
+        orderComplete: null;
+    } | {
+        __kind__: "contentView";
+        contentView: string;
+    } | {
+        __kind__: "productClick";
+        productClick: string;
+    }): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
+    sendAdminBroadcastAlert(message: string): Promise<void>;
     sendMessage(content: string, recipient: Customer | null): Promise<void>;
+    submitReview(productId: string, rating: bigint, reviewText: string): Promise<void>;
     updateOrderStatus(orderId: string, status: OrderStatus): Promise<void>;
     updateProduct(productId: string, productData: CreateProductData, images: Array<ExternalBlob>): Promise<void>;
     viewCart(): Promise<Array<OrderItem>>;

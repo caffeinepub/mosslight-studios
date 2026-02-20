@@ -2,12 +2,31 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-create-a-public-facing-discussion-board-page-accessible-from-the-main-navigation-that-displays-all-questions-and-replies-in-a-forum-style-layout",
-      "featureTitle": "Create a public-facing discussion board page accessible from the main navigation that displays all questions and replies in a forum-style layout",
+      "featureId": "feature-create-react-query-hook-for-fetching-unread-notifications-for-the-current-user-and-marking-notifications-as-read",
+      "featureTitle": "Create React Query hook for fetching unread notifications for the current user and marking notifications as read",
       "files": [
-        "frontend/src/App.tsx",
+        "frontend/src/hooks/useNotifications.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-36"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-create-a-notificationbell-component-in-the-header-that-displays-unread-notification-count-badge-and-opens-a-dropdown-panel-showing-recent-notifications-with-timestamps-and-read-unread-status",
+      "featureTitle": "Create a NotificationBell component in the Header that displays unread notification count badge and opens a dropdown panel showing recent notifications with timestamps and read/unread status",
+      "files": [
         "frontend/src/components/Header.tsx",
-        "frontend/src/pages/ForumPage.tsx"
+        "frontend/src/components/NotificationBell.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -19,16 +38,16 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-14"
+        "REQ-37"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-build-a-discussion-post-list-component-that-displays-all-questions-with-author-information-timestamps-status-badges-and-reply-counts",
-      "featureTitle": "Build a discussion post list component that displays all questions with author information, timestamps, status badges, and reply counts",
+      "featureId": "feature-add-a-notifications-section-to-the-admin-dashboard-displaying-admin-specific-alerts-including-low-inventory-warnings-and-system-notifications",
+      "featureTitle": "Add a Notifications section to the admin dashboard displaying admin-specific alerts including low inventory warnings and system notifications",
       "files": [
-        "frontend/src/components/DiscussionPostList.tsx",
-        "frontend/src/components/PostStatusBadge.tsx"
+        "frontend/src/components/AdminNotificationsPanel.tsx",
+        "frontend/src/pages/AdminDashboardPage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -40,15 +59,15 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-15"
+        "REQ-38"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-create-a-form-component-that-allows-authenticated-customers-to-submit-new-questions-to-the-discussion-board",
-      "featureTitle": "Create a form component that allows authenticated customers to submit new questions to the discussion board",
+      "featureId": "feature-create-react-query-hook-for-fetching-product-reviews-submitting-new-reviews-and-retrieving-average-ratings-for-products",
+      "featureTitle": "Create React Query hook for fetching product reviews, submitting new reviews, and retrieving average ratings for products",
       "files": [
-        "frontend/src/components/AskQuestionForm.tsx"
+        "frontend/src/hooks/useReviews.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -60,17 +79,16 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-16"
+        "REQ-39"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-build-a-discussion-thread-detail-view-that-displays-the-full-question-and-all-replies-with-author-identification-for-admin-responses",
-      "featureTitle": "Build a discussion thread detail view that displays the full question and all replies with author identification for admin responses",
+      "featureId": "feature-create-a-productreviews-component-that-displays-all-reviews-for-a-product-with-star-ratings-review-text-timestamps-and-verified-purchaser-badges-shown-on-the-productdetailpage-below-the-product-information",
+      "featureTitle": "Create a ProductReviews component that displays all reviews for a product with star ratings, review text, timestamps, and verified purchaser badges, shown on the ProductDetailPage below the product information",
       "files": [
-        "frontend/src/App.tsx",
-        "frontend/src/components/ReplyList.tsx",
-        "frontend/src/pages/ForumThreadPage.tsx"
+        "frontend/src/components/ProductReviews.tsx",
+        "frontend/src/pages/ProductDetailPage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -82,15 +100,16 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-17"
+        "REQ-40"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-create-a-reply-form-component-that-allows-admins-to-respond-to-questions-directly-in-the-thread-view",
-      "featureTitle": "Create a reply form component that allows admins to respond to questions directly in the thread view",
+      "featureId": "feature-create-a-reviewform-component-that-allows-authenticated-customers-who-have-purchased-the-product-to-submit-a-review-with-a-star-rating-selector-1-5-stars-and-text-input",
+      "featureTitle": "Create a ReviewForm component that allows authenticated customers who have purchased the product to submit a review with a star rating selector (1-5 stars) and text input",
       "files": [
-        "frontend/src/components/AdminReplyForm.tsx"
+        "frontend/src/components/ReviewForm.tsx",
+        "frontend/src/pages/ProductDetailPage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -102,15 +121,15 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-18"
+        "REQ-41"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-create-react-query-hooks-for-discussion-board-operations-including-fetching-posts-creating-posts-fetching-thread-details-and-adding-replies",
-      "featureTitle": "Create React Query hooks for discussion board operations including fetching posts, creating posts, fetching thread details, and adding replies",
+      "featureId": "feature-update-productcard-component-to-display-average-star-rating-and-review-count-for-each-product-in-the-catalog-grid",
+      "featureTitle": "Update ProductCard component to display average star rating and review count for each product in the catalog grid",
       "files": [
-        "frontend/src/hooks/useDiscussionBoard.ts"
+        "frontend/src/components/ProductCard.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -122,21 +141,15 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-19"
+        "REQ-42"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-apply-mosslight-studios-brand-styling-to-all-discussion-board-components-using-the-existing-dark-emerald-green-and-cool-light-nude-color-palette",
-      "featureTitle": "Apply Mosslight Studios brand styling to all discussion board components using the existing dark emerald green and cool light nude color palette",
+      "featureId": "feature-create-react-query-hook-for-fetching-analytics-data-including-most-clicked-products-most-viewed-content-revenue-metrics-and-inventory-alerts",
+      "featureTitle": "Create React Query hook for fetching analytics data including most clicked products, most viewed content, revenue metrics, and inventory alerts",
       "files": [
-        "frontend/src/components/AdminReplyForm.tsx",
-        "frontend/src/components/AskQuestionForm.tsx",
-        "frontend/src/components/DiscussionPostList.tsx",
-        "frontend/src/components/PostStatusBadge.tsx",
-        "frontend/src/components/ReplyList.tsx",
-        "frontend/src/pages/ForumPage.tsx",
-        "frontend/src/pages/ForumThreadPage.tsx"
+        "frontend/src/hooks/useAnalytics.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -148,7 +161,267 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-20"
+        "REQ-43"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-create-an-adminanalyticspage-displaying-dashboard-cards-with-key-metrics-including-total-revenue-order-count-top-clicked-products-most-viewed-content-and-low-inventory-alerts",
+      "featureTitle": "Create an AdminAnalyticsPage displaying dashboard cards with key metrics including total revenue, order count, top clicked products, most viewed content, and low inventory alerts",
+      "files": [
+        "frontend/src/pages/AdminAnalyticsPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-44"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-analytics-navigation-card-to-the-admindashboardpage-linking-to-the-new-analytics-page",
+      "featureTitle": "Add Analytics navigation card to the AdminDashboardPage linking to the new analytics page",
+      "files": [
+        "frontend/src/pages/AdminDashboardPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-45"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-productcard-component-click-handler-to-record-product-click-analytics-event-when-users-click-on-products-in-the-catalog",
+      "featureTitle": "Update ProductCard component click handler to record product click analytics event when users click on products in the catalog",
+      "files": [
+        "frontend/src/components/ProductCard.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-46"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-galleryitem-component-to-record-content-view-analytics-event-when-gallery-content-is-viewed",
+      "featureTitle": "Update GalleryItem component to record content view analytics event when gallery content is viewed",
+      "files": [
+        "frontend/src/components/GalleryItem.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-47"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-create-a-productsearch-component-with-text-input-for-searching-products-by-name-or-description-and-dropdown-filters-for-category-and-price-range",
+      "featureTitle": "Create a ProductSearch component with text input for searching products by name or description and dropdown filters for category and price range",
+      "files": [
+        "frontend/src/components/ProductSearch.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-48"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-productspage-to-include-the-productsearch-component-above-the-product-grid-and-filter-displayed-products-based-on-search-criteria",
+      "featureTitle": "Update ProductsPage to include the ProductSearch component above the product grid and filter displayed products based on search criteria",
+      "files": [
+        "frontend/src/pages/ProductsPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-49"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-create-an-aboutpage-displaying-mosslight-studios-business-story-mission-statement-and-contact-information-with-brand-styling",
+      "featureTitle": "Create an AboutPage displaying Mosslight Studios business story, mission statement, and contact information with brand styling",
+      "files": [
+        "frontend/src/pages/AboutPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-50"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-create-an-faqpage-displaying-common-questions-and-answers-about-shipping-returns-product-care-and-ordering-process-with-collapsible-accordion-sections",
+      "featureTitle": "Create an FAQPage displaying common questions and answers about shipping, returns, product care, and ordering process with collapsible accordion sections",
+      "files": [
+        "frontend/src/pages/FAQPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-51"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-header-navigation-to-include-links-to-about-and-faq-pages-in-the-main-menu",
+      "featureTitle": "Update Header navigation to include links to About and FAQ pages in the main menu",
+      "files": [
+        "frontend/src/components/Header.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-52"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-create-a-socialmedialinks-component-displaying-clickable-icon-links-to-mosslight-studios-social-media-profiles-instagram-tiktok-facebook-etc",
+      "featureTitle": "Create a SocialMediaLinks component displaying clickable icon links to Mosslight Studios social media profiles (Instagram, TikTok, Facebook, etc.)",
+      "files": [
+        "frontend/src/components/SocialMediaLinks.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-53"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-gallerypage-to-display-the-socialmedialinks-component-prominently-above-or-below-the-gallery-content-grid",
+      "featureTitle": "Update GalleryPage to display the SocialMediaLinks component prominently above or below the gallery content grid",
+      "files": [
+        "frontend/src/pages/GalleryPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-54"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-footer-component-to-include-the-socialmedialinks-component-for-consistent-access-to-social-profiles-across-all-pages",
+      "featureTitle": "Update Footer component to include the SocialMediaLinks component for consistent access to social profiles across all pages",
+      "files": [
+        "frontend/src/components/Footer.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-55"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-routes-in-app-tsx-for-about-faq-and-admin-analytics-pages-with-appropriate-route-configuration",
+      "featureTitle": "Add routes in App.tsx for /about, /faq, and /admin/analytics pages with appropriate route configuration",
+      "files": [
+        "frontend/src/App.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-56"
       ],
       "confidence": "high"
     }

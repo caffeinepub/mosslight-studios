@@ -1,180 +1,388 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Add Discussion Board Frontend for Customer Questions and Admin Responses",
+  "title": "Add customer notifications, product reviews, analytics dashboard, search/filtering, About/FAQ pages, and social media links",
   "requirements": [
     {
-      "id": "REQ-14",
-      "summary": "Create a public-facing discussion board page accessible from the main navigation that displays all questions and replies in a forum-style layout",
+      "id": "REQ-36",
+      "summary": "Create React Query hook for managing notifications with fetch and mark-as-read operations",
       "acceptanceCriteria": [
-        "New route /forum displays the discussion board",
-        "Navigation link added to Header component for 'Forum' or 'Discussion Board'",
-        "Page is publicly accessible without authentication"
+        "Hook fetches unread notifications with loading and error states",
+        "Mutation to mark notification as read with cache invalidation",
+        "Mutation to mark all notifications as read"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/ForumPage.tsx",
+          "path": "frontend/src/hooks/useNotifications.ts",
           "operation": "create",
-          "description": "Create a public forum page that displays all discussion posts in a list format. The page should fetch posts using the useDiscussionPosts hook, show loading and error states, and render the DiscussionPostList component with the fetched posts. Include a prominent section at the top with a 'Ask a Question' button that scrolls to or reveals the question form."
+          "description": "Create hook exporting useGetUnreadNotifications query and useMarkNotificationAsRead mutation. Query fetches notifications using actor.getUnreadNotifications(). Mutation calls actor.markNotificationAsRead(notificationId) and invalidates 'unreadNotifications' query key on success."
+        }
+      ]
+    },
+    {
+      "id": "REQ-37",
+      "summary": "Create NotificationBell component in Header showing unread count badge and notification dropdown",
+      "acceptanceCriteria": [
+        "Bell icon displays in Header with unread count badge",
+        "Clicking bell opens dropdown showing notifications",
+        "Notifications show message, timestamp, and read/unread status",
+        "Clicking notification marks it as read",
+        "Shows empty state when no notifications exist"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/NotificationBell.tsx",
+          "operation": "create",
+          "description": "Create component using useGetUnreadNotifications hook to display bell icon with badge showing count. On click, open dropdown panel listing notifications with message, formatted timestamp, and type-based styling. Clicking a notification triggers useMarkNotificationAsRead mutation. Include empty state message. Use shadcn/ui DropdownMenu, Badge, and Bell icon from lucide-react."
         },
         {
           "path": "frontend/src/components/Header.tsx",
           "operation": "modify",
-          "description": "Add a 'Forum' navigation link to the Header component's navigation menu. Place it between 'Gallery' and 'My Orders' in the navigation order. Ensure the link uses TanStack Router's Link component and points to '/forum'."
+          "description": "Import and add NotificationBell component to the navigation bar between the cart icon and login button. Ensure it only renders when user is authenticated using identity check from useInternetIdentity."
+        }
+      ]
+    },
+    {
+      "id": "REQ-38",
+      "summary": "Add Notifications section to admin dashboard for admin-specific alerts",
+      "acceptanceCriteria": [
+        "Admin dashboard shows notifications section with recent alerts",
+        "Low inventory alerts are prominently displayed",
+        "Admin can mark alerts as read or dismiss them"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/AdminNotificationsPanel.tsx",
+          "operation": "create",
+          "description": "Create component using useGetUnreadNotifications to display admin notifications (adminAlert and lowInventory types). Show alerts in card format with alert icon, message, timestamp, and mark-as-read button. Highlight low inventory alerts with warning styling. Use shadcn/ui Card, Alert, and AlertTriangle icon."
         },
+        {
+          "path": "frontend/src/pages/AdminDashboardPage.tsx",
+          "operation": "modify",
+          "description": "Import and add AdminNotificationsPanel component below the heading and above the navigation cards grid. Display it prominently at the top of the dashboard content area."
+        }
+      ]
+    },
+    {
+      "id": "REQ-39",
+      "summary": "Create React Query hook for product reviews with fetch, submit, and rating retrieval",
+      "acceptanceCriteria": [
+        "Hook fetches all reviews for a product with loading states",
+        "Mutation to submit new review with star rating and text",
+        "Retrieves average rating and review count for products",
+        "Handles verification errors when user hasn't purchased product"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useReviews.ts",
+          "operation": "create",
+          "description": "Create hook exporting useGetProductReviews(productId) query calling actor.getProductReviews(productId) which returns [Review[], averageRating]. Export useSubmitReview mutation calling actor.submitReview(productId, rating, reviewText) with error handling for purchase verification failures. Invalidate productReviews query key on success."
+        }
+      ]
+    },
+    {
+      "id": "REQ-40",
+      "summary": "Create ProductReviews component displaying reviews with ratings and verified badges on product detail page",
+      "acceptanceCriteria": [
+        "Component displays all reviews in chronological order",
+        "Shows star rating, review text, and timestamp for each review",
+        "Displays verified purchaser badge on reviews",
+        "Shows average rating and total review count at the top",
+        "Shows empty state when no reviews exist"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/ProductReviews.tsx",
+          "operation": "create",
+          "description": "Create component accepting productId prop and using useGetProductReviews hook. Display average rating with star icons and review count at top. Map reviews array to cards showing star rating visualization, review text, formatted timestamp, and verified purchase badge. Sort by timestamp descending. Show 'No reviews yet' empty state. Use shadcn/ui Card, Badge, and Star icon from lucide-react."
+        },
+        {
+          "path": "frontend/src/pages/ProductDetailPage.tsx",
+          "operation": "modify",
+          "description": "Import and add ProductReviews component below the AddToCartButton section, passing productId from route params. Add section heading 'Customer Reviews' above the component."
+        }
+      ]
+    },
+    {
+      "id": "REQ-41",
+      "summary": "Create ReviewForm component for verified purchasers to submit product reviews",
+      "acceptanceCriteria": [
+        "Form includes star rating selector (1-5 stars)",
+        "Form includes textarea for review text",
+        "Only shows form to authenticated users who purchased the product",
+        "Shows error message if user hasn't purchased product",
+        "Validates review text is not empty before submission"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/ReviewForm.tsx",
+          "operation": "create",
+          "description": "Create form component accepting productId prop. Use useSubmitReview mutation and useInternetIdentity for auth check. Include star rating selector (1-5 interactive stars), textarea for review text with validation, and submit button. Show login prompt if not authenticated. Display error toast if purchase verification fails. Use shadcn/ui Form, Textarea, Button, and Star icon. Reset form on successful submission."
+        },
+        {
+          "path": "frontend/src/pages/ProductDetailPage.tsx",
+          "operation": "modify",
+          "description": "Import and add ReviewForm component between AddToCartButton and ProductReviews sections, passing productId from route params. Add section heading 'Write a Review'."
+        }
+      ]
+    },
+    {
+      "id": "REQ-42",
+      "summary": "Update ProductCard to display average star rating and review count",
+      "acceptanceCriteria": [
+        "Shows average star rating as visual stars or numeric value",
+        "Displays review count next to rating",
+        "Handles products with no reviews gracefully"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/ProductCard.tsx",
+          "operation": "modify",
+          "description": "Add productId prop to component. Use useGetProductReviews(productId) hook to fetch review data. Display average rating as visual stars (filled/half-filled/empty) and show review count text (e.g., '(12 reviews)'). Position rating display below product name and above description. Show no rating UI if review count is zero."
+        }
+      ]
+    },
+    {
+      "id": "REQ-43",
+      "summary": "Create React Query hook for fetching analytics data including products, content, revenue, and inventory",
+      "acceptanceCriteria": [
+        "Hook fetches top clicked products with counts",
+        "Hook fetches top viewed content with counts",
+        "Hook fetches revenue and order statistics",
+        "Hook fetches low inventory products"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useAnalytics.ts",
+          "operation": "create",
+          "description": "Create hook exporting useGetAnalyticsData query calling actor.getAnalyticsData() which returns object with mostClickedProducts, mostViewedContent, totalRevenue, orderCount, and lowInventoryProducts arrays. Include enabled flag checking for admin authentication. Use 'analyticsData' as query key."
+        },
+        {
+          "path": "frontend/src/hooks/useAnalytics.ts",
+          "operation": "modify",
+          "description": "Add useRecordAnalyticsEvent mutation hook calling actor.recordAnalyticsEvent(eventType) for tracking product clicks and content views. Include error handling but no cache invalidation needed for fire-and-forget tracking."
+        }
+      ]
+    },
+    {
+      "id": "REQ-44",
+      "summary": "Create AdminAnalyticsPage displaying dashboard with revenue, products, content, and inventory metrics",
+      "acceptanceCriteria": [
+        "Displays total revenue and order count metrics",
+        "Shows top 10 most clicked products with click counts",
+        "Shows top 10 most viewed gallery content with view counts",
+        "Displays low inventory alerts prominently",
+        "Uses charts or visual representations for data where appropriate",
+        "Protected by AdminGuard component"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/AdminAnalyticsPage.tsx",
+          "operation": "create",
+          "description": "Create page wrapped in AdminGuard using useGetAnalyticsData hook. Display heading 'Analytics Dashboard'. Show metric cards for total revenue (formatted as currency) and order count at top. Create sections for 'Top Clicked Products' and 'Most Viewed Content' displaying items in lists with counts. Add 'Low Inventory Alert' section showing products below threshold with warning styling. Use shadcn/ui Card, Alert, and responsive grid layout. Include loading and error states."
+        }
+      ]
+    },
+    {
+      "id": "REQ-45",
+      "summary": "Add Analytics navigation card to AdminDashboardPage",
+      "acceptanceCriteria": [
+        "Analytics card appears on admin dashboard with appropriate icon",
+        "Card links to /admin/analytics route",
+        "Card styling matches existing dashboard cards"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/AdminDashboardPage.tsx",
+          "operation": "modify",
+          "description": "Add new navigation card linking to '/admin/analytics' with BarChart3 icon from lucide-react. Title 'Analytics' with description 'View performance metrics and insights'. Position card after Orders card in the grid, maintaining consistent styling with existing cards."
+        }
+      ]
+    },
+    {
+      "id": "REQ-46",
+      "summary": "Update ProductCard click handler to record product click analytics",
+      "acceptanceCriteria": [
+        "Records analytics event when product card is clicked",
+        "Event tracking does not block navigation",
+        "Works for both authenticated and anonymous users"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/ProductCard.tsx",
+          "operation": "modify",
+          "description": "Import useRecordAnalyticsEvent hook. Add onClick handler to card link that calls recordAnalyticsEvent mutation with productClick event type and productId. Use fire-and-forget pattern (no await) so tracking doesn't block navigation. Wrap in try-catch to silently handle errors."
+        }
+      ]
+    },
+    {
+      "id": "REQ-47",
+      "summary": "Update GalleryItem to record content view analytics when rendered",
+      "acceptanceCriteria": [
+        "Records analytics event when gallery item is rendered or viewed",
+        "Event tracking does not impact performance",
+        "Works for both authenticated and anonymous users"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/GalleryItem.tsx",
+          "operation": "modify",
+          "description": "Import useRecordAnalyticsEvent hook. Add useEffect that triggers once on mount, calling recordAnalyticsEvent mutation with contentView event type and content.id. Use fire-and-forget pattern and wrap in try-catch. Include content.id in dependency array."
+        }
+      ]
+    },
+    {
+      "id": "REQ-48",
+      "summary": "Create ProductSearch component with text search and filters for category and price range",
+      "acceptanceCriteria": [
+        "Text search input filters products by name and description",
+        "Category filter dropdown (if categories exist in product data)",
+        "Price range filter with min/max inputs or predefined ranges",
+        "Filters update product list in real-time",
+        "Clear filters button to reset all filters"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/ProductSearch.tsx",
+          "operation": "create",
+          "description": "Create component accepting products array and onFilterChange callback props. Include text Input for search term, Select for price ranges (Under $50, $50-$100, $100-$200, Over $200), and Clear Filters button. Implement local state for filters. Call onFilterChange with filtered products whenever filters change. Filter logic: search checks name/description (case-insensitive), price range checks product.price. Use shadcn/ui Input, Select, and Button components."
+        }
+      ]
+    },
+    {
+      "id": "REQ-49",
+      "summary": "Update ProductsPage to include ProductSearch and display filtered products",
+      "acceptanceCriteria": [
+        "Search component appears above product grid",
+        "Product list updates based on active filters",
+        "Shows filtered count (e.g., 'Showing 5 of 20 products')",
+        "Shows empty state when no products match filters"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/ProductsPage.tsx",
+          "operation": "modify",
+          "description": "Import ProductSearch component. Add local state for filtered products initialized with all products. Add ProductSearch component above the products grid, passing products and setFilteredProducts callback. Update grid to map filteredProducts instead of products. Add count display showing 'Showing X of Y products'. Update empty state to differentiate between no products and no matches."
+        }
+      ]
+    },
+    {
+      "id": "REQ-50",
+      "summary": "Create AboutPage with business story, mission, and contact information",
+      "acceptanceCriteria": [
+        "Page includes business story section",
+        "Page includes mission statement",
+        "Page includes contact information (email, social media)",
+        "Uses Mosslight Studios brand colors (dark emerald green and cool light nude)",
+        "Responsive layout for mobile and desktop"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/AboutPage.tsx",
+          "operation": "create",
+          "description": "Create page with heading 'About Mosslight Studios'. Include sections: 'Our Story' (placeholder text about handcrafted products), 'Our Mission' (placeholder mission statement), and 'Contact Us' (email placeholder and social media note). Use brand colors from theme (emerald primary, nude secondary). Implement responsive grid layout with prose styling. Use shadcn/ui Card components for sections."
+        }
+      ]
+    },
+    {
+      "id": "REQ-51",
+      "summary": "Create FAQPage with collapsible accordion sections for shipping, returns, and product care",
+      "acceptanceCriteria": [
+        "FAQ items organized in collapsible accordion sections",
+        "Covers shipping information and timeframes",
+        "Covers return and exchange policies",
+        "Covers product care instructions",
+        "Covers ordering and payment questions",
+        "Uses brand styling consistently"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/FAQPage.tsx",
+          "operation": "create",
+          "description": "Create page with heading 'Frequently Asked Questions'. Use shadcn/ui Accordion component with collapsible items. Include FAQ items: 'Shipping & Delivery' (processing times, shipping methods), 'Returns & Exchanges' (return policy, process), 'Product Care' (care instructions, materials), 'Ordering & Payment' (accepted methods, order tracking). Add placeholder content for each section. Use brand styling and responsive layout."
+        }
+      ]
+    },
+    {
+      "id": "REQ-52",
+      "summary": "Update Header navigation to include About and FAQ links",
+      "acceptanceCriteria": [
+        "About link appears in main navigation menu",
+        "FAQ link appears in main navigation menu",
+        "Links are properly highlighted when on respective pages",
+        "Navigation remains responsive on mobile"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/Header.tsx",
+          "operation": "modify",
+          "description": "Add navigation links for '/about' (text: 'About') and '/faq' (text: 'FAQ') to the nav menu after Gallery link and before cart icon. Use Link component from TanStack Router with activeProps for highlighting active page. Ensure links are included in mobile menu if applicable."
+        }
+      ]
+    },
+    {
+      "id": "REQ-53",
+      "summary": "Create SocialMediaLinks component with clickable social media profile icons",
+      "acceptanceCriteria": [
+        "Component displays social media icons as clickable links",
+        "Icons open social media profiles in new tabs",
+        "Component uses brand styling",
+        "Icons are visually consistent and properly sized"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/SocialMediaLinks.tsx",
+          "operation": "create",
+          "description": "Create component displaying social media icons (Instagram, Facebook, TikTok) as external links with target='_blank' and rel='noopener noreferrer'. Use placeholder URLs (e.g., 'https://instagram.com/mosslightstudios'). Use lucide-react icons (Instagram, Facebook) and TikTok SVG. Style icons with brand colors on hover. Arrange horizontally with gap spacing. Accept optional className prop for positioning flexibility."
+        }
+      ]
+    },
+    {
+      "id": "REQ-54",
+      "summary": "Update GalleryPage to display SocialMediaLinks prominently",
+      "acceptanceCriteria": [
+        "Social media links appear on gallery page",
+        "Links are positioned prominently for visibility",
+        "Layout remains responsive on mobile devices"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/GalleryPage.tsx",
+          "operation": "modify",
+          "description": "Import SocialMediaLinks component. Add component above the gallery grid with center alignment and margin spacing. Include heading 'Follow Us' above the social links for context."
+        }
+      ]
+    },
+    {
+      "id": "REQ-55",
+      "summary": "Update Footer to include SocialMediaLinks for consistent site-wide access",
+      "acceptanceCriteria": [
+        "Social media icons appear in footer",
+        "Footer layout accommodates social links without breaking existing content",
+        "Links are visible but not overwhelming in footer context"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/Footer.tsx",
+          "operation": "modify",
+          "description": "Import SocialMediaLinks component. Add component above or below the copyright text with center alignment. Reduce icon size slightly for footer context by passing appropriate className. Maintain existing footer layout and spacing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-56",
+      "summary": "Add routes for About, FAQ, and Admin Analytics pages",
+      "acceptanceCriteria": [
+        "Route /about loads AboutPage component",
+        "Route /faq loads FAQPage component",
+        "Route /admin/analytics loads AdminAnalyticsPage with AdminGuard",
+        "All routes are properly registered with TanStack Router"
+      ],
+      "file_operations": [
         {
           "path": "frontend/src/App.tsx",
           "operation": "modify",
-          "description": "Register the /forum route in the router configuration. The route should be public (no authentication required) and render the ForumPage component within the Layout."
-        }
-      ]
-    },
-    {
-      "id": "REQ-15",
-      "summary": "Build a discussion post list component that displays all questions with author information, timestamps, status badges, and reply counts",
-      "acceptanceCriteria": [
-        "Each post shows the question text, author (anonymized as 'Customer' for non-admins), and timestamp",
-        "Status badge indicates if question is 'Open' or 'Answered'",
-        "Reply count is displayed for each post",
-        "Posts are clickable to view full thread with replies"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/DiscussionPostList.tsx",
-          "operation": "create",
-          "description": "Create a component that displays a list of discussion posts. Each post item should show the question text (truncated if long), display 'Customer' as the author for non-admin users, include a formatted timestamp, show a status badge (Open/Answered), and display the reply count. Make each post clickable using TanStack Router's Link to navigate to /forum/:postId. Use the Mosslight Studios color palette from Tailwind config for styling, with appropriate hover states."
-        },
-        {
-          "path": "frontend/src/components/PostStatusBadge.tsx",
-          "operation": "create",
-          "description": "Create a badge component that displays the post status (open or answered). Use the PostStatus enum from backend types. Style 'open' badges with a yellow/warning variant and 'answered' badges with a green/success variant, following the existing OrderStatusBadge pattern but adapted for discussion post statuses."
-        }
-      ]
-    },
-    {
-      "id": "REQ-16",
-      "summary": "Create a form component that allows authenticated customers to submit new questions to the discussion board",
-      "acceptanceCriteria": [
-        "Form includes textarea for question text",
-        "Submit button is disabled when user is not authenticated",
-        "Form shows loading state during submission",
-        "Success toast notification appears after question is posted",
-        "Form clears after successful submission"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/AskQuestionForm.tsx",
-          "operation": "create",
-          "description": "Create a form component for submitting new questions. Include a textarea for the question text with a label and placeholder. The submit button should be disabled when the user is not authenticated (check via useInternetIdentity) or when the form is submitting. Show loading state during submission using the useCreateDiscussionPost mutation. Display a success toast notification after successful submission and clear the form. Include validation that question text is not empty. Style using Mosslight Studios theme colors."
-        }
-      ]
-    },
-    {
-      "id": "REQ-17",
-      "summary": "Build a discussion thread detail view that displays the full question and all replies with author identification for admin responses",
-      "acceptanceCriteria": [
-        "Thread view shows the original question at the top",
-        "All replies are displayed below in chronological order",
-        "Admin replies are visually distinguished with a badge or different styling",
-        "Each reply shows author role (Admin or Customer) and timestamp"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/ForumThreadPage.tsx",
-          "operation": "create",
-          "description": "Create a thread detail page that displays a single discussion post with all replies. Use the useDiscussionThread hook to fetch the post by ID from route params. Display the original question prominently at the top with author (Customer), timestamp, and status badge. Below, render all replies in chronological order using the ReplyList component. Include the AdminReplyForm at the bottom for admin users. Handle loading and error states appropriately."
-        },
-        {
-          "path": "frontend/src/components/ReplyList.tsx",
-          "operation": "create",
-          "description": "Create a component that displays a list of replies. For each reply, show the content, timestamp, and author role (Admin or Customer). Admin replies should be visually distinguished with an 'Admin' badge and potentially different background styling. Use the useCallerUserRole hook to determine if the reply author is an admin (by comparing principals if needed). Style replies in a conversation-like format using the brand color palette."
-        },
-        {
-          "path": "frontend/src/App.tsx",
-          "operation": "modify",
-          "description": "Register the /forum/:postId route in the router configuration. The route should be public and render the ForumThreadPage component within the Layout. Ensure the postId parameter is properly typed and accessible to the page component."
-        }
-      ]
-    },
-    {
-      "id": "REQ-18",
-      "summary": "Create a reply form component that allows admins to respond to questions directly in the thread view",
-      "acceptanceCriteria": [
-        "Reply form is only visible to authenticated admin users",
-        "Form includes textarea for reply text and submit button",
-        "Shows loading state during submission",
-        "New reply appears immediately in the thread after successful submission",
-        "Form clears after reply is posted"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/AdminReplyForm.tsx",
-          "operation": "create",
-          "description": "Create a form component for admins to reply to discussion posts. The form should only render if the current user is an admin (check using useCallerUserRole hook). Include a textarea for reply content and a submit button. Show loading state during submission using the useReplyToPost mutation. Clear the form after successful submission. The mutation should automatically invalidate the thread query so the new reply appears immediately. Style consistently with other form components in the app."
-        }
-      ]
-    },
-    {
-      "id": "REQ-19",
-      "summary": "Create React Query hooks for discussion board operations including fetching posts, creating posts, fetching thread details, and adding replies",
-      "acceptanceCriteria": [
-        "useDiscussionPosts hook fetches all posts",
-        "useDiscussionThread hook fetches a specific post with replies",
-        "useCreateDiscussionPost mutation creates new posts",
-        "useReplyToPost mutation adds admin replies",
-        "All mutations invalidate relevant queries on success"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useDiscussionBoard.ts",
-          "operation": "create",
-          "description": "Create React Query hooks for discussion board operations. Implement useDiscussionPosts (query) that calls actor.getAllDiscussionPosts(). Implement useDiscussionThread (query) that accepts a postId parameter and filters the posts array to return the matching post with its replies. Implement useCreateDiscussionPost (mutation) that calls actor.createDiscussionPost(question) and invalidates the 'discussionPosts' query on success. Implement useReplyToPost (mutation) that calls actor.addReply(postId, content) and invalidates both 'discussionPosts' and specific thread queries on success. All queries should be enabled only when actor is available and not fetching, following the pattern from other hooks in the codebase."
-        }
-      ]
-    },
-    {
-      "id": "REQ-20",
-      "summary": "Apply Mosslight Studios brand styling to all discussion board components using the existing dark emerald green and cool light nude color palette",
-      "acceptanceCriteria": [
-        "Discussion board components use the existing Tailwind color system from tailwind.config.js",
-        "Layout and typography follow the established design patterns from other pages",
-        "Status badges and admin identification follow the brand styling guidelines"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/DiscussionPostList.tsx",
-          "operation": "modify",
-          "description": "Ensure the DiscussionPostList component uses the Tailwind color classes from the configured theme (emerald and nude variants). Apply consistent spacing, shadows, and hover effects matching other card-based components like ProductCard. Use the brand typography (Playfair Display for headings if appropriate, Inter for body text)."
-        },
-        {
-          "path": "frontend/src/components/PostStatusBadge.tsx",
-          "operation": "modify",
-          "description": "Style the PostStatusBadge component using the existing Tailwind color system. Follow the pattern established by OrderStatusBadge but adapt colors to fit the forum context. Use appropriate color variants from the theme for open (yellow/warning tones) and answered (green/success tones) states."
-        },
-        {
-          "path": "frontend/src/components/AskQuestionForm.tsx",
-          "operation": "modify",
-          "description": "Apply brand styling to the AskQuestionForm component. Use the existing form input styles from other components like ProfileSetupModal. Ensure buttons use the brand color palette with appropriate hover states. Apply consistent spacing and layout patterns."
-        },
-        {
-          "path": "frontend/src/pages/ForumPage.tsx",
-          "operation": "modify",
-          "description": "Apply consistent page layout and styling to ForumPage. Use spacing, container widths, and section layouts that match other pages like ProductsPage and GalleryPage. Ensure headings use appropriate typography from the brand style guide."
-        },
-        {
-          "path": "frontend/src/pages/ForumThreadPage.tsx",
-          "operation": "modify",
-          "description": "Style the ForumThreadPage with consistent layout patterns. Use appropriate container widths, spacing, and card-style layouts for the question and replies sections. Ensure the page follows the visual hierarchy established in other detail pages like ProductDetailPage."
-        },
-        {
-          "path": "frontend/src/components/ReplyList.tsx",
-          "operation": "modify",
-          "description": "Style the ReplyList component with brand colors. Use subtle background colors to distinguish admin replies from customer replies. Apply consistent spacing, borders, and typography. Ensure admin badges use appropriate color variants from the theme."
-        },
-        {
-          "path": "frontend/src/components/AdminReplyForm.tsx",
-          "operation": "modify",
-          "description": "Apply brand styling to the AdminReplyForm. Use consistent form styling matching other form components. Ensure the textarea and submit button follow the established design patterns with appropriate colors, spacing, and interactive states."
+          "description": "Import AboutPage, FAQPage, and AdminAnalyticsPage components. Add route definitions: Route for '/about' rendering AboutPage, Route for '/faq' rendering FAQPage, and Route for '/admin/analytics' rendering AdminAnalyticsPage wrapped in AdminGuard. Position new routes in the router configuration maintaining consistent structure with existing routes."
         }
       ]
     }

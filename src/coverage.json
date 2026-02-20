@@ -1,140 +1,317 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-20T18:56:22.106Z",
+  "generatedAt": "2026-02-20T21:13:37.561Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 11,
-    "implemented": 7,
+    "total": 30,
+    "implemented": 21,
     "items": [
       {
-        "id": "REQ-10",
-        "summary": "Create a backend data model for discussion board posts with fields for question text, author principal, timestamp, status (open/answered), and associated replies",
+        "id": "REQ-27",
+        "summary": "Create a backend data model for notifications with fields for recipient principal, notification type (order_update, admin_alert, low_inventory), message text, timestamp, read status, and optional order ID reference",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
       },
       {
-        "id": "REQ-11",
-        "summary": "Implement backend methods for customers to create new discussion posts with questions",
+        "id": "REQ-28",
+        "summary": "Implement backend methods for creating notifications when order status changes, inventory falls below threshold (5 units), and for admin broadcast alerts",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
       },
       {
-        "id": "REQ-12",
-        "summary": "Implement backend methods for admins to reply to discussion posts",
+        "id": "REQ-29",
+        "summary": "Implement backend query methods to retrieve unread notifications for the current user and mark notifications as read",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
       },
       {
-        "id": "REQ-13",
-        "summary": "Implement backend query methods to retrieve all discussion posts with their replies",
+        "id": "REQ-30",
+        "summary": "Create a backend data model for product reviews with fields for product ID, reviewer principal, star rating (1-5), review text, timestamp, and verified purchase flag",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
       },
       {
-        "id": "REQ-14",
-        "summary": "Create a public-facing discussion board page accessible from the main navigation that displays all questions and replies in a forum-style layout",
+        "id": "REQ-31",
+        "summary": "Implement backend method for verified customers to submit product reviews only for products they have purchased, validating purchase history before allowing review submission",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-32",
+        "summary": "Implement backend query methods to retrieve all reviews for a specific product with average rating calculation and reviewer anonymization (showing only partial principal)",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-33",
+        "summary": "Create a backend data model for analytics events tracking product clicks, content gallery views, and order completions with timestamp, user principal (optional for anonymous), event type, and target ID",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-34",
+        "summary": "Implement backend methods to record analytics events when products are clicked, content items are viewed, and orders are completed",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-35",
+        "summary": "Implement backend query methods to retrieve analytics data including most clicked products, most viewed content, total revenue, order count by date range, and low inventory products (below 5 units)",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-36",
+        "summary": "Create React Query hook for fetching unread notifications for the current user and marking notifications as read",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/ForumPage.tsx",
-          "frontend/src/components/Header.tsx",
+          "frontend/src/hooks/useNotifications.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useNotifications.ts"
+        ]
+      },
+      {
+        "id": "REQ-37",
+        "summary": "Create a NotificationBell component in the Header that displays unread notification count badge and opens a dropdown panel showing recent notifications with timestamps and read/unread status",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/NotificationBell.tsx",
+          "frontend/src/components/Header.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/NotificationBell.tsx",
+          "frontend/src/components/Header.tsx"
+        ]
+      },
+      {
+        "id": "REQ-38",
+        "summary": "Add a Notifications section to the admin dashboard displaying admin-specific alerts including low inventory warnings and system notifications",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/AdminNotificationsPanel.tsx",
+          "frontend/src/pages/AdminDashboardPage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/AdminNotificationsPanel.tsx",
+          "frontend/src/pages/AdminDashboardPage.tsx"
+        ]
+      },
+      {
+        "id": "REQ-39",
+        "summary": "Create React Query hook for fetching product reviews, submitting new reviews, and retrieving average ratings for products",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useReviews.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useReviews.ts"
+        ]
+      },
+      {
+        "id": "REQ-40",
+        "summary": "Create a ProductReviews component that displays all reviews for a product with star ratings, review text, timestamps, and verified purchaser badges, shown on the ProductDetailPage below the product information",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/ProductReviews.tsx",
+          "frontend/src/pages/ProductDetailPage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/ProductReviews.tsx",
+          "frontend/src/pages/ProductDetailPage.tsx"
+        ]
+      },
+      {
+        "id": "REQ-41",
+        "summary": "Create a ReviewForm component that allows authenticated customers who have purchased the product to submit a review with a star rating selector (1-5 stars) and text input",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/ReviewForm.tsx",
+          "frontend/src/pages/ProductDetailPage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/ReviewForm.tsx",
+          "frontend/src/pages/ProductDetailPage.tsx"
+        ]
+      },
+      {
+        "id": "REQ-42",
+        "summary": "Update ProductCard component to display average star rating and review count for each product in the catalog grid",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/ProductCard.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/ProductCard.tsx"
+        ]
+      },
+      {
+        "id": "REQ-43",
+        "summary": "Create React Query hook for fetching analytics data including most clicked products, most viewed content, revenue metrics, and inventory alerts",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useAnalytics.ts",
+          "frontend/src/hooks/useAnalytics.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useAnalytics.ts",
+          "frontend/src/hooks/useAnalytics.ts"
+        ]
+      },
+      {
+        "id": "REQ-44",
+        "summary": "Create an AdminAnalyticsPage displaying dashboard cards with key metrics including total revenue, order count, top clicked products, most viewed content, and low inventory alerts",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/AdminAnalyticsPage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/AdminAnalyticsPage.tsx"
+        ]
+      },
+      {
+        "id": "REQ-45",
+        "summary": "Add Analytics navigation card to the AdminDashboardPage linking to the new analytics page",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/AdminDashboardPage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/AdminDashboardPage.tsx"
+        ]
+      },
+      {
+        "id": "REQ-46",
+        "summary": "Update ProductCard component click handler to record product click analytics event when users click on products in the catalog",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/ProductCard.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/ProductCard.tsx"
+        ]
+      },
+      {
+        "id": "REQ-47",
+        "summary": "Update GalleryItem component to record content view analytics event when gallery content is viewed",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/GalleryItem.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/GalleryItem.tsx"
+        ]
+      },
+      {
+        "id": "REQ-48",
+        "summary": "Create a ProductSearch component with text input for searching products by name or description and dropdown filters for category and price range",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/ProductSearch.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/ProductSearch.tsx"
+        ]
+      },
+      {
+        "id": "REQ-49",
+        "summary": "Update ProductsPage to include the ProductSearch component above the product grid and filter displayed products based on search criteria",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/ProductsPage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/ProductsPage.tsx"
+        ]
+      },
+      {
+        "id": "REQ-50",
+        "summary": "Create an AboutPage displaying Mosslight Studios business story, mission statement, and contact information with brand styling",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/AboutPage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/AboutPage.tsx"
+        ]
+      },
+      {
+        "id": "REQ-51",
+        "summary": "Create an FAQPage displaying common questions and answers about shipping, returns, product care, and ordering process with collapsible accordion sections",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/FAQPage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/FAQPage.tsx"
+        ]
+      },
+      {
+        "id": "REQ-52",
+        "summary": "Update Header navigation to include links to About and FAQ pages in the main menu",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/Header.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/Header.tsx"
+        ]
+      },
+      {
+        "id": "REQ-53",
+        "summary": "Create a SocialMediaLinks component displaying clickable icon links to Mosslight Studios social media profiles (Instagram, TikTok, Facebook, etc.)",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/SocialMediaLinks.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/SocialMediaLinks.tsx"
+        ]
+      },
+      {
+        "id": "REQ-54",
+        "summary": "Update GalleryPage to display the SocialMediaLinks component prominently above or below the gallery content grid",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/GalleryPage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/GalleryPage.tsx"
+        ]
+      },
+      {
+        "id": "REQ-55",
+        "summary": "Update Footer component to include the SocialMediaLinks component for consistent access to social profiles across all pages",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/Footer.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/Footer.tsx"
+        ]
+      },
+      {
+        "id": "REQ-56",
+        "summary": "Add routes in App.tsx for /about, /faq, and /admin/analytics pages with appropriate route configuration",
+        "status": "implemented",
+        "plannedFiles": [
           "frontend/src/App.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/pages/ForumPage.tsx",
-          "frontend/src/components/Header.tsx",
           "frontend/src/App.tsx"
-        ]
-      },
-      {
-        "id": "REQ-15",
-        "summary": "Build a discussion post list component that displays all questions with author information, timestamps, status badges, and reply counts",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/DiscussionPostList.tsx",
-          "frontend/src/components/PostStatusBadge.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/DiscussionPostList.tsx",
-          "frontend/src/components/PostStatusBadge.tsx"
-        ]
-      },
-      {
-        "id": "REQ-16",
-        "summary": "Create a form component that allows authenticated customers to submit new questions to the discussion board",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/AskQuestionForm.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/AskQuestionForm.tsx"
-        ]
-      },
-      {
-        "id": "REQ-17",
-        "summary": "Build a discussion thread detail view that displays the full question and all replies with author identification for admin responses",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/ForumThreadPage.tsx",
-          "frontend/src/components/ReplyList.tsx",
-          "frontend/src/App.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/ForumThreadPage.tsx",
-          "frontend/src/components/ReplyList.tsx",
-          "frontend/src/App.tsx"
-        ]
-      },
-      {
-        "id": "REQ-18",
-        "summary": "Create a reply form component that allows admins to respond to questions directly in the thread view",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/AdminReplyForm.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/AdminReplyForm.tsx"
-        ]
-      },
-      {
-        "id": "REQ-19",
-        "summary": "Create React Query hooks for discussion board operations including fetching posts, creating posts, fetching thread details, and adding replies",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/hooks/useDiscussionBoard.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/hooks/useDiscussionBoard.ts"
-        ]
-      },
-      {
-        "id": "REQ-20",
-        "summary": "Apply Mosslight Studios brand styling to all discussion board components using the existing dark emerald green and cool light nude color palette",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/DiscussionPostList.tsx",
-          "frontend/src/components/PostStatusBadge.tsx",
-          "frontend/src/components/AskQuestionForm.tsx",
-          "frontend/src/pages/ForumPage.tsx",
-          "frontend/src/pages/ForumThreadPage.tsx",
-          "frontend/src/components/ReplyList.tsx",
-          "frontend/src/components/AdminReplyForm.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/DiscussionPostList.tsx",
-          "frontend/src/components/PostStatusBadge.tsx",
-          "frontend/src/components/AskQuestionForm.tsx",
-          "frontend/src/pages/ForumPage.tsx",
-          "frontend/src/pages/ForumThreadPage.tsx",
-          "frontend/src/components/ReplyList.tsx",
-          "frontend/src/components/AdminReplyForm.tsx"
         ]
       }
     ]
@@ -142,24 +319,34 @@
   "changedFiles": [
     "backend/main.mo",
     "build-request.json",
-    "build-template/README.md",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
     "frontend/src/App.tsx",
     "frontend/src/backend.d.ts",
     "frontend/src/backend.ts",
-    "frontend/src/components/AdminReplyForm.tsx",
-    "frontend/src/components/AskQuestionForm.tsx",
-    "frontend/src/components/DiscussionPostList.tsx",
+    "frontend/src/components/AdminNotificationsPanel.tsx",
+    "frontend/src/components/Footer.tsx",
+    "frontend/src/components/GalleryItem.tsx",
     "frontend/src/components/Header.tsx",
-    "frontend/src/components/PostStatusBadge.tsx",
-    "frontend/src/components/ReplyList.tsx",
+    "frontend/src/components/NotificationBell.tsx",
+    "frontend/src/components/ProductCard.tsx",
+    "frontend/src/components/ProductReviews.tsx",
+    "frontend/src/components/ProductSearch.tsx",
+    "frontend/src/components/ReviewForm.tsx",
+    "frontend/src/components/SocialMediaLinks.tsx",
     "frontend/src/declarations/backend.did.d.ts",
     "frontend/src/declarations/backend.did.js",
-    "frontend/src/hooks/useDiscussionBoard.ts",
-    "frontend/src/pages/ForumPage.tsx",
-    "frontend/src/pages/ForumThreadPage.tsx",
+    "frontend/src/hooks/useAnalytics.ts",
+    "frontend/src/hooks/useNotifications.ts",
+    "frontend/src/hooks/useReviews.ts",
+    "frontend/src/pages/AboutPage.tsx",
+    "frontend/src/pages/AdminAnalyticsPage.tsx",
+    "frontend/src/pages/AdminDashboardPage.tsx",
+    "frontend/src/pages/FAQPage.tsx",
+    "frontend/src/pages/GalleryPage.tsx",
+    "frontend/src/pages/ProductDetailPage.tsx",
+    "frontend/src/pages/ProductsPage.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

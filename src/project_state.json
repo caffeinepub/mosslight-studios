@@ -1,14 +1,19 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 5,
+  "projectStateVersion": 11,
   "summary": "Ecommerce website for Mosslight Studios with admin backend, customer portal, and social media content gallery",
   "architectural_notes": [
     "Ecommerce platform with admin and customer-facing components",
     "Multi-platform social media content aggregation for gallery",
-    "User authentication system for customer portal and admin access"
+    "User authentication system for customer portal and admin access",
+    "Admin authentication uses 8-digit passcode (09131991) separate from customer Internet Identity",
+    "Unified admin dashboard provides complete control over products, orders, messaging, and discussion board",
+    "Analytics tracking system for product clicks and content views",
+    "Product review system limited to verified purchasers only",
+    "In-app notification system for order updates and admin alerts"
   ],
   "known_issues": [],
-  "isFixRequest": false,
+  "isFixRequest": true,
   "existing_features": [
     {
       "id": "feature-create-a-product-management-system-where-administrators-can-upload-new-products-with-details-including-name-description-price-images-and-inventory-quantity",
@@ -137,6 +142,214 @@
         "REQ-20"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-add-a-separate-admin-login-button-below-the-regular-customer-login-section-in-the-authentication-interface",
+      "title": "Add a separate 'Admin Login' button below the regular customer login section in the authentication interface",
+      "reqIds": [
+        "REQ-21"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-8-digit-passcode-authentication-system-for-admin-access-using-the-passcode-09131991",
+      "title": "Implement 8-digit passcode authentication system for admin access using the passcode 09131991",
+      "reqIds": [
+        "REQ-22"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-unified-admin-dashboard-that-displays-navigation-to-all-admin-management-sections-including-products-orders-customer-messaging-and-discussion-board",
+      "title": "Create a unified admin dashboard that displays navigation to all admin management sections including products, orders, customer messaging, and discussion board",
+      "reqIds": [
+        "REQ-23"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-header-component-to-show-admin-status-and-provide-easy-navigation-to-the-admin-dashboard-when-authenticated-as-admin",
+      "title": "Update the Header component to show admin status and provide easy navigation to the admin dashboard when authenticated as admin",
+      "reqIds": [
+        "REQ-24"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-wrap-the-admin-routes-and-components-in-app-tsx-with-the-adminauthprovider-so-that-all-components-using-the-useadminauth-hook-have-access-to-the-admin-authentication-context",
+      "title": "Wrap the admin routes and components in App.tsx with the AdminAuthProvider so that all components using the useAdminAuth hook have access to the admin authentication context",
+      "reqIds": [
+        "REQ-26"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-react-query-hook-for-fetching-unread-notifications-for-the-current-user-and-marking-notifications-as-read",
+      "title": "Create React Query hook for fetching unread notifications for the current user and marking notifications as read",
+      "reqIds": [
+        "REQ-36"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-notificationbell-component-in-the-header-that-displays-unread-notification-count-badge-and-opens-a-dropdown-panel-showing-recent-notifications-with-timestamps-and-read-unread-status",
+      "title": "Create a NotificationBell component in the Header that displays unread notification count badge and opens a dropdown panel showing recent notifications with timestamps and read/unread status",
+      "reqIds": [
+        "REQ-37"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-notifications-section-to-the-admin-dashboard-displaying-admin-specific-alerts-including-low-inventory-warnings-and-system-notifications",
+      "title": "Add a Notifications section to the admin dashboard displaying admin-specific alerts including low inventory warnings and system notifications",
+      "reqIds": [
+        "REQ-38"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-react-query-hook-for-fetching-product-reviews-submitting-new-reviews-and-retrieving-average-ratings-for-products",
+      "title": "Create React Query hook for fetching product reviews, submitting new reviews, and retrieving average ratings for products",
+      "reqIds": [
+        "REQ-39"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-productreviews-component-that-displays-all-reviews-for-a-product-with-star-ratings-review-text-timestamps-and-verified-purchaser-badges-shown-on-the-productdetailpage-below-the-product-information",
+      "title": "Create a ProductReviews component that displays all reviews for a product with star ratings, review text, timestamps, and verified purchaser badges, shown on the ProductDetailPage below the product information",
+      "reqIds": [
+        "REQ-40"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-reviewform-component-that-allows-authenticated-customers-who-have-purchased-the-product-to-submit-a-review-with-a-star-rating-selector-1-5-stars-and-text-input",
+      "title": "Create a ReviewForm component that allows authenticated customers who have purchased the product to submit a review with a star rating selector (1-5 stars) and text input",
+      "reqIds": [
+        "REQ-41"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-productcard-component-to-display-average-star-rating-and-review-count-for-each-product-in-the-catalog-grid",
+      "title": "Update ProductCard component to display average star rating and review count for each product in the catalog grid",
+      "reqIds": [
+        "REQ-42"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-react-query-hook-for-fetching-analytics-data-including-most-clicked-products-most-viewed-content-revenue-metrics-and-inventory-alerts",
+      "title": "Create React Query hook for fetching analytics data including most clicked products, most viewed content, revenue metrics, and inventory alerts",
+      "reqIds": [
+        "REQ-43"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-an-adminanalyticspage-displaying-dashboard-cards-with-key-metrics-including-total-revenue-order-count-top-clicked-products-most-viewed-content-and-low-inventory-alerts",
+      "title": "Create an AdminAnalyticsPage displaying dashboard cards with key metrics including total revenue, order count, top clicked products, most viewed content, and low inventory alerts",
+      "reqIds": [
+        "REQ-44"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-analytics-navigation-card-to-the-admindashboardpage-linking-to-the-new-analytics-page",
+      "title": "Add Analytics navigation card to the AdminDashboardPage linking to the new analytics page",
+      "reqIds": [
+        "REQ-45"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-productcard-component-click-handler-to-record-product-click-analytics-event-when-users-click-on-products-in-the-catalog",
+      "title": "Update ProductCard component click handler to record product click analytics event when users click on products in the catalog",
+      "reqIds": [
+        "REQ-46"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-galleryitem-component-to-record-content-view-analytics-event-when-gallery-content-is-viewed",
+      "title": "Update GalleryItem component to record content view analytics event when gallery content is viewed",
+      "reqIds": [
+        "REQ-47"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-productsearch-component-with-text-input-for-searching-products-by-name-or-description-and-dropdown-filters-for-category-and-price-range",
+      "title": "Create a ProductSearch component with text input for searching products by name or description and dropdown filters for category and price range",
+      "reqIds": [
+        "REQ-48"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-productspage-to-include-the-productsearch-component-above-the-product-grid-and-filter-displayed-products-based-on-search-criteria",
+      "title": "Update ProductsPage to include the ProductSearch component above the product grid and filter displayed products based on search criteria",
+      "reqIds": [
+        "REQ-49"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-an-aboutpage-displaying-mosslight-studios-business-story-mission-statement-and-contact-information-with-brand-styling",
+      "title": "Create an AboutPage displaying Mosslight Studios business story, mission statement, and contact information with brand styling",
+      "reqIds": [
+        "REQ-50"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-an-faqpage-displaying-common-questions-and-answers-about-shipping-returns-product-care-and-ordering-process-with-collapsible-accordion-sections",
+      "title": "Create an FAQPage displaying common questions and answers about shipping, returns, product care, and ordering process with collapsible accordion sections",
+      "reqIds": [
+        "REQ-51"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-header-navigation-to-include-links-to-about-and-faq-pages-in-the-main-menu",
+      "title": "Update Header navigation to include links to About and FAQ pages in the main menu",
+      "reqIds": [
+        "REQ-52"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-socialmedialinks-component-displaying-clickable-icon-links-to-mosslight-studios-social-media-profiles-instagram-tiktok-facebook-etc",
+      "title": "Create a SocialMediaLinks component displaying clickable icon links to Mosslight Studios social media profiles (Instagram, TikTok, Facebook, etc.)",
+      "reqIds": [
+        "REQ-53"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-gallerypage-to-display-the-socialmedialinks-component-prominently-above-or-below-the-gallery-content-grid",
+      "title": "Update GalleryPage to display the SocialMediaLinks component prominently above or below the gallery content grid",
+      "reqIds": [
+        "REQ-54"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-footer-component-to-include-the-socialmedialinks-component-for-consistent-access-to-social-profiles-across-all-pages",
+      "title": "Update Footer component to include the SocialMediaLinks component for consistent access to social profiles across all pages",
+      "reqIds": [
+        "REQ-55"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-routes-in-app-tsx-for-about-faq-and-admin-analytics-pages-with-appropriate-route-configuration",
+      "title": "Add routes in App.tsx for /about, /faq, and /admin/analytics pages with appropriate route configuration",
+      "reqIds": [
+        "REQ-56"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -199,6 +412,158 @@
       "summary": "Implement backend query methods to retrieve all discussion posts with their replies",
       "reqIds": [
         "REQ-13"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-10",
+      "summary": "Add separate admin login button below regular login with 8-digit passcode authentication (09131991)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-11",
+      "summary": "Create unified admin dashboard with access to product management, order management, customer messaging, and discussion board management",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-12",
+      "summary": "Integrate Printify backend connection for product management",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-17",
+      "summary": "Implement backend method to verify admin passcode and establish admin session",
+      "reqIds": [
+        "REQ-25"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-18",
+      "summary": "Implement in-app notification system for customer order updates and admin alerts",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-19",
+      "summary": "Create product review system where verified customers can leave star ratings and written reviews",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-20",
+      "summary": "Display product reviews on individual product detail pages below the listing",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-21",
+      "summary": "Build admin analytics dashboard tracking product clicks, content views, sales metrics, and inventory alerts",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-22",
+      "summary": "Implement product search and filtering functionality by category and price range",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-23",
+      "summary": "Create About/Contact page with business story, mission, and contact information",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-24",
+      "summary": "Build FAQ section covering common questions about shipping, returns, and product care",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-25",
+      "summary": "Add clickable social media profile links integrated with content gallery",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-26",
+      "summary": "Implement low inventory alerts and out-of-stock notifications for admin",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-27",
+      "summary": "Create a backend data model for notifications with fields for recipient principal, notification type (order_update, admin_alert, low_inventory), message text, timestamp, read status, and optional order ID reference",
+      "reqIds": [
+        "REQ-27"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-28",
+      "summary": "Implement backend methods for creating notifications when order status changes, inventory falls below threshold (5 units), and for admin broadcast alerts",
+      "reqIds": [
+        "REQ-28"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-29",
+      "summary": "Implement backend query methods to retrieve unread notifications for the current user and mark notifications as read",
+      "reqIds": [
+        "REQ-29"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-30",
+      "summary": "Create a backend data model for product reviews with fields for product ID, reviewer principal, star rating (1-5), review text, timestamp, and verified purchase flag",
+      "reqIds": [
+        "REQ-30"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-31",
+      "summary": "Implement backend method for verified customers to submit product reviews only for products they have purchased, validating purchase history before allowing review submission",
+      "reqIds": [
+        "REQ-31"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-32",
+      "summary": "Implement backend query methods to retrieve all reviews for a specific product with average rating calculation and reviewer anonymization (showing only partial principal)",
+      "reqIds": [
+        "REQ-32"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-33",
+      "summary": "Create a backend data model for analytics events tracking product clicks, content gallery views, and order completions with timestamp, user principal (optional for anonymous), event type, and target ID",
+      "reqIds": [
+        "REQ-33"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-34",
+      "summary": "Implement backend methods to record analytics events when products are clicked, content items are viewed, and orders are completed",
+      "reqIds": [
+        "REQ-34"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-35",
+      "summary": "Implement backend query methods to retrieve analytics data including most clicked products, most viewed content, total revenue, order count by date range, and low inventory products (below 5 units)",
+      "reqIds": [
+        "REQ-35"
       ],
       "status": "pending"
     }

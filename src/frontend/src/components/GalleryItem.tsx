@@ -1,5 +1,7 @@
+import { useEffect } from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { useRecordAnalyticsEvent } from '../hooks/useAnalytics';
 import type { SocialMediaContent } from '../backend';
 
 interface GalleryItemProps {
@@ -10,6 +12,18 @@ export default function GalleryItem({ item }: GalleryItemProps) {
   const timestamp = new Date(Number(item.timestamp) / 1000000).toLocaleDateString();
   const hasMedia = item.media.length > 0;
   const mediaUrl = hasMedia ? item.media[0].getDirectURL() : null;
+  const recordEvent = useRecordAnalyticsEvent();
+
+  useEffect(() => {
+    try {
+      recordEvent.mutate({
+        __kind__: 'contentView',
+        contentView: item.id,
+      });
+    } catch (error) {
+      // Silently handle analytics errors
+    }
+  }, [item.id]);
 
   return (
     <Card className="overflow-hidden hover:shadow-elegant transition-shadow">
@@ -34,4 +48,3 @@ export default function GalleryItem({ item }: GalleryItemProps) {
     </Card>
   );
 }
-

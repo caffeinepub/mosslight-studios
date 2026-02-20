@@ -1,5 +1,6 @@
 import { useGetSocialMediaContent } from '../hooks/useGallery';
 import GalleryItem from '../components/GalleryItem';
+import SocialMediaLinks from '../components/SocialMediaLinks';
 import { Loader2 } from 'lucide-react';
 
 export default function GalleryPage() {
@@ -23,6 +24,11 @@ export default function GalleryPage() {
           </p>
         </div>
 
+        <div className="flex flex-col items-center gap-4 py-6">
+          <h2 className="font-serif text-2xl font-semibold">Follow Us</h2>
+          <SocialMediaLinks />
+        </div>
+
         {content.length === 0 ? (
           <div className="text-center py-20">
             <p className="text-muted-foreground text-lg">
@@ -40,4 +46,3 @@ export default function GalleryPage() {
     </div>
   );
 }
-

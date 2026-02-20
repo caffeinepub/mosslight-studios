@@ -32,6 +32,18 @@ export interface Message {
   'recipient' : [] | [Customer],
   'timestamp' : Time,
 }
+export interface Notification {
+  'id' : string,
+  'notifType' : NotificationType,
+  'read' : boolean,
+  'recipient' : Principal,
+  'message' : string,
+  'timestamp' : Time,
+  'relatedOrderId' : [] | [string],
+}
+export type NotificationType = { 'adminAlert' : null } |
+  { 'orderUpdate' : string } |
+  { 'lowInventory' : string };
 export interface Order {
   'id' : string,
   'status' : OrderStatus,
@@ -57,6 +69,14 @@ export interface Reply {
   'content' : string,
   'author' : Principal,
   'timestamp' : Time,
+}
+export interface Review {
+  'reviewText' : string,
+  'productId' : string,
+  'timestamp' : Time,
+  'rating' : bigint,
+  'reviewer' : Principal,
+  'verifiedPurchase' : boolean,
 }
 export interface SocialMediaContent {
   'id' : string,
@@ -114,6 +134,16 @@ export interface _SERVICE {
   'createDiscussionPost' : ActorMethod<[string], string>,
   'deleteProduct' : ActorMethod<[string], undefined>,
   'getAllDiscussionPosts' : ActorMethod<[], Array<DiscussionPost>>,
+  'getAnalyticsData' : ActorMethod<
+    [],
+    {
+      'mostClickedProducts' : Array<[string, bigint]>,
+      'mostViewedContent' : Array<[string, bigint]>,
+      'orderCount' : bigint,
+      'totalRevenue' : bigint,
+      'lowInventoryProducts' : Array<Product>,
+    }
+  >,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getMessages' : ActorMethod<[], Array<Message>>,
@@ -122,12 +152,25 @@ export interface _SERVICE {
   'getMyOrders' : ActorMethod<[], Array<Order>>,
   'getOrders' : ActorMethod<[], Array<Order>>,
   'getProduct' : ActorMethod<[string], [] | [Product]>,
+  'getProductReviews' : ActorMethod<[string], [Array<Review>, number]>,
   'getProducts' : ActorMethod<[], Array<Product>>,
   'getSocialMediaContent' : ActorMethod<[], Array<SocialMediaContent>>,
+  'getUnreadNotifications' : ActorMethod<[], Array<Notification>>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
+  'markNotificationAsRead' : ActorMethod<[string], undefined>,
+  'recordAnalyticsEvent' : ActorMethod<
+    [
+      { 'orderComplete' : null } |
+        { 'contentView' : string } |
+        { 'productClick' : string },
+    ],
+    undefined
+  >,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
+  'sendAdminBroadcastAlert' : ActorMethod<[string], undefined>,
   'sendMessage' : ActorMethod<[string, [] | [Customer]], undefined>,
+  'submitReview' : ActorMethod<[string, bigint, string], undefined>,
   'updateOrderStatus' : ActorMethod<[string, OrderStatus], undefined>,
   'updateProduct' : ActorMethod<
     [string, CreateProductData, Array<ExternalBlob>],

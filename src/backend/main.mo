@@ -1,11 +1,12 @@
-import Array "mo:core/Array";
 import Map "mo:core/Map";
 import Text "mo:core/Text";
 import Time "mo:core/Time";
-import Order "mo:core/Order";
+import Nat "mo:core/Nat";
 import List "mo:core/List";
-import Runtime "mo:core/Runtime";
+import Array "mo:core/Array";
 import Principal "mo:core/Principal";
+import Runtime "mo:core/Runtime";
+import Iter "mo:core/Iter";
 import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
 import MixinAuthorization "authorization/MixinAuthorization";
@@ -16,7 +17,6 @@ actor {
   let accessControlState = AccessControl.initState();
 
   include MixinStorage();
-
   include MixinAuthorization(accessControlState);
 
   public type Product = {
@@ -69,12 +69,6 @@ actor {
     shippingAddress : Text;
   };
 
-  let products = Map.empty<Text, Product>();
-  let orders = Map.empty<Text, Order>();
-  let messages = Map.empty<Text, Message>();
-  let userProfiles = Map.empty<Principal, UserProfile>();
-  let shoppingCarts = Map.empty<Principal, List.List<OrderItem>>();
-
   public type CreateProductData = {
     name : Text;
     description : Text;
@@ -101,17 +95,10 @@ actor {
     items : [OrderItem];
   };
 
-  module Product {
-    public func compare(p1 : Product, p2 : Product) : Order.Order {
-      Text.compare(p1.name, p2.name);
-    };
-  };
-
   var productIdCounter = 0;
   var orderIdCounter = 0;
   var messageIdCounter = 0;
 
-  // New types for discussion board
   public type PostStatus = {
     #open;
     #answered;
@@ -129,13 +116,54 @@ actor {
     author : Principal;
     timestamp : Time.Time;
     status : PostStatus;
-    replies : [Reply]; // Immutable array for replies
+    replies : [Reply];
   };
 
+  let products = Map.empty<Text, Product>();
+  let orders = Map.empty<Text, Order>();
+  let messages = Map.empty<Text, Message>();
+  let userProfiles = Map.empty<Principal, UserProfile>();
+  let shoppingCarts = Map.empty<Principal, List.List<OrderItem>>();
   let discussionPosts = Map.empty<Text, DiscussionPost>();
   var postIdCounter = 0;
 
-  // User Profile Management
+  public type NotificationType = {
+    #orderUpdate : Text;
+    #adminAlert;
+    #lowInventory : Text;
+  };
+
+  public type Notification = {
+    id : Text;
+    recipient : Principal;
+    notifType : NotificationType;
+    message : Text;
+    timestamp : Time.Time;
+    read : Bool;
+    relatedOrderId : ?Text;
+  };
+
+  public type Review = {
+    productId : Text;
+    reviewer : Principal;
+    rating : Nat;
+    reviewText : Text;
+    timestamp : Time.Time;
+    verifiedPurchase : Bool;
+  };
+
+  public type AnalyticsEvent = {
+    eventType : { #productClick : Text; #contentView : Text; #orderComplete };
+    user : ?Principal;
+    timestamp : Time.Time;
+    targetId : ?Text;
+  };
+
+  let notifications = Map.empty<Text, Notification>();
+  let reviews = Map.empty<Text, Review>();
+  let analytics = Map.empty<Text, AnalyticsEvent>();
+  let productReviews = Map.empty<Text, List.List<Review>>();
+
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can view profiles");
@@ -157,7 +185,6 @@ actor {
     userProfiles.add(caller, profile);
   };
 
-  // Product Management (Admin-only)
   public shared ({ caller }) func addProduct(productData : CreateProductData, images : [Storage.ExternalBlob]) : async () {
     if (not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admins can add products");
@@ -174,6 +201,7 @@ actor {
       inventory = productData.inventory;
     };
     products.add(id, product);
+    sendLowInventoryNotifications(id);
   };
 
   public shared ({ caller }) func updateProduct(productId : Text, productData : CreateProductData, images : [Storage.ExternalBlob]) : async () {
@@ -195,6 +223,7 @@ actor {
           inventory = productData.inventory;
         };
         products.add(productId, updated);
+        sendLowInventoryNotifications(productId);
       };
     };
   };
@@ -206,7 +235,6 @@ actor {
     products.remove(productId);
   };
 
-  // Order Management
   public shared ({ caller }) func updateOrderStatus(orderId : Text, status : OrderStatus) : async () {
     if (not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admins can update order status");
@@ -225,11 +253,11 @@ actor {
           date = order.date;
         };
         orders.add(orderId, updated);
+        createOrderUpdateNotification(order.customer, orderId, status);
       };
     };
   };
 
-  // Admin Messaging System
   public shared ({ caller }) func sendMessage(content : Text, recipient : ?Customer) : async () {
     if (not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admins can send messages");
@@ -246,7 +274,30 @@ actor {
     messages.add(id, message);
   };
 
-  // Discussion Board Methods
+  public shared ({ caller }) func sendAdminBroadcastAlert(message : Text) : async () {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admins can send broadcast alerts");
+    };
+
+    // Send notification to all users with admin role
+    for ((principal, _) in userProfiles.entries()) {
+      if (AccessControl.isAdmin(accessControlState, principal)) {
+        messageIdCounter += 1;
+        let id = "notif_" # messageIdCounter.toText();
+        let notification : Notification = {
+          id;
+          recipient = principal;
+          notifType = #adminAlert;
+          message;
+          timestamp = Time.now();
+          read = false;
+          relatedOrderId = null;
+        };
+        notifications.add(id, notification);
+      };
+    };
+  };
+
   public shared ({ caller }) func createDiscussionPost(question : Text) : async Text {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only authenticated users can create posts");
@@ -304,16 +355,16 @@ actor {
     discussionPosts.values().toArray();
   };
 
-  // Public Product Catalog (No auth required)
   public query ({ caller }) func getProducts() : async [Product] {
-    products.values().toArray().sort();
+    // Public access - no authorization needed
+    products.values().toArray();
   };
 
   public query ({ caller }) func getProduct(productId : Text) : async ?Product {
+    // Public access - no authorization needed
     products.get(productId);
   };
 
-  // Admin Order Dashboard
   public query ({ caller }) func getOrders() : async [Order] {
     if (not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admins can view all orders");
@@ -321,7 +372,6 @@ actor {
     orders.values().toArray();
   };
 
-  // Customer Order Tracking (User-only)
   public query ({ caller }) func getMyOrders() : async [Order] {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only authenticated users can view their orders");
@@ -349,7 +399,6 @@ actor {
     };
   };
 
-  // Admin Messages View
   public query ({ caller }) func getMessages() : async [Message] {
     if (not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admins can view messages");
@@ -357,7 +406,6 @@ actor {
     messages.values().toArray();
   };
 
-  // Customer Messages View
   public query ({ caller }) func getMyMessages() : async [Message] {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only authenticated users can view their messages");
@@ -365,20 +413,19 @@ actor {
 
     messages.values().filter(func(msg : Message) : Bool {
       switch (msg.recipient) {
-        case null { true }; // Broadcast messages
+        case null { true };
         case (?recipient) { recipient == caller };
       };
     }).toArray();
   };
 
-  // Social Media Content (Public)
   public query ({ caller }) func getSocialMediaContent() : async [SocialMediaContent] {
-    // Public content, no auth required
+    // Public access - no authorization needed
     [];
   };
 
-  // Shopping Cart (Per-user, no auth required for guests)
   public shared ({ caller }) func addToCart(items : [OrderItem]) : async () {
+    // Public access - guests can add to cart
     let cart = switch (shoppingCarts.get(caller)) {
       case null { List.empty<OrderItem>() };
       case (?existing) { existing };
@@ -390,6 +437,7 @@ actor {
   };
 
   public shared ({ caller }) func addItemToCart(item : OrderItem) : async () {
+    // Public access - guests can add to cart
     let cart = switch (shoppingCarts.get(caller)) {
       case null { List.empty<OrderItem>() };
       case (?existing) { existing };
@@ -400,6 +448,7 @@ actor {
   };
 
   public query ({ caller }) func viewCart() : async [OrderItem] {
+    // Public access - anyone can view their own cart
     switch (shoppingCarts.get(caller)) {
       case null { [] };
       case (?cart) { cart.toArray() };
@@ -407,10 +456,10 @@ actor {
   };
 
   public shared ({ caller }) func clearCart() : async () {
+    // Public access - anyone can clear their own cart
     shoppingCarts.remove(caller);
   };
 
-  // Checkout (Requires user authentication)
   public shared ({ caller }) func checkout() : async Text {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only authenticated users can checkout");
@@ -441,7 +490,7 @@ actor {
       };
     };
 
-    // Update inventory
+    // Update inventory and create low inventory notification if needed
     for (item in items.values()) {
       switch (products.get(item.productId)) {
         case null {};
@@ -455,6 +504,10 @@ actor {
             inventory = product.inventory - item.quantity;
           };
           products.add(product.id, updated);
+
+          if (updated.inventory < 5) {
+            sendLowInventoryNotifications(product.id);
+          };
         };
       };
     };
@@ -474,6 +527,242 @@ actor {
     // Clear the cart
     shoppingCarts.remove(caller);
 
+    // Record analytics event for order completion
+    let analyticsId = "analytics_" # Time.now().toText();
+    let event : AnalyticsEvent = {
+      eventType = #orderComplete;
+      user = ?caller;
+      timestamp = Time.now();
+      targetId = ?orderId;
+    };
+    analytics.add(analyticsId, event);
+
     orderId;
+  };
+
+  public query ({ caller }) func getUnreadNotifications() : async [Notification] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can view notifications");
+    };
+
+    let unread = notifications.values().filter(
+      func(n) {
+        n.recipient == caller and not n.read;
+      }
+    );
+    unread.toArray();
+  };
+
+  public shared ({ caller }) func markNotificationAsRead(notificationId : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can mark notifications as read");
+    };
+
+    switch (notifications.get(notificationId)) {
+      case null { Runtime.trap("Notification not found") };
+      case (?notification) {
+        if (notification.recipient != caller) {
+          Runtime.trap("Unauthorized: Can only mark your own notifications as read");
+        };
+        let updated : Notification = { notification with read = true };
+        notifications.add(notificationId, updated);
+      };
+    };
+  };
+
+  func createOrderUpdateNotification(recipient : Principal, orderId : Text, status : OrderStatus) {
+    messageIdCounter += 1;
+    let id = "notif_" # messageIdCounter.toText();
+    let message = switch (status) {
+      case (#pending) { "Your order " # orderId # " is now pending." };
+      case (#shipped) { "Your order " # orderId # " has been shipped." };
+      case (#delivered) { "Your order " # orderId # " has been delivered." };
+    };
+    let notification : Notification = {
+      id;
+      recipient;
+      notifType = #orderUpdate(orderId);
+      message;
+      timestamp = Time.now();
+      read = false;
+      relatedOrderId = ?orderId;
+    };
+    notifications.add(id, notification);
+  };
+
+  func sendLowInventoryNotifications(productId : Text) {
+    switch (products.get(productId)) {
+      case null {};
+      case (?product) {
+        if (product.inventory < 5) {
+          // Send notification to all admins
+          for ((principal, _) in userProfiles.entries()) {
+            if (AccessControl.isAdmin(accessControlState, principal)) {
+              messageIdCounter += 1;
+              let id = "notif_" # messageIdCounter.toText();
+              let message = "Low inventory alert: Product '" # product.name # "' (ID: " # productId # ") has only " # product.inventory.toText() # " units remaining.";
+              let notification : Notification = {
+                id;
+                recipient = principal;
+                notifType = #lowInventory(productId);
+                message;
+                timestamp = Time.now();
+                read = false;
+                relatedOrderId = null;
+              };
+              notifications.add(id, notification);
+            };
+          };
+        };
+      };
+    };
+  };
+
+  public shared ({ caller }) func submitReview(productId : Text, rating : Nat, reviewText : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can submit reviews");
+    };
+
+    if (rating < 1 or rating > 5) {
+      Runtime.trap("Rating must be between 1 and 5");
+    };
+
+    // Check if user has purchased product
+    let hasPurchased = orders.values().any(func(o) { o.customer == caller and o.items.findIndex(func(item) { item.productId == productId }) != null });
+
+    if (not hasPurchased) {
+      Runtime.trap("You can only review products you've purchased");
+    };
+
+    let review : Review = {
+      productId;
+      reviewer = caller;
+      rating;
+      reviewText;
+      timestamp = Time.now();
+      verifiedPurchase = true;
+    };
+
+    // Update product reviews
+    let existingReviews = switch (productReviews.get(productId)) {
+      case (null) { List.empty<Review>() };
+      case (?existing) { existing };
+    };
+
+    existingReviews.add(review);
+    productReviews.add(productId, existingReviews);
+  };
+
+  public query ({ caller }) func getProductReviews(productId : Text) : async ([Review], Float) {
+    // Public access - anyone can view product reviews
+    let reviewsList = switch (productReviews.get(productId)) {
+      case (null) { List.empty<Review>() };
+      case (?existing) { existing };
+    };
+
+    let reviews = reviewsList.toArray();
+    let totalReviews = reviews.size();
+
+    let avgRating = if (totalReviews > 0) {
+      let sum = reviews.values().foldLeft(0, func(acc, review) { acc + review.rating });
+      sum.toFloat() / totalReviews.toNat().toFloat();
+    } else { 0.0 };
+
+    (reviews, avgRating);
+  };
+
+  public shared ({ caller }) func recordAnalyticsEvent(eventType : { #productClick : Text; #contentView : Text; #orderComplete }) : async () {
+    // Public access - guests and users can record analytics events
+    let id = "analytics_" # Time.now().toText();
+    let userPrincipal = if (caller.isAnonymous()) {
+      null
+    } else {
+      ?caller
+    };
+
+    let event : AnalyticsEvent = {
+      eventType;
+      user = userPrincipal;
+      timestamp = Time.now();
+      targetId = switch (eventType) {
+        case (#productClick(productId)) { ?productId };
+        case (#contentView(contentId)) { ?contentId };
+        case (#orderComplete) { null };
+      };
+    };
+
+    analytics.add(id, event);
+  };
+
+  public query ({ caller }) func getAnalyticsData() : async {
+    mostClickedProducts : [(Text, Nat)];
+    mostViewedContent : [(Text, Nat)];
+    totalRevenue : Nat;
+    orderCount : Nat;
+    lowInventoryProducts : [Product];
+  } {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admins can view analytics data");
+    };
+
+    // Calculate most clicked products
+    let productClicks = Map.empty<Text, Nat>();
+    for (event in analytics.values()) {
+      switch (event.eventType) {
+        case (#productClick(productId)) {
+          let count = switch (productClicks.get(productId)) {
+            case (null) { 0 };
+            case (?existing) { existing };
+          };
+          productClicks.add(productId, count + 1);
+        };
+        case (_) {};
+      };
+    };
+
+    let mostClicked = productClicks.toArray();
+
+    // Calculate most viewed content
+    let contentViews = Map.empty<Text, Nat>();
+    for (event in analytics.values()) {
+      switch (event.eventType) {
+        case (#contentView(contentId)) {
+          let count = switch (contentViews.get(contentId)) {
+            case (null) { 0 };
+            case (?existing) { existing };
+          };
+          contentViews.add(contentId, count + 1);
+        };
+        case (_) {};
+      };
+    };
+
+    let mostViewed = contentViews.toArray();
+
+    // Calculate total revenue and order count
+    var totalRevenue = 0;
+    let orderCount = orders.size();
+
+    for (order in orders.values()) {
+      for (item in order.items.values()) {
+        switch (products.get(item.productId)) {
+          case (null) {};
+          case (?product) {
+            totalRevenue += product.price * item.quantity;
+          };
+        };
+      };
+    };
+
+    // Find low inventory products
+    let lowInventory = products.values().filter(func(p) { p.inventory < 5 }).toArray();
+
+    {
+      mostClickedProducts = mostClicked;
+      mostViewedContent = mostViewed;
+      totalRevenue;
+      orderCount;
+      lowInventoryProducts = lowInventory;
+    };
   };
 };

@@ -53,6 +53,14 @@ export const DiscussionPost = IDL.Record({
   'timestamp' : Time,
   'replies' : IDL.Vec(Reply),
 });
+export const Product = IDL.Record({
+  'id' : IDL.Text,
+  'inventory' : IDL.Nat,
+  'name' : IDL.Text,
+  'description' : IDL.Text,
+  'price' : IDL.Nat,
+  'images' : IDL.Vec(ExternalBlob),
+});
 export const UserProfile = IDL.Record({
   'name' : IDL.Text,
   'email' : IDL.Text,
@@ -77,19 +85,33 @@ export const Order = IDL.Record({
   'date' : Time,
   'items' : IDL.Vec(OrderItem),
 });
-export const Product = IDL.Record({
-  'id' : IDL.Text,
-  'inventory' : IDL.Nat,
-  'name' : IDL.Text,
-  'description' : IDL.Text,
-  'price' : IDL.Nat,
-  'images' : IDL.Vec(ExternalBlob),
+export const Review = IDL.Record({
+  'reviewText' : IDL.Text,
+  'productId' : IDL.Text,
+  'timestamp' : Time,
+  'rating' : IDL.Nat,
+  'reviewer' : IDL.Principal,
+  'verifiedPurchase' : IDL.Bool,
 });
 export const SocialMediaContent = IDL.Record({
   'id' : IDL.Text,
   'media' : IDL.Vec(ExternalBlob),
   'content' : IDL.Text,
   'timestamp' : Time,
+});
+export const NotificationType = IDL.Variant({
+  'adminAlert' : IDL.Null,
+  'orderUpdate' : IDL.Text,
+  'lowInventory' : IDL.Text,
+});
+export const Notification = IDL.Record({
+  'id' : IDL.Text,
+  'notifType' : NotificationType,
+  'read' : IDL.Bool,
+  'recipient' : IDL.Principal,
+  'message' : IDL.Text,
+  'timestamp' : Time,
+  'relatedOrderId' : IDL.Opt(IDL.Text),
 });
 
 export const idlService = IDL.Service({
@@ -130,6 +152,19 @@ export const idlService = IDL.Service({
   'createDiscussionPost' : IDL.Func([IDL.Text], [IDL.Text], []),
   'deleteProduct' : IDL.Func([IDL.Text], [], []),
   'getAllDiscussionPosts' : IDL.Func([], [IDL.Vec(DiscussionPost)], ['query']),
+  'getAnalyticsData' : IDL.Func(
+      [],
+      [
+        IDL.Record({
+          'mostClickedProducts' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Nat)),
+          'mostViewedContent' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Nat)),
+          'orderCount' : IDL.Nat,
+          'totalRevenue' : IDL.Nat,
+          'lowInventoryProducts' : IDL.Vec(Product),
+        }),
+      ],
+      ['query'],
+    ),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
   'getMessages' : IDL.Func([], [IDL.Vec(Message)], ['query']),
@@ -138,20 +173,40 @@ export const idlService = IDL.Service({
   'getMyOrders' : IDL.Func([], [IDL.Vec(Order)], ['query']),
   'getOrders' : IDL.Func([], [IDL.Vec(Order)], ['query']),
   'getProduct' : IDL.Func([IDL.Text], [IDL.Opt(Product)], ['query']),
+  'getProductReviews' : IDL.Func(
+      [IDL.Text],
+      [IDL.Vec(Review), IDL.Float64],
+      ['query'],
+    ),
   'getProducts' : IDL.Func([], [IDL.Vec(Product)], ['query']),
   'getSocialMediaContent' : IDL.Func(
       [],
       [IDL.Vec(SocialMediaContent)],
       ['query'],
     ),
+  'getUnreadNotifications' : IDL.Func([], [IDL.Vec(Notification)], ['query']),
   'getUserProfile' : IDL.Func(
       [IDL.Principal],
       [IDL.Opt(UserProfile)],
       ['query'],
     ),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+  'markNotificationAsRead' : IDL.Func([IDL.Text], [], []),
+  'recordAnalyticsEvent' : IDL.Func(
+      [
+        IDL.Variant({
+          'orderComplete' : IDL.Null,
+          'contentView' : IDL.Text,
+          'productClick' : IDL.Text,
+        }),
+      ],
+      [],
+      [],
+    ),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+  'sendAdminBroadcastAlert' : IDL.Func([IDL.Text], [], []),
   'sendMessage' : IDL.Func([IDL.Text, IDL.Opt(Customer)], [], []),
+  'submitReview' : IDL.Func([IDL.Text, IDL.Nat, IDL.Text], [], []),
   'updateOrderStatus' : IDL.Func([IDL.Text, OrderStatus], [], []),
   'updateProduct' : IDL.Func(
       [IDL.Text, CreateProductData, IDL.Vec(ExternalBlob)],
@@ -206,6 +261,14 @@ export const idlFactory = ({ IDL }) => {
     'timestamp' : Time,
     'replies' : IDL.Vec(Reply),
   });
+  const Product = IDL.Record({
+    'id' : IDL.Text,
+    'inventory' : IDL.Nat,
+    'name' : IDL.Text,
+    'description' : IDL.Text,
+    'price' : IDL.Nat,
+    'images' : IDL.Vec(ExternalBlob),
+  });
   const UserProfile = IDL.Record({
     'name' : IDL.Text,
     'email' : IDL.Text,
@@ -230,19 +293,33 @@ export const idlFactory = ({ IDL }) => {
     'date' : Time,
     'items' : IDL.Vec(OrderItem),
   });
-  const Product = IDL.Record({
-    'id' : IDL.Text,
-    'inventory' : IDL.Nat,
-    'name' : IDL.Text,
-    'description' : IDL.Text,
-    'price' : IDL.Nat,
-    'images' : IDL.Vec(ExternalBlob),
+  const Review = IDL.Record({
+    'reviewText' : IDL.Text,
+    'productId' : IDL.Text,
+    'timestamp' : Time,
+    'rating' : IDL.Nat,
+    'reviewer' : IDL.Principal,
+    'verifiedPurchase' : IDL.Bool,
   });
   const SocialMediaContent = IDL.Record({
     'id' : IDL.Text,
     'media' : IDL.Vec(ExternalBlob),
     'content' : IDL.Text,
     'timestamp' : Time,
+  });
+  const NotificationType = IDL.Variant({
+    'adminAlert' : IDL.Null,
+    'orderUpdate' : IDL.Text,
+    'lowInventory' : IDL.Text,
+  });
+  const Notification = IDL.Record({
+    'id' : IDL.Text,
+    'notifType' : NotificationType,
+    'read' : IDL.Bool,
+    'recipient' : IDL.Principal,
+    'message' : IDL.Text,
+    'timestamp' : Time,
+    'relatedOrderId' : IDL.Opt(IDL.Text),
   });
   
   return IDL.Service({
@@ -287,6 +364,19 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Vec(DiscussionPost)],
         ['query'],
       ),
+    'getAnalyticsData' : IDL.Func(
+        [],
+        [
+          IDL.Record({
+            'mostClickedProducts' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Nat)),
+            'mostViewedContent' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Nat)),
+            'orderCount' : IDL.Nat,
+            'totalRevenue' : IDL.Nat,
+            'lowInventoryProducts' : IDL.Vec(Product),
+          }),
+        ],
+        ['query'],
+      ),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
     'getMessages' : IDL.Func([], [IDL.Vec(Message)], ['query']),
@@ -295,20 +385,40 @@ export const idlFactory = ({ IDL }) => {
     'getMyOrders' : IDL.Func([], [IDL.Vec(Order)], ['query']),
     'getOrders' : IDL.Func([], [IDL.Vec(Order)], ['query']),
     'getProduct' : IDL.Func([IDL.Text], [IDL.Opt(Product)], ['query']),
+    'getProductReviews' : IDL.Func(
+        [IDL.Text],
+        [IDL.Vec(Review), IDL.Float64],
+        ['query'],
+      ),
     'getProducts' : IDL.Func([], [IDL.Vec(Product)], ['query']),
     'getSocialMediaContent' : IDL.Func(
         [],
         [IDL.Vec(SocialMediaContent)],
         ['query'],
       ),
+    'getUnreadNotifications' : IDL.Func([], [IDL.Vec(Notification)], ['query']),
     'getUserProfile' : IDL.Func(
         [IDL.Principal],
         [IDL.Opt(UserProfile)],
         ['query'],
       ),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+    'markNotificationAsRead' : IDL.Func([IDL.Text], [], []),
+    'recordAnalyticsEvent' : IDL.Func(
+        [
+          IDL.Variant({
+            'orderComplete' : IDL.Null,
+            'contentView' : IDL.Text,
+            'productClick' : IDL.Text,
+          }),
+        ],
+        [],
+        [],
+      ),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+    'sendAdminBroadcastAlert' : IDL.Func([IDL.Text], [], []),
     'sendMessage' : IDL.Func([IDL.Text, IDL.Opt(Customer)], [], []),
+    'submitReview' : IDL.Func([IDL.Text, IDL.Nat, IDL.Text], [], []),
     'updateOrderStatus' : IDL.Func([IDL.Text, OrderStatus], [], []),
     'updateProduct' : IDL.Func(
         [IDL.Text, CreateProductData, IDL.Vec(ExternalBlob)],
