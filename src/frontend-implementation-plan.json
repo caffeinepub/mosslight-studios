@@ -1,92 +1,62 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Add size-based pricing to product variant system - Frontend Implementation",
+  "title": "Fix admin authentication validation for product creation operations",
   "requirements": [
     {
-      "id": "REQ-77",
-      "summary": "Update VariantManager component to include price input field for each variant",
+      "id": "REQ-89",
+      "summary": "Verify that the useProducts hook addProduct mutation correctly passes admin authentication credentials or session tokens to the backend actor when invoking the addProduct method",
       "acceptanceCriteria": [
-        "Each variant row in the table displays a price input field",
-        "Price values are validated as positive numbers",
-        "New variants include price when added",
-        "Edited variants can update price values"
+        "The addProduct mutation includes necessary authentication headers or context when calling the backend",
+        "Frontend successfully transmits admin session information established during passcode login to backend product operations",
+        "Console logs confirm authentication data is being sent with the addProduct request"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/VariantManager.tsx",
+          "path": "frontend/src/hooks/useProducts.ts",
           "operation": "modify",
-          "description": "Add price input field to the variant table alongside size, color, and inventory fields. Include validation to ensure price is a positive number. Update the add and edit handlers to include price in the variant data structure. Ensure the table displays price in a currency-formatted column."
+          "description": "Add detailed logging to the addProduct mutation to capture the complete request payload, authentication state from useActor, and any errors returned from the backend. Verify that the actor instance used by the mutation is properly authenticated with the admin identity. Include console logs showing: (1) actor availability status, (2) authentication state before the addProduct call, (3) the complete productData and images being sent, and (4) the full error response if the call fails. Ensure the mutation properly awaits the backend call and handles promise rejections with detailed error information."
         }
       ]
     },
     {
-      "id": "REQ-78",
-      "summary": "Update ProductDetailPage to display selected variant's price dynamically",
+      "id": "REQ-90",
+      "summary": "Ensure the AdminAuthProvider context state is accessible to the useProducts hook and ProductForm component so that admin authentication status can be verified before attempting product operations",
       "acceptanceCriteria": [
-        "Price updates immediately when size selector changes",
-        "Selected variant price displays in the product price area",
-        "Price formatting matches existing currency format",
-        "Falls back to base product price if no variant is selected"
+        "ProductForm component and useProducts hook have access to admin authentication state from AdminAuthProvider",
+        "Admin authentication status is verified in the UI before enabling product creation actions",
+        "Error messages differentiate between authentication failures and other product creation errors"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/ProductDetailPage.tsx",
+          "path": "frontend/src/components/ProductForm.tsx",
           "operation": "modify",
-          "description": "Modify the price display logic to show the selected variant's price when a size is selected. Update the price rendering to dynamically switch between the base product price (when no variant is selected) and the variant-specific price (when a size is chosen). Ensure the price updates immediately when the size selector changes and maintains consistent currency formatting."
-        }
-      ]
-    },
-    {
-      "id": "REQ-79",
-      "summary": "Update addToCart functionality to use selected variant's price",
-      "acceptanceCriteria": [
-        "Cart items store the variant price at time of addition",
-        "Cart calculations use variant price for line item totals",
-        "Checkout uses variant price for order total calculation"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/AddToCartButton.tsx",
-          "operation": "modify",
-          "description": "Modify the add-to-cart logic to pass the selected variant's price when adding items with variants to the cart. Ensure the component retrieves the price from the selected variant object and includes it in the cart item data structure sent to the backend."
+          "description": "Import and use the useAdminAuth hook to access admin authentication state. Before calling the addProduct mutation, verify that isAuthenticated is true from the AdminAuthProvider context. Display a specific error message if the user attempts to add a product while not authenticated as admin. Add console logging to show the admin authentication status at the time of form submission. If authentication fails, provide clear UI feedback distinguishing between 'not logged in as admin' vs 'backend permission denied' errors."
         },
         {
-          "path": "frontend/src/hooks/useCart.ts",
+          "path": "frontend/src/hooks/useProducts.ts",
           "operation": "modify",
-          "description": "Update the addToCart hook to handle variant price data. Ensure the hook passes variant price information to the backend capability when items are added to the cart. Verify that cart queries properly reflect variant prices in returned data."
+          "description": "Import useAdminAuth hook and log the admin authentication state (isAuthenticated value) at the beginning of the addProduct mutation function. This provides visibility into whether the frontend believes the user is authenticated as admin when making the backend call. Add a comment reminding implementers to cross-reference this state with the actor's authentication context."
         }
       ]
     },
     {
-      "id": "REQ-80",
-      "summary": "Update CartPage to display variant-specific price for cart items",
+      "id": "REQ-91",
+      "summary": "Add detailed error logging to the frontend (useProducts hook) to capture the exact point of failure when permission errors occur during product creation",
       "acceptanceCriteria": [
-        "Cart line items show the price of the selected variant",
-        "Line item subtotals calculate correctly with variant price",
-        "Cart total reflects all variant prices accurately"
+        "Frontend console logs show authentication state, request payload, and backend response when addProduct fails",
+        "Error messages in the UI indicate whether the failure is due to authentication, authorization, validation, or other issues"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/CartPage.tsx",
+          "path": "frontend/src/hooks/useProducts.ts",
           "operation": "modify",
-          "description": "Update the cart item rendering to display the variant-specific price for each line item that includes product variants. Modify the line item subtotal calculation to use variant price multiplied by quantity. Ensure the cart total accurately sums all variant prices. Update the price display to show the variant price instead of the base product price when variants are present."
-        }
-      ]
-    },
-    {
-      "id": "REQ-81",
-      "summary": "Update MyOrderCard to display variant-specific price in order history",
-      "acceptanceCriteria": [
-        "Order history shows the exact variant price paid at purchase time",
-        "Order line items display size, color, and price together",
-        "Order total calculations match the sum of variant prices"
-      ],
-      "file_operations": [
+          "description": "Enhance error handling in the addProduct mutation to capture and log: (1) the error type/name, (2) the full error message, (3) any error stack trace, (4) the actor authentication state at the time of failure, and (5) the request payload that was sent. Parse error messages to detect authorization failures (e.g., messages containing 'Unauthorized' or 'permission') and log them distinctly. Return structured error information to the UI so that ProductForm can display appropriate user-facing messages based on the failure type."
+        },
         {
-          "path": "frontend/src/components/MyOrderCard.tsx",
+          "path": "frontend/src/components/ProductForm.tsx",
           "operation": "modify",
-          "description": "Modify the order line item rendering to display the variant-specific price that was paid at the time of purchase. Update the component to show size, color, and price together for each order item with variants. Ensure the order total calculation correctly sums variant prices for accurate historical records."
+          "description": "Update error handling in the form submission to parse and display different error messages based on the error type returned from useProducts addProduct mutation. Show specific messages for: (1) admin authentication failures ('You must be logged in as admin'), (2) backend authorization failures ('Permission denied - admin access required'), (3) validation errors (field-specific messages), and (4) generic errors. Log the full error object to the console along with the current form state when any submission error occurs."
         }
       ]
     }

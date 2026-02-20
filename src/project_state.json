@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 15,
+  "projectStateVersion": 19,
   "summary": "Ecommerce website for Mosslight Studios with admin backend, customer portal, and social media content gallery",
   "architectural_notes": [
     "Ecommerce platform with admin and customer-facing components",
@@ -14,8 +14,11 @@
     "Product variants support multiple size/color combinations with separate inventory tracking per variant",
     "Product variants support individual pricing per size/color combination (e.g., Small $6, 5XL $14)"
   ],
-  "known_issues": [],
-  "isFixRequest": false,
+  "known_issues": [
+    "Error handling in product creation flow needs improvement to show specific validation failures instead of generic error messages",
+    "Admin users logged into dashboard with correct passcode are unable to add products (with or without variants) due to permission validation failure in backend"
+  ],
+  "isFixRequest": true,
   "existing_features": [
     {
       "id": "feature-create-a-product-management-system-where-administrators-can-upload-new-products-with-details-including-name-description-price-images-and-inventory-quantity",
@@ -448,6 +451,54 @@
         "REQ-81"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-update-the-frontend-productform-component-to-display-specific-error-messages-from-backend-validation-failures-instead-of-the-generic-failed-to-add-product-message-showing-which-fields-or-validation-rules-are-causing-the-failure",
+      "title": "Update the frontend ProductForm component to display specific error messages from backend validation failures instead of the generic 'failed to add product' message, showing which fields or validation rules are causing the failure",
+      "reqIds": [
+        "REQ-84"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-frontend-validation-in-productform-and-variantmanager-components-to-ensure-all-variant-fields-size-color-price-inventory-are-properly-filled-before-submission-and-that-price-values-are-valid-positive-numbers",
+      "title": "Add frontend validation in ProductForm and VariantManager components to ensure all variant fields (size, color, price, inventory) are properly filled before submission and that price values are valid positive numbers",
+      "reqIds": [
+        "REQ-86"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-frontend-logging-to-the-useproducts-hook-addproduct-mutation-to-console-log-the-exact-variant-data-structure-being-sent-to-the-backend-including-field-types-and-values-to-help-diagnose-formatting-issues",
+      "title": "Add frontend logging to the useProducts hook addProduct mutation to console.log the exact variant data structure being sent to the backend, including field types and values, to help diagnose formatting issues",
+      "reqIds": [
+        "REQ-87"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-verify-that-the-useproducts-hook-addproduct-mutation-correctly-passes-admin-authentication-credentials-or-session-tokens-to-the-backend-actor-when-invoking-the-addproduct-method",
+      "title": "Verify that the useProducts hook addProduct mutation correctly passes admin authentication credentials or session tokens to the backend actor when invoking the addProduct method",
+      "reqIds": [
+        "REQ-89"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-adminauthprovider-context-state-is-accessible-to-the-useproducts-hook-and-productform-component-so-that-admin-authentication-status-can-be-verified-before-attempting-product-operations",
+      "title": "Ensure the AdminAuthProvider context state is accessible to the useProducts hook and ProductForm component so that admin authentication status can be verified before attempting product operations",
+      "reqIds": [
+        "REQ-90"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-detailed-error-logging-to-both-frontend-useproducts-hook-and-backend-addproduct-method-to-capture-the-exact-point-of-failure-when-permission-errors-occur-during-product-creation",
+      "title": "Add detailed error logging to both frontend (useProducts hook) and backend (addProduct method) to capture the exact point of failure when permission errors occur during product creation",
+      "reqIds": [
+        "REQ-91"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -786,6 +837,36 @@
       "summary": "Create a migration.mo module to transform existing variant data structures from the current schema (without price field) to the new schema (with price field) by adding a default price field to existing variants",
       "reqIds": [
         "REQ-82"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-56",
+      "summary": "Add comprehensive error logging to the backend addProduct method to capture and return specific validation failure messages including field-level errors, variant data structure issues, and image upload problems",
+      "reqIds": [
+        "REQ-83"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-58",
+      "summary": "Add backend validation to ensure variant data structure matches expected format when adding products with 4 size variants (2X2, 3X3, 4X4, 6X6) in BLACK & RED color with individual prices ($1.89, $2.11, $2.67, $3.09) and 100 units inventory per variant",
+      "reqIds": [
+        "REQ-85"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-59",
+      "summary": "Fix permission/authentication validation issue preventing admin users from adding products even when logged into the admin dashboard with correct passcode",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-60",
+      "summary": "Update the backend addProduct method in main.mo to properly validate admin authentication by checking the admin authorization state before processing product creation requests",
+      "reqIds": [
+        "REQ-88"
       ],
       "status": "pending"
     }

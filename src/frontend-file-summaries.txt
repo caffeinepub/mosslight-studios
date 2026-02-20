@@ -22,7 +22,7 @@
   "frontend/src/pages/AdminGalleryPage.tsx": "Admin gallery management page wrapped with AdminGuard for passcode-based authentication instead of Internet Identity role checks.",
   "frontend/src/components/ProductCard.tsx": "Product card component with image, name, price, star rating display, review count, and analytics tracking on click using correct event type structure.",
   "frontend/src/components/AddToCartButton.tsx": "Component with quantity selector and add-to-cart button that validates variant selections, checks variant inventory, and requires size/color choices before enabling purchase for variant products.",
-  "frontend/src/components/ProductForm.tsx": "Form component for adding and editing products with variant support, including checkbox to enable variants mode and conditional rendering of VariantManager or standard inventory field.",
+  "frontend/src/components/ProductForm.tsx": "Form component for adding and editing products with admin authentication verification, comprehensive validation, detailed error parsing with authentication-specific guidance, field-specific error display, and submit button disabling when variant data is incomplete or admin is not authenticated.",
   "frontend/src/components/MyOrderCard.tsx": "Card component displaying individual order details including variant information (size, color, and price) for each order line item with accurate historical pricing and totals.",
   "frontend/src/components/OrderStatusBadge.tsx": "Badge component displaying order status (pending, shipped, delivered) with appropriate styling.",
   "frontend/src/components/OrderList.tsx": "Admin component displaying all orders with search, status badges, and inline status update dropdowns.",
@@ -32,7 +32,7 @@
   "frontend/src/components/GalleryItem.tsx": "Gallery content card component with media display, timestamp, and automatic analytics tracking on render using correct event type structure.",
   "frontend/src/components/GalleryUploadForm.tsx": "Form component for admin to upload social media content with media files and text, including upload progress.",
   "frontend/src/hooks/useUserProfile.ts": "React Query hooks for user profile management including getCallerUserProfile with proper loading state handling and saveCallerUserProfile.",
-  "frontend/src/hooks/useProducts.ts": "React Query hooks for product CRUD operations including get, add, update, and delete with cache invalidation.",
+  "frontend/src/hooks/useProducts.ts": "React Query hooks for product CRUD operations with comprehensive console logging including admin authentication state from AdminAuthProvider, detailed variant data structure logging, and enhanced error tracking for debugging authorization issues.",
   "frontend/src/hooks/useCart.ts": "React Query hooks for shopping cart operations including view, add item, clear, and checkout with cache invalidation.",
   "frontend/src/hooks/useOrders.ts": "React Query hooks for admin order management including getOrders and updateOrderStatus with cache invalidation.",
   "frontend/src/hooks/useCustomerOrders.ts": "React Query hooks for customer order access including getMyOrders and getMyOrder.",
@@ -64,6 +64,6 @@
   "frontend/src/pages/AboutPage.tsx": "About page with business story, mission statement, and contact information using Mosslight Studios brand styling.",
   "frontend/src/pages/FAQPage.tsx": "FAQ page with collapsible accordion sections covering shipping, returns, product care, and ordering questions.",
   "frontend/src/components/SocialMediaLinks.tsx": "Component displaying clickable social media icons (Instagram, Facebook, TikTok) with hover effects and brand styling.",
-  "frontend/src/components/VariantManager.tsx": "Component for managing product variants with add, edit, and remove functionality, displaying variants in a table with size, color, price, and inventory fields with full CRUD operations.",
+  "frontend/src/components/VariantManager.tsx": "Component for managing product variants with enhanced validation, inline field-level error messages, visual error indicators, and alerts for incomplete variant data.",
   "frontend/src/hooks/useProductVariants.ts": "React Query hook for fetching product variants by product ID with caching and proper loading state handling."
 }

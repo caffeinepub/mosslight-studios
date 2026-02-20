@@ -1,147 +1,94 @@
 {
   "kind": "build_request",
-  "title": "Add size-based pricing to product variant system",
+  "title": "Fix admin authentication validation for product creation operations",
   "projectName": "Mosslight Studios",
-  "priority": "normal",
+  "priority": "high",
   "requirements": [
     {
-      "id": "REQ-76",
-      "text": "Update the backend Variant data type in main.mo to include a price field (Nat) alongside the existing size, color, and inventory fields",
+      "id": "REQ-88",
+      "text": "Update the backend addProduct method in main.mo to properly validate admin authentication by checking the admin authorization state before processing product creation requests",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-final"
+          "msg-latest"
         ],
         "quotes": [
-          "a small hoodie could be $ 6  where a 5x could be $14"
+          "i logged in to the admin portal , im adding a product and when i went to hit add product it gave me that error",
+          "it says i dont have permission to preform this action but im logged in to the admin page"
         ]
       },
       "acceptanceCriteria": [
-        "Variant type includes a price: Nat field",
-        "Existing variant creation methods accept price parameter",
-        "Price is stored with each size/color combination"
+        "Admin users authenticated with the correct passcode (09131991) can successfully add products without permission errors",
+        "The backend addProduct method validates admin session/authorization before rejecting requests",
+        "Non-admin users continue to receive permission denied errors when attempting to add products"
       ]
     },
     {
-      "id": "REQ-77",
-      "text": "Update the VariantManager component to include a price input field for each variant, allowing admins to set individual prices when adding or editing size/color combinations",
+      "id": "REQ-89",
+      "text": "Verify that the useProducts hook addProduct mutation correctly passes admin authentication credentials or session tokens to the backend actor when invoking the addProduct method",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-final"
+          "msg-latest"
         ],
         "quotes": [
-          "a small hoodie could be $ 6  where a 5x could be $14"
+          "im able to see the admin dashboard after logging in it shows up as soon as i click add product"
         ]
       },
       "acceptanceCriteria": [
-        "Each variant row in the table displays a price input field",
-        "Price values are validated as positive numbers",
-        "New variants include price when added",
-        "Edited variants can update price values"
+        "The addProduct mutation includes necessary authentication headers or context when calling the backend",
+        "Frontend successfully transmits admin session information established during passcode login to backend product operations",
+        "Console logs confirm authentication data is being sent with the addProduct request"
       ]
     },
     {
-      "id": "REQ-78",
-      "text": "Update ProductDetailPage to display the selected variant's price dynamically when the size selection changes, replacing the base product price display",
+      "id": "REQ-90",
+      "text": "Ensure the AdminAuthProvider context state is accessible to the useProducts hook and ProductForm component so that admin authentication status can be verified before attempting product operations",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-final"
+          "msg-latest"
         ],
         "quotes": [
-          "a small hoodie could be $ 6  where a 5x could be $14"
+          "im able to see the admin dashboard after logging in"
         ]
       },
       "acceptanceCriteria": [
-        "Price updates immediately when size selector changes",
-        "Selected variant price displays in the product price area",
-        "Price formatting matches existing currency format",
-        "Falls back to base product price if no variant is selected"
+        "ProductForm component and useProducts hook have access to admin authentication state from AdminAuthProvider",
+        "Admin authentication status is verified in the UI before enabling product creation actions",
+        "Error messages differentiate between authentication failures and other product creation errors"
       ]
     },
     {
-      "id": "REQ-79",
-      "text": "Update the addToCart functionality in useCart hook and backend to use the selected variant's price instead of the base product price when adding items with variants to the cart",
+      "id": "REQ-91",
+      "text": "Add detailed error logging to both frontend (useProducts hook) and backend (addProduct method) to capture the exact point of failure when permission errors occur during product creation",
       "target": "both",
       "source": {
         "messageIds": [
-          "msg-final"
+          "msg-latest"
         ],
         "quotes": [
-          "a small hoodie could be $ 6  where a 5x could be $14"
+          "I tried to add a product with no variants and its still saying failed to add product"
         ]
       },
       "acceptanceCriteria": [
-        "Cart items store the variant price at time of addition",
-        "Cart calculations use variant price for line item totals",
-        "Checkout uses variant price for order total calculation"
-      ]
-    },
-    {
-      "id": "REQ-80",
-      "text": "Update CartPage to display the variant-specific price for each cart item that includes product variants",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-final"
-        ],
-        "quotes": [
-          "a small hoodie could be $ 6  where a 5x could be $14"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Cart line items show the price of the selected variant",
-        "Line item subtotals calculate correctly with variant price",
-        "Cart total reflects all variant prices accurately"
-      ]
-    },
-    {
-      "id": "REQ-81",
-      "text": "Update MyOrderCard component to display the variant-specific price that was paid for each order line item with product variants in the order history",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-final"
-        ],
-        "quotes": [
-          "a small hoodie could be $ 6  where a 5x could be $14"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Order history shows the exact variant price paid at purchase time",
-        "Order line items display size, color, and price together",
-        "Order total calculations match the sum of variant prices"
-      ]
-    },
-    {
-      "id": "REQ-82",
-      "text": "Create a migration.mo module to transform existing variant data structures from the current schema (without price field) to the new schema (with price field) by adding a default price field to existing variants",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-final"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Migration adds price field to existing variants without losing data",
-        "Default price value is set for variants that lack pricing",
-        "Migration preserves size, color, and inventory data"
+        "Frontend console logs show authentication state, request payload, and backend response when addProduct fails",
+        "Backend logs capture authentication validation results and the specific authorization check that is failing",
+        "Error messages in the UI indicate whether the failure is due to authentication, authorization, validation, or other issues"
       ]
     }
   ],
   "constraints": [
-    "Maintain single-actor backend architecture in main.mo",
-    "Do not modify immutable frontend paths: useInternetIdentity.ts, useInternetIdentity.tsx, useActor.ts, main.tsx, components/ui",
-    "Colors remain aesthetic choices without price impact",
-    "Preserve existing variant system with size/color combinations and individual inventory"
+    "Maintain the existing 8-digit passcode authentication system (09131991) for admin access",
+    "Do not modify the AdminAuthProvider implementation unless necessary to fix the authentication flow",
+    "Preserve the single-actor backend architecture with all logic in main.mo",
+    "Keep the existing admin dashboard routing and navigation structure intact"
   ],
   "nonGoals": [
-    "Color-based pricing variations",
-    "Dynamic pricing rules or algorithms",
-    "Bulk pricing or quantity discounts",
-    "Currency conversion or multi-currency support",
-    "Price history or price change tracking"
+    "Implementing a new authentication system or replacing the passcode mechanism",
+    "Adding new admin features or capabilities beyond fixing the permission issue",
+    "Modifying product variant validation or pricing logic",
+    "Changing the UI/UX of the ProductForm component"
   ],
   "imageRequirements": {
     "required": [],

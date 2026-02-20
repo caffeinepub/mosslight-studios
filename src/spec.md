@@ -1,14 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Add size-based pricing to the product variant system, allowing each size to have its own price.
+**Goal:** Fix admin authentication validation so authenticated admin users can successfully add products without permission errors.
 
 **Planned changes:**
-- Add price field to Variant data type in backend
-- Update VariantManager component to include price input for each variant
-- Display selected variant's price dynamically on ProductDetailPage
-- Update cart functionality to use variant-specific pricing
-- Show variant prices in cart and order history
-- Create migration module to add price field to existing variants
+- Update backend addProduct method to properly validate admin authentication state before processing requests
+- Verify frontend addProduct mutation correctly passes admin authentication credentials to the backend
+- Ensure AdminAuthProvider context state is accessible to useProducts hook and ProductForm component
+- Add detailed error logging to both frontend and backend to capture authentication validation failures
 
-**User-visible outcome:** Admins can set individual prices for each size variant. Customers see size-specific pricing that updates when they select different sizes, and their cart and order history reflect the exact variant prices.
+**User-visible outcome:** Admin users logged in with the correct passcode can successfully add products through the admin dashboard without encountering permission denied errors.

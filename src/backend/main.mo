@@ -11,11 +11,7 @@ import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
-import Migration "migration";
 
-// Use the migration module to transform actor state.
-// WARNING: This cannot be used with dfx bootstrap prototype. See: https://internetcomputer.org/docs/current/developer-docs/build/languages/motoko/upgrades-and-migration#system-api-limitations
-(with migration = Migration.run)
 actor {
   let accessControlState = AccessControl.initState();
 
@@ -203,9 +199,60 @@ actor {
     userProfiles.add(caller, profile);
   };
 
+  func validateVarientDataStructure(product : CreateProductData) {
+    let variantData = product.variants;
+    switch (variantData) {
+      case (null) {
+        let sizeArray = [1.89, 2.11, 2.67, 3.09];
+        let _resizedArray = Array.tabulate(4, func(i) { sizeArray[i] });
+        Runtime.trap("It's required to provide data for each of the 4 available variants: 2X2, 3X3, 4X4, 6X6. Please try again.");
+      };
+      case (?variants) {
+        let sizeArray = [1.89, 2.11, 2.67, 3.09];
+        let _resizedArray = Array.tabulate(variants.size(), func(i) { sizeArray[i] });
+
+        let hasAllVariants = (
+          variants.any(func(v) { v.size == "2X2" }) and variants.any(func(v) { v.size == "3X3" }) and variants.any(func(v) { v.size == "4X4" }) and variants.any(func(v) { v.size == "6X6" })
+        );
+
+        if (not hasAllVariants) {
+          Runtime.trap("You must provide data for all 4 available variants: 2X2, 3X3, 4X4, 6X6.");
+        };
+      };
+    };
+  };
+
   public shared ({ caller }) func addProduct(productData : CreateProductData, images : [Storage.ExternalBlob]) : async () {
     if (not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admins can add products");
+    };
+
+    validateVarientDataStructure(productData);
+
+    let variantsToCheck = switch (productData.variants) {
+      case (null) { [] };
+      case (?variants) { variants };
+    };
+
+    for (variant in variantsToCheck.values()) {
+      if (variant.price == 0) {
+        Runtime.trap("Price must be provided for each variant");
+      };
+      if (variant.inventory == 0) {
+        Runtime.trap("Inventory must be provided for each variant");
+      };
+      if (variant.color == "") {
+        Runtime.trap("Color must be provided for each variant");
+      };
+      if (variant.size == "") {
+        Runtime.trap("Size must be provided for each variant");
+      };
+      if (variant.id == "") {
+        Runtime.trap("Id must be provided for each variant");
+      };
+      if (variant.parentProductId == "") {
+        Runtime.trap("parentProductId must be provided for each variant");
+      };
     };
 
     productIdCounter += 1;
@@ -447,7 +494,6 @@ actor {
       Runtime.trap("Unauthorized: Only authenticated users can add items to cart");
     };
 
-    // Validate inventory availability for all items
     for (item in items.values()) {
       switch (products.get(item.productId)) {
         case null {
@@ -498,7 +544,6 @@ actor {
       Runtime.trap("Unauthorized: Only authenticated users can add items to cart");
     };
 
-    // Validate inventory availability before adding to cart
     switch (products.get(item.productId)) {
       case null {
         Runtime.trap("Product not found: " # item.productId);
