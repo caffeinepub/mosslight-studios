@@ -1,0 +1,182 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Add Discussion Board Frontend for Customer Questions and Admin Responses",
+  "requirements": [
+    {
+      "id": "REQ-14",
+      "summary": "Create a public-facing discussion board page accessible from the main navigation that displays all questions and replies in a forum-style layout",
+      "acceptanceCriteria": [
+        "New route /forum displays the discussion board",
+        "Navigation link added to Header component for 'Forum' or 'Discussion Board'",
+        "Page is publicly accessible without authentication"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/ForumPage.tsx",
+          "operation": "create",
+          "description": "Create a public forum page that displays all discussion posts in a list format. The page should fetch posts using the useDiscussionPosts hook, show loading and error states, and render the DiscussionPostList component with the fetched posts. Include a prominent section at the top with a 'Ask a Question' button that scrolls to or reveals the question form."
+        },
+        {
+          "path": "frontend/src/components/Header.tsx",
+          "operation": "modify",
+          "description": "Add a 'Forum' navigation link to the Header component's navigation menu. Place it between 'Gallery' and 'My Orders' in the navigation order. Ensure the link uses TanStack Router's Link component and points to '/forum'."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Register the /forum route in the router configuration. The route should be public (no authentication required) and render the ForumPage component within the Layout."
+        }
+      ]
+    },
+    {
+      "id": "REQ-15",
+      "summary": "Build a discussion post list component that displays all questions with author information, timestamps, status badges, and reply counts",
+      "acceptanceCriteria": [
+        "Each post shows the question text, author (anonymized as 'Customer' for non-admins), and timestamp",
+        "Status badge indicates if question is 'Open' or 'Answered'",
+        "Reply count is displayed for each post",
+        "Posts are clickable to view full thread with replies"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/DiscussionPostList.tsx",
+          "operation": "create",
+          "description": "Create a component that displays a list of discussion posts. Each post item should show the question text (truncated if long), display 'Customer' as the author for non-admin users, include a formatted timestamp, show a status badge (Open/Answered), and display the reply count. Make each post clickable using TanStack Router's Link to navigate to /forum/:postId. Use the Mosslight Studios color palette from Tailwind config for styling, with appropriate hover states."
+        },
+        {
+          "path": "frontend/src/components/PostStatusBadge.tsx",
+          "operation": "create",
+          "description": "Create a badge component that displays the post status (open or answered). Use the PostStatus enum from backend types. Style 'open' badges with a yellow/warning variant and 'answered' badges with a green/success variant, following the existing OrderStatusBadge pattern but adapted for discussion post statuses."
+        }
+      ]
+    },
+    {
+      "id": "REQ-16",
+      "summary": "Create a form component that allows authenticated customers to submit new questions to the discussion board",
+      "acceptanceCriteria": [
+        "Form includes textarea for question text",
+        "Submit button is disabled when user is not authenticated",
+        "Form shows loading state during submission",
+        "Success toast notification appears after question is posted",
+        "Form clears after successful submission"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/AskQuestionForm.tsx",
+          "operation": "create",
+          "description": "Create a form component for submitting new questions. Include a textarea for the question text with a label and placeholder. The submit button should be disabled when the user is not authenticated (check via useInternetIdentity) or when the form is submitting. Show loading state during submission using the useCreateDiscussionPost mutation. Display a success toast notification after successful submission and clear the form. Include validation that question text is not empty. Style using Mosslight Studios theme colors."
+        }
+      ]
+    },
+    {
+      "id": "REQ-17",
+      "summary": "Build a discussion thread detail view that displays the full question and all replies with author identification for admin responses",
+      "acceptanceCriteria": [
+        "Thread view shows the original question at the top",
+        "All replies are displayed below in chronological order",
+        "Admin replies are visually distinguished with a badge or different styling",
+        "Each reply shows author role (Admin or Customer) and timestamp"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/ForumThreadPage.tsx",
+          "operation": "create",
+          "description": "Create a thread detail page that displays a single discussion post with all replies. Use the useDiscussionThread hook to fetch the post by ID from route params. Display the original question prominently at the top with author (Customer), timestamp, and status badge. Below, render all replies in chronological order using the ReplyList component. Include the AdminReplyForm at the bottom for admin users. Handle loading and error states appropriately."
+        },
+        {
+          "path": "frontend/src/components/ReplyList.tsx",
+          "operation": "create",
+          "description": "Create a component that displays a list of replies. For each reply, show the content, timestamp, and author role (Admin or Customer). Admin replies should be visually distinguished with an 'Admin' badge and potentially different background styling. Use the useCallerUserRole hook to determine if the reply author is an admin (by comparing principals if needed). Style replies in a conversation-like format using the brand color palette."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Register the /forum/:postId route in the router configuration. The route should be public and render the ForumThreadPage component within the Layout. Ensure the postId parameter is properly typed and accessible to the page component."
+        }
+      ]
+    },
+    {
+      "id": "REQ-18",
+      "summary": "Create a reply form component that allows admins to respond to questions directly in the thread view",
+      "acceptanceCriteria": [
+        "Reply form is only visible to authenticated admin users",
+        "Form includes textarea for reply text and submit button",
+        "Shows loading state during submission",
+        "New reply appears immediately in the thread after successful submission",
+        "Form clears after reply is posted"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/AdminReplyForm.tsx",
+          "operation": "create",
+          "description": "Create a form component for admins to reply to discussion posts. The form should only render if the current user is an admin (check using useCallerUserRole hook). Include a textarea for reply content and a submit button. Show loading state during submission using the useReplyToPost mutation. Clear the form after successful submission. The mutation should automatically invalidate the thread query so the new reply appears immediately. Style consistently with other form components in the app."
+        }
+      ]
+    },
+    {
+      "id": "REQ-19",
+      "summary": "Create React Query hooks for discussion board operations including fetching posts, creating posts, fetching thread details, and adding replies",
+      "acceptanceCriteria": [
+        "useDiscussionPosts hook fetches all posts",
+        "useDiscussionThread hook fetches a specific post with replies",
+        "useCreateDiscussionPost mutation creates new posts",
+        "useReplyToPost mutation adds admin replies",
+        "All mutations invalidate relevant queries on success"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useDiscussionBoard.ts",
+          "operation": "create",
+          "description": "Create React Query hooks for discussion board operations. Implement useDiscussionPosts (query) that calls actor.getAllDiscussionPosts(). Implement useDiscussionThread (query) that accepts a postId parameter and filters the posts array to return the matching post with its replies. Implement useCreateDiscussionPost (mutation) that calls actor.createDiscussionPost(question) and invalidates the 'discussionPosts' query on success. Implement useReplyToPost (mutation) that calls actor.addReply(postId, content) and invalidates both 'discussionPosts' and specific thread queries on success. All queries should be enabled only when actor is available and not fetching, following the pattern from other hooks in the codebase."
+        }
+      ]
+    },
+    {
+      "id": "REQ-20",
+      "summary": "Apply Mosslight Studios brand styling to all discussion board components using the existing dark emerald green and cool light nude color palette",
+      "acceptanceCriteria": [
+        "Discussion board components use the existing Tailwind color system from tailwind.config.js",
+        "Layout and typography follow the established design patterns from other pages",
+        "Status badges and admin identification follow the brand styling guidelines"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/DiscussionPostList.tsx",
+          "operation": "modify",
+          "description": "Ensure the DiscussionPostList component uses the Tailwind color classes from the configured theme (emerald and nude variants). Apply consistent spacing, shadows, and hover effects matching other card-based components like ProductCard. Use the brand typography (Playfair Display for headings if appropriate, Inter for body text)."
+        },
+        {
+          "path": "frontend/src/components/PostStatusBadge.tsx",
+          "operation": "modify",
+          "description": "Style the PostStatusBadge component using the existing Tailwind color system. Follow the pattern established by OrderStatusBadge but adapt colors to fit the forum context. Use appropriate color variants from the theme for open (yellow/warning tones) and answered (green/success tones) states."
+        },
+        {
+          "path": "frontend/src/components/AskQuestionForm.tsx",
+          "operation": "modify",
+          "description": "Apply brand styling to the AskQuestionForm component. Use the existing form input styles from other components like ProfileSetupModal. Ensure buttons use the brand color palette with appropriate hover states. Apply consistent spacing and layout patterns."
+        },
+        {
+          "path": "frontend/src/pages/ForumPage.tsx",
+          "operation": "modify",
+          "description": "Apply consistent page layout and styling to ForumPage. Use spacing, container widths, and section layouts that match other pages like ProductsPage and GalleryPage. Ensure headings use appropriate typography from the brand style guide."
+        },
+        {
+          "path": "frontend/src/pages/ForumThreadPage.tsx",
+          "operation": "modify",
+          "description": "Style the ForumThreadPage with consistent layout patterns. Use appropriate container widths, spacing, and card-style layouts for the question and replies sections. Ensure the page follows the visual hierarchy established in other detail pages like ProductDetailPage."
+        },
+        {
+          "path": "frontend/src/components/ReplyList.tsx",
+          "operation": "modify",
+          "description": "Style the ReplyList component with brand colors. Use subtle background colors to distinguish admin replies from customer replies. Apply consistent spacing, borders, and typography. Ensure admin badges use appropriate color variants from the theme."
+        },
+        {
+          "path": "frontend/src/components/AdminReplyForm.tsx",
+          "operation": "modify",
+          "description": "Apply brand styling to the AdminReplyForm. Use consistent form styling matching other form components. Ensure the textarea and submit button follow the established design patterns with appropriate colors, spacing, and interactive states."
+        }
+      ]
+    }
+  ]
+}

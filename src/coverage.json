@@ -1,0 +1,168 @@
+{
+  "kind": "coverage_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-20T18:56:22.106Z",
+  "sources": {
+    "buildRequest": true,
+    "implementationPlan": true
+  },
+  "requirements": {
+    "total": 11,
+    "implemented": 7,
+    "items": [
+      {
+        "id": "REQ-10",
+        "summary": "Create a backend data model for discussion board posts with fields for question text, author principal, timestamp, status (open/answered), and associated replies",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-11",
+        "summary": "Implement backend methods for customers to create new discussion posts with questions",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-12",
+        "summary": "Implement backend methods for admins to reply to discussion posts",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-13",
+        "summary": "Implement backend query methods to retrieve all discussion posts with their replies",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-14",
+        "summary": "Create a public-facing discussion board page accessible from the main navigation that displays all questions and replies in a forum-style layout",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/ForumPage.tsx",
+          "frontend/src/components/Header.tsx",
+          "frontend/src/App.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/ForumPage.tsx",
+          "frontend/src/components/Header.tsx",
+          "frontend/src/App.tsx"
+        ]
+      },
+      {
+        "id": "REQ-15",
+        "summary": "Build a discussion post list component that displays all questions with author information, timestamps, status badges, and reply counts",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/DiscussionPostList.tsx",
+          "frontend/src/components/PostStatusBadge.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/DiscussionPostList.tsx",
+          "frontend/src/components/PostStatusBadge.tsx"
+        ]
+      },
+      {
+        "id": "REQ-16",
+        "summary": "Create a form component that allows authenticated customers to submit new questions to the discussion board",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/AskQuestionForm.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/AskQuestionForm.tsx"
+        ]
+      },
+      {
+        "id": "REQ-17",
+        "summary": "Build a discussion thread detail view that displays the full question and all replies with author identification for admin responses",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/ForumThreadPage.tsx",
+          "frontend/src/components/ReplyList.tsx",
+          "frontend/src/App.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/ForumThreadPage.tsx",
+          "frontend/src/components/ReplyList.tsx",
+          "frontend/src/App.tsx"
+        ]
+      },
+      {
+        "id": "REQ-18",
+        "summary": "Create a reply form component that allows admins to respond to questions directly in the thread view",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/AdminReplyForm.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/AdminReplyForm.tsx"
+        ]
+      },
+      {
+        "id": "REQ-19",
+        "summary": "Create React Query hooks for discussion board operations including fetching posts, creating posts, fetching thread details, and adding replies",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useDiscussionBoard.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useDiscussionBoard.ts"
+        ]
+      },
+      {
+        "id": "REQ-20",
+        "summary": "Apply Mosslight Studios brand styling to all discussion board components using the existing dark emerald green and cool light nude color palette",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/DiscussionPostList.tsx",
+          "frontend/src/components/PostStatusBadge.tsx",
+          "frontend/src/components/AskQuestionForm.tsx",
+          "frontend/src/pages/ForumPage.tsx",
+          "frontend/src/pages/ForumThreadPage.tsx",
+          "frontend/src/components/ReplyList.tsx",
+          "frontend/src/components/AdminReplyForm.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/DiscussionPostList.tsx",
+          "frontend/src/components/PostStatusBadge.tsx",
+          "frontend/src/components/AskQuestionForm.tsx",
+          "frontend/src/pages/ForumPage.tsx",
+          "frontend/src/pages/ForumThreadPage.tsx",
+          "frontend/src/components/ReplyList.tsx",
+          "frontend/src/components/AdminReplyForm.tsx"
+        ]
+      }
+    ]
+  },
+  "changedFiles": [
+    "backend/main.mo",
+    "build-request.json",
+    "build-template/README.md",
+    "feature_evidence.json",
+    "frontend-file-summaries.txt",
+    "frontend-implementation-plan.json",
+    "frontend/src/App.tsx",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
+    "frontend/src/components/AdminReplyForm.tsx",
+    "frontend/src/components/AskQuestionForm.tsx",
+    "frontend/src/components/DiscussionPostList.tsx",
+    "frontend/src/components/Header.tsx",
+    "frontend/src/components/PostStatusBadge.tsx",
+    "frontend/src/components/ReplyList.tsx",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
+    "frontend/src/hooks/useDiscussionBoard.ts",
+    "frontend/src/pages/ForumPage.tsx",
+    "frontend/src/pages/ForumThreadPage.tsx",
+    "project_state.json",
+    "scratch/component-selection.json",
+    "spec.md",
+    "spec_vs_diff_report.json"
+  ]
+}

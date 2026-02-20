@@ -1,0 +1,210 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 5,
+  "summary": "Ecommerce website for Mosslight Studios with admin backend, customer portal, and social media content gallery",
+  "architectural_notes": [
+    "Ecommerce platform with admin and customer-facing components",
+    "Multi-platform social media content aggregation for gallery",
+    "User authentication system for customer portal and admin access"
+  ],
+  "known_issues": [],
+  "isFixRequest": false,
+  "existing_features": [
+    {
+      "id": "feature-create-a-product-management-system-where-administrators-can-upload-new-products-with-details-including-name-description-price-images-and-inventory-quantity",
+      "title": "Create a product management system where administrators can upload new products with details including name, description, price, images, and inventory quantity",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-an-order-management-dashboard-where-administrators-can-view-all-customer-orders-with-status-items-customer-details-and-order-date",
+      "title": "Implement an order management dashboard where administrators can view all customer orders with status, items, customer details, and order date",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-build-an-admin-messaging-system-that-allows-administrators-to-send-messages-to-customers",
+      "title": "Build an admin messaging system that allows administrators to send messages to customers",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-customer-authentication-system-using-internet-identity-that-allows-customers-who-have-purchased-items-to-log-in-securely",
+      "title": "Create a customer authentication system using Internet Identity that allows customers who have purchased items to log in securely",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-a-customer-order-tracking-portal-where-logged-in-customers-can-view-their-purchase-history-and-track-current-orders-with-shipping-status",
+      "title": "Implement a customer order tracking portal where logged-in customers can view their purchase history and track current orders with shipping status",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-build-a-social-media-content-gallery-that-displays-videos-photos-and-messages-from-various-social-media-platforms-in-a-unified-feed",
+      "title": "Build a social media content gallery that displays videos, photos, and messages from various social media platforms in a unified feed",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-apply-mosslight-studios-brand-styling-throughout-the-entire-website-using-a-dark-emerald-green-primary-color-and-cool-light-nude-secondary-color-for-the-visual-theme",
+      "title": "Apply Mosslight Studios brand styling throughout the entire website using a dark emerald green primary color and cool light nude secondary color for the visual theme",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-public-facing-product-catalog-page-where-visitors-can-browse-available-products-with-images-descriptions-and-prices",
+      "title": "Create a public-facing product catalog page where visitors can browse available products with images, descriptions, and prices",
+      "reqIds": [
+        "REQ-8"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-a-shopping-cart-and-checkout-flow-that-allows-customers-to-add-products-review-their-cart-and-complete-purchases",
+      "title": "Implement a shopping cart and checkout flow that allows customers to add products, review their cart, and complete purchases",
+      "reqIds": [
+        "REQ-9"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-public-facing-discussion-board-page-accessible-from-the-main-navigation-that-displays-all-questions-and-replies-in-a-forum-style-layout",
+      "title": "Create a public-facing discussion board page accessible from the main navigation that displays all questions and replies in a forum-style layout",
+      "reqIds": [
+        "REQ-14"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-build-a-discussion-post-list-component-that-displays-all-questions-with-author-information-timestamps-status-badges-and-reply-counts",
+      "title": "Build a discussion post list component that displays all questions with author information, timestamps, status badges, and reply counts",
+      "reqIds": [
+        "REQ-15"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-form-component-that-allows-authenticated-customers-to-submit-new-questions-to-the-discussion-board",
+      "title": "Create a form component that allows authenticated customers to submit new questions to the discussion board",
+      "reqIds": [
+        "REQ-16"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-build-a-discussion-thread-detail-view-that-displays-the-full-question-and-all-replies-with-author-identification-for-admin-responses",
+      "title": "Build a discussion thread detail view that displays the full question and all replies with author identification for admin responses",
+      "reqIds": [
+        "REQ-17"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-reply-form-component-that-allows-admins-to-respond-to-questions-directly-in-the-thread-view",
+      "title": "Create a reply form component that allows admins to respond to questions directly in the thread view",
+      "reqIds": [
+        "REQ-18"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-react-query-hooks-for-discussion-board-operations-including-fetching-posts-creating-posts-fetching-thread-details-and-adding-replies",
+      "title": "Create React Query hooks for discussion board operations including fetching posts, creating posts, fetching thread details, and adding replies",
+      "reqIds": [
+        "REQ-19"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-apply-mosslight-studios-brand-styling-to-all-discussion-board-components-using-the-existing-dark-emerald-green-and-cool-light-nude-color-palette",
+      "title": "Apply Mosslight Studios brand styling to all discussion board components using the existing dark emerald green and cool light nude color palette",
+      "reqIds": [
+        "REQ-20"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Admin backend: upload products, check orders, message customers",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Customer login portal for order tracking",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Video/content gallery displaying social media posts (messages, videos, photos)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Brand styling: dark emerald green and cool light nude color theme",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Message board/forum for customer questions and admin responses",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Create a backend data model for discussion board posts with fields for question text, author principal, timestamp, status (open/answered), and associated replies",
+      "reqIds": [
+        "REQ-10"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "Implement backend methods for customers to create new discussion posts with questions",
+      "reqIds": [
+        "REQ-11"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-8",
+      "summary": "Implement backend methods for admins to reply to discussion posts",
+      "reqIds": [
+        "REQ-12"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-9",
+      "summary": "Implement backend query methods to retrieve all discussion posts with their replies",
+      "reqIds": [
+        "REQ-13"
+      ],
+      "status": "pending"
+    }
+  ],
+  "gameProjectType": "none",
+  "projectName": "Mosslight Studios",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

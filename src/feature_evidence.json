@@ -1,0 +1,156 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-create-a-public-facing-discussion-board-page-accessible-from-the-main-navigation-that-displays-all-questions-and-replies-in-a-forum-style-layout",
+      "featureTitle": "Create a public-facing discussion board page accessible from the main navigation that displays all questions and replies in a forum-style layout",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/components/Header.tsx",
+        "frontend/src/pages/ForumPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-14"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-build-a-discussion-post-list-component-that-displays-all-questions-with-author-information-timestamps-status-badges-and-reply-counts",
+      "featureTitle": "Build a discussion post list component that displays all questions with author information, timestamps, status badges, and reply counts",
+      "files": [
+        "frontend/src/components/DiscussionPostList.tsx",
+        "frontend/src/components/PostStatusBadge.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-15"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-create-a-form-component-that-allows-authenticated-customers-to-submit-new-questions-to-the-discussion-board",
+      "featureTitle": "Create a form component that allows authenticated customers to submit new questions to the discussion board",
+      "files": [
+        "frontend/src/components/AskQuestionForm.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-16"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-build-a-discussion-thread-detail-view-that-displays-the-full-question-and-all-replies-with-author-identification-for-admin-responses",
+      "featureTitle": "Build a discussion thread detail view that displays the full question and all replies with author identification for admin responses",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/components/ReplyList.tsx",
+        "frontend/src/pages/ForumThreadPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-17"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-create-a-reply-form-component-that-allows-admins-to-respond-to-questions-directly-in-the-thread-view",
+      "featureTitle": "Create a reply form component that allows admins to respond to questions directly in the thread view",
+      "files": [
+        "frontend/src/components/AdminReplyForm.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-18"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-create-react-query-hooks-for-discussion-board-operations-including-fetching-posts-creating-posts-fetching-thread-details-and-adding-replies",
+      "featureTitle": "Create React Query hooks for discussion board operations including fetching posts, creating posts, fetching thread details, and adding replies",
+      "files": [
+        "frontend/src/hooks/useDiscussionBoard.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-19"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-apply-mosslight-studios-brand-styling-to-all-discussion-board-components-using-the-existing-dark-emerald-green-and-cool-light-nude-color-palette",
+      "featureTitle": "Apply Mosslight Studios brand styling to all discussion board components using the existing dark emerald green and cool light nude color palette",
+      "files": [
+        "frontend/src/components/AdminReplyForm.tsx",
+        "frontend/src/components/AskQuestionForm.tsx",
+        "frontend/src/components/DiscussionPostList.tsx",
+        "frontend/src/components/PostStatusBadge.tsx",
+        "frontend/src/components/ReplyList.tsx",
+        "frontend/src/pages/ForumPage.tsx",
+        "frontend/src/pages/ForumThreadPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-20"
+      ],
+      "confidence": "high"
+    }
+  ]
+}

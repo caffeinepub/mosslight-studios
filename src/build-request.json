@@ -1,0 +1,227 @@
+{
+  "kind": "build_request",
+  "title": "Add discussion board for customer questions and admin responses",
+  "projectName": "Mosslight Studios",
+  "priority": "normal",
+  "requirements": [
+    {
+      "id": "REQ-10",
+      "text": "Create a backend data model for discussion board posts with fields for question text, author principal, timestamp, status (open/answered), and associated replies",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-last"
+        ],
+        "quotes": [
+          "can you create a new section a message board or forum where people can ask questions and i can respond"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Discussion post type includes question text, author principal, creation timestamp, and status field",
+        "Reply type includes reply text, author principal, timestamp, and reference to parent post",
+        "Data structures support querying all posts and replies by post ID"
+      ]
+    },
+    {
+      "id": "REQ-11",
+      "text": "Implement backend methods for customers to create new discussion posts with questions",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-last"
+        ],
+        "quotes": [
+          "where people can ask questions"
+        ]
+      },
+      "acceptanceCriteria": [
+        "createDiscussionPost method accepts question text and creates a new post with caller principal as author",
+        "Method validates that question text is not empty",
+        "Returns the newly created post ID"
+      ]
+    },
+    {
+      "id": "REQ-12",
+      "text": "Implement backend methods for admins to reply to discussion posts",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-last"
+        ],
+        "quotes": [
+          "and i can respond"
+        ]
+      },
+      "acceptanceCriteria": [
+        "replyToDiscussionPost method accepts post ID and reply text",
+        "Method validates caller has admin role using existing access control",
+        "Reply is associated with the parent post and includes admin principal as author"
+      ]
+    },
+    {
+      "id": "REQ-13",
+      "text": "Implement backend query methods to retrieve all discussion posts with their replies",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-last"
+        ],
+        "quotes": [
+          "message board or forum"
+        ]
+      },
+      "acceptanceCriteria": [
+        "getDiscussionPosts method returns all posts with basic information",
+        "getDiscussionPostWithReplies method returns a specific post with all associated replies",
+        "Posts are ordered by creation timestamp (newest first)"
+      ]
+    },
+    {
+      "id": "REQ-14",
+      "text": "Create a public-facing discussion board page accessible from the main navigation that displays all questions and replies in a forum-style layout",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-last"
+        ],
+        "quotes": [
+          "create a new section a message board or forum"
+        ]
+      },
+      "acceptanceCriteria": [
+        "New route /forum displays the discussion board",
+        "Navigation link added to Header component for 'Forum' or 'Discussion Board'",
+        "Page is publicly accessible without authentication"
+      ]
+    },
+    {
+      "id": "REQ-15",
+      "text": "Build a discussion post list component that displays all questions with author information, timestamps, status badges, and reply counts",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-last"
+        ],
+        "quotes": [
+          "message board or forum where people can ask questions"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Each post shows the question text, author (anonymized as 'Customer' for non-admins), and timestamp",
+        "Status badge indicates if question is 'Open' or 'Answered'",
+        "Reply count is displayed for each post",
+        "Posts are clickable to view full thread with replies"
+      ]
+    },
+    {
+      "id": "REQ-16",
+      "text": "Create a form component that allows authenticated customers to submit new questions to the discussion board",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-last"
+        ],
+        "quotes": [
+          "where people can ask questions"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Form includes textarea for question text",
+        "Submit button is disabled when user is not authenticated",
+        "Form shows loading state during submission",
+        "Success toast notification appears after question is posted",
+        "Form clears after successful submission"
+      ]
+    },
+    {
+      "id": "REQ-17",
+      "text": "Build a discussion thread detail view that displays the full question and all replies with author identification for admin responses",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-last"
+        ],
+        "quotes": [
+          "and i can respond"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Thread view shows the original question at the top",
+        "All replies are displayed below in chronological order",
+        "Admin replies are visually distinguished with a badge or different styling",
+        "Each reply shows author role (Admin or Customer) and timestamp"
+      ]
+    },
+    {
+      "id": "REQ-18",
+      "text": "Create a reply form component that allows admins to respond to questions directly in the thread view",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-last"
+        ],
+        "quotes": [
+          "and i can respond"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Reply form is only visible to authenticated admin users",
+        "Form includes textarea for reply text and submit button",
+        "Shows loading state during submission",
+        "New reply appears immediately in the thread after successful submission",
+        "Form clears after reply is posted"
+      ]
+    },
+    {
+      "id": "REQ-19",
+      "text": "Create React Query hooks for discussion board operations including fetching posts, creating posts, fetching thread details, and adding replies",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-last"
+        ]
+      },
+      "acceptanceCriteria": [
+        "useDiscussionPosts hook fetches all posts",
+        "useDiscussionThread hook fetches a specific post with replies",
+        "useCreateDiscussionPost mutation creates new posts",
+        "useReplyToPost mutation adds admin replies",
+        "All mutations invalidate relevant queries on success"
+      ]
+    },
+    {
+      "id": "REQ-20",
+      "text": "Apply Mosslight Studios brand styling to all discussion board components using the existing dark emerald green and cool light nude color palette",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-last"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Discussion board components use the existing Tailwind color system from tailwind.config.js",
+        "Layout and typography follow the established design patterns from other pages",
+        "Status badges and admin identification follow the brand styling guidelines"
+      ]
+    }
+  ],
+  "constraints": [
+    "Use the existing single-actor architecture in backend/main.mo",
+    "Do not modify read-only files in frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui",
+    "Use existing access control patterns for admin-only operations",
+    "Follow the established authentication flow using Internet Identity"
+  ],
+  "nonGoals": [
+    "Real-time updates or WebSocket integration for live forum updates",
+    "Post editing or deletion functionality",
+    "Upvoting or reaction features for posts",
+    "Email notifications for new questions or replies",
+    "User reputation or karma system",
+    "Post categories or tagging system",
+    "Search functionality within the discussion board"
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  }
+}
