@@ -11,9 +11,11 @@ import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
 export interface CreateProductData {
+  'hasVariants' : boolean,
   'inventory' : bigint,
   'name' : string,
   'description' : string,
+  'variants' : [] | [Array<ProductVariant>],
   'price' : bigint,
 }
 export type Customer = Principal;
@@ -51,7 +53,11 @@ export interface Order {
   'date' : Time,
   'items' : Array<OrderItem>,
 }
-export interface OrderItem { 'productId' : string, 'quantity' : bigint }
+export interface OrderItem {
+  'productId' : string,
+  'variantId' : [] | [string],
+  'quantity' : bigint,
+}
 export type OrderStatus = { 'shipped' : null } |
   { 'pending' : null } |
   { 'delivered' : null };
@@ -59,11 +65,21 @@ export type PostStatus = { 'open' : null } |
   { 'answered' : null };
 export interface Product {
   'id' : string,
+  'hasVariants' : boolean,
   'inventory' : bigint,
   'name' : string,
   'description' : string,
+  'variants' : [] | [Array<ProductVariant>],
   'price' : bigint,
   'images' : Array<ExternalBlob>,
+}
+export interface ProductVariant {
+  'id' : string,
+  'inventory' : bigint,
+  'color' : string,
+  'size' : string,
+  'parentProductId' : string,
+  'price' : bigint,
 }
 export interface Reply {
   'content' : string,
@@ -73,6 +89,7 @@ export interface Reply {
 export interface Review {
   'reviewText' : string,
   'productId' : string,
+  'variantId' : [] | [string],
   'timestamp' : Time,
   'rating' : bigint,
   'reviewer' : Principal,
@@ -153,6 +170,7 @@ export interface _SERVICE {
   'getOrders' : ActorMethod<[], Array<Order>>,
   'getProduct' : ActorMethod<[string], [] | [Product]>,
   'getProductReviews' : ActorMethod<[string], [Array<Review>, number]>,
+  'getProductVariants' : ActorMethod<[string], [] | [Array<ProductVariant>]>,
   'getProducts' : ActorMethod<[], Array<Product>>,
   'getSocialMediaContent' : ActorMethod<[], Array<SocialMediaContent>>,
   'getUnreadNotifications' : ActorMethod<[], Array<Notification>>,
@@ -170,7 +188,10 @@ export interface _SERVICE {
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'sendAdminBroadcastAlert' : ActorMethod<[string], undefined>,
   'sendMessage' : ActorMethod<[string, [] | [Customer]], undefined>,
-  'submitReview' : ActorMethod<[string, bigint, string], undefined>,
+  'submitReview' : ActorMethod<
+    [string, bigint, string, [] | [string]],
+    undefined
+  >,
   'updateOrderStatus' : ActorMethod<[string, OrderStatus], undefined>,
   'updateProduct' : ActorMethod<
     [string, CreateProductData, Array<ExternalBlob>],

@@ -2,8 +2,8 @@ import Map "mo:core/Map";
 import Text "mo:core/Text";
 import Time "mo:core/Time";
 import Nat "mo:core/Nat";
-import List "mo:core/List";
 import Array "mo:core/Array";
+import List "mo:core/List";
 import Principal "mo:core/Principal";
 import Runtime "mo:core/Runtime";
 import Iter "mo:core/Iter";
@@ -11,13 +11,25 @@ import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
+import Migration "migration";
 
+// Use the migration module to transform actor state.
+// WARNING: This cannot be used with dfx bootstrap prototype. See: https://internetcomputer.org/docs/current/developer-docs/build/languages/motoko/upgrades-and-migration#system-api-limitations
+(with migration = Migration.run)
 actor {
-  // Initialize the access control state once
   let accessControlState = AccessControl.initState();
 
   include MixinStorage();
   include MixinAuthorization(accessControlState);
+
+  public type ProductVariant = {
+    id : Text;
+    size : Text;
+    color : Text;
+    price : Nat;
+    inventory : Nat;
+    parentProductId : Text;
+  };
 
   public type Product = {
     id : Text;
@@ -26,6 +38,8 @@ actor {
     price : Nat;
     images : [Storage.ExternalBlob];
     inventory : Nat;
+    variants : ?[ProductVariant];
+    hasVariants : Bool;
   };
 
   public type Customer = Principal;
@@ -46,6 +60,7 @@ actor {
 
   public type OrderItem = {
     productId : Text;
+    variantId : ?Text;
     quantity : Nat;
   };
 
@@ -74,6 +89,8 @@ actor {
     description : Text;
     price : Nat;
     inventory : Nat;
+    hasVariants : Bool;
+    variants : ?[ProductVariant];
   };
 
   public type ExternalProduct = {
@@ -150,6 +167,7 @@ actor {
     reviewText : Text;
     timestamp : Time.Time;
     verifiedPurchase : Bool;
+    variantId : ?Text;
   };
 
   public type AnalyticsEvent = {
@@ -199,6 +217,8 @@ actor {
       price = productData.price;
       images;
       inventory = productData.inventory;
+      variants = productData.variants;
+      hasVariants = productData.hasVariants;
     };
     products.add(id, product);
     sendLowInventoryNotifications(id);
@@ -221,6 +241,8 @@ actor {
           price = productData.price;
           images;
           inventory = productData.inventory;
+          hasVariants = productData.hasVariants;
+          variants = productData.variants;
         };
         products.add(productId, updated);
         sendLowInventoryNotifications(productId);
@@ -279,7 +301,6 @@ actor {
       Runtime.trap("Unauthorized: Only admins can send broadcast alerts");
     };
 
-    // Send notification to all users with admin role
     for ((principal, _) in userProfiles.entries()) {
       if (AccessControl.isAdmin(accessControlState, principal)) {
         messageIdCounter += 1;
@@ -356,12 +377,10 @@ actor {
   };
 
   public query ({ caller }) func getProducts() : async [Product] {
-    // Public access - no authorization needed
     products.values().toArray();
   };
 
   public query ({ caller }) func getProduct(productId : Text) : async ?Product {
-    // Public access - no authorization needed
     products.get(productId);
   };
 
@@ -420,12 +439,50 @@ actor {
   };
 
   public query ({ caller }) func getSocialMediaContent() : async [SocialMediaContent] {
-    // Public access - no authorization needed
     [];
   };
 
   public shared ({ caller }) func addToCart(items : [OrderItem]) : async () {
-    // Public access - guests can add to cart
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can add items to cart");
+    };
+
+    // Validate inventory availability for all items
+    for (item in items.values()) {
+      switch (products.get(item.productId)) {
+        case null {
+          Runtime.trap("Product not found: " # item.productId);
+        };
+        case (?product) {
+          if (product.hasVariants and product.variants != null) {
+            let variants = product.variants.get([]);
+            switch (item.variantId) {
+              case null {
+                Runtime.trap("Variant required for product: " # product.name);
+              };
+              case (?variantId) {
+                let variant = variants.find(func(v) { v.id == variantId });
+                switch (variant) {
+                  case null {
+                    Runtime.trap("Variant not found for product: " # product.name);
+                  };
+                  case (?v) {
+                    if (v.inventory < item.quantity) {
+                      Runtime.trap("Insufficient inventory for variant");
+                    };
+                  };
+                };
+              };
+            };
+          } else {
+            if (product.inventory < item.quantity) {
+              Runtime.trap("Insufficient inventory for product: " # product.name);
+            };
+          };
+        };
+      };
+    };
+
     let cart = switch (shoppingCarts.get(caller)) {
       case null { List.empty<OrderItem>() };
       case (?existing) { existing };
@@ -437,7 +494,44 @@ actor {
   };
 
   public shared ({ caller }) func addItemToCart(item : OrderItem) : async () {
-    // Public access - guests can add to cart
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can add items to cart");
+    };
+
+    // Validate inventory availability before adding to cart
+    switch (products.get(item.productId)) {
+      case null {
+        Runtime.trap("Product not found: " # item.productId);
+      };
+      case (?product) {
+        if (product.hasVariants and product.variants != null) {
+          let variants = product.variants.get([]);
+          switch (item.variantId) {
+            case null {
+              Runtime.trap("Variant required for product: " # product.name);
+            };
+            case (?variantId) {
+              let variant = variants.find(func(v) { v.id == variantId });
+              switch (variant) {
+                case null {
+                  Runtime.trap("Variant not found for product: " # product.name);
+                };
+                case (?v) {
+                  if (v.inventory < item.quantity) {
+                    Runtime.trap("Insufficient inventory for variant");
+                  };
+                };
+              };
+            };
+          };
+        } else {
+          if (product.inventory < item.quantity) {
+            Runtime.trap("Insufficient inventory for product: " # product.name);
+          };
+        };
+      };
+    };
+
     let cart = switch (shoppingCarts.get(caller)) {
       case null { List.empty<OrderItem>() };
       case (?existing) { existing };
@@ -448,7 +542,10 @@ actor {
   };
 
   public query ({ caller }) func viewCart() : async [OrderItem] {
-    // Public access - anyone can view their own cart
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can view cart");
+    };
+
     switch (shoppingCarts.get(caller)) {
       case null { [] };
       case (?cart) { cart.toArray() };
@@ -456,7 +553,10 @@ actor {
   };
 
   public shared ({ caller }) func clearCart() : async () {
-    // Public access - anyone can clear their own cart
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can clear cart");
+    };
+
     shoppingCarts.remove(caller);
   };
 
@@ -476,37 +576,82 @@ actor {
 
     let items = cart.toArray();
 
-    // Validate inventory
     for (item in items.values()) {
       switch (products.get(item.productId)) {
         case null {
           Runtime.trap("Product not found: " # item.productId);
         };
         case (?product) {
-          if (product.inventory < item.quantity) {
-            Runtime.trap("Insufficient inventory for product: " # product.name);
+          if (product.hasVariants and product.variants != null) {
+            let variants = product.variants.get([]);
+            switch (item.variantId) {
+              case null {
+                Runtime.trap("Variant required for product: " # product.name);
+              };
+              case (?variantId) {
+                let variant = variants.find(func(v) { v.id == variantId });
+                switch (variant) {
+                  case null {
+                    Runtime.trap("Variant not found for product: " # product.name);
+                  };
+                  case (?v) {
+                    if (v.inventory < item.quantity) {
+                      Runtime.trap("Insufficient inventory for variant");
+                    };
+                  };
+                };
+              };
+            };
+          } else {
+            if (product.inventory < item.quantity) {
+              Runtime.trap("Insufficient inventory for product: " # product.name);
+            };
           };
         };
       };
     };
 
-    // Update inventory and create low inventory notification if needed
     for (item in items.values()) {
       switch (products.get(item.productId)) {
         case null {};
         case (?product) {
-          let updated : Product = {
-            id = product.id;
-            name = product.name;
-            description = product.description;
-            price = product.price;
-            images = product.images;
-            inventory = product.inventory - item.quantity;
-          };
-          products.add(product.id, updated);
+          if (product.hasVariants and product.variants != null) {
+            let variants = product.variants.get([]);
+            switch (item.variantId) {
+              case null {};
+              case (?variantId) {
+                let variantOpt = variants.find(func(v) { v.id == variantId });
+                switch (variantOpt) {
+                  case null {};
+                  case (?variant) {
+                    let updatedVariants = variants.map(
+                      func(v) {
+                        if (v.id == variantId) {
+                          { v with inventory = v.inventory - item.quantity };
+                        } else {
+                          v;
+                        };
+                      }
+                    );
+                    let updatedProduct = {
+                      product with
+                      variants = ?updatedVariants;
+                    };
+                    products.add(product.id, updatedProduct);
+                  };
+                };
+              };
+            };
+          } else {
+            let updatedProduct = {
+              product with
+              inventory = product.inventory - item.quantity;
+            };
+            products.add(product.id, updatedProduct);
 
-          if (updated.inventory < 5) {
-            sendLowInventoryNotifications(product.id);
+            if (updatedProduct.inventory < 5) {
+              sendLowInventoryNotifications(product.id);
+            };
           };
         };
       };
@@ -524,10 +669,8 @@ actor {
     };
     orders.add(orderId, order);
 
-    // Clear the cart
     shoppingCarts.remove(caller);
 
-    // Record analytics event for order completion
     let analyticsId = "analytics_" # Time.now().toText();
     let event : AnalyticsEvent = {
       eventType = #orderComplete;
@@ -538,6 +681,13 @@ actor {
     analytics.add(analyticsId, event);
 
     orderId;
+  };
+
+  public query ({ caller }) func getProductVariants(productId : Text) : async ?[ProductVariant] {
+    switch (products.get(productId)) {
+      case null { null };
+      case (?product) { product.variants };
+    };
   };
 
   public query ({ caller }) func getUnreadNotifications() : async [Notification] {
@@ -595,7 +745,6 @@ actor {
       case null {};
       case (?product) {
         if (product.inventory < 5) {
-          // Send notification to all admins
           for ((principal, _) in userProfiles.entries()) {
             if (AccessControl.isAdmin(accessControlState, principal)) {
               messageIdCounter += 1;
@@ -618,7 +767,7 @@ actor {
     };
   };
 
-  public shared ({ caller }) func submitReview(productId : Text, rating : Nat, reviewText : Text) : async () {
+  public shared ({ caller }) func submitReview(productId : Text, rating : Nat, reviewText : Text, variantId : ?Text) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only authenticated users can submit reviews");
     };
@@ -627,7 +776,6 @@ actor {
       Runtime.trap("Rating must be between 1 and 5");
     };
 
-    // Check if user has purchased product
     let hasPurchased = orders.values().any(func(o) { o.customer == caller and o.items.findIndex(func(item) { item.productId == productId }) != null });
 
     if (not hasPurchased) {
@@ -641,9 +789,9 @@ actor {
       reviewText;
       timestamp = Time.now();
       verifiedPurchase = true;
+      variantId;
     };
 
-    // Update product reviews
     let existingReviews = switch (productReviews.get(productId)) {
       case (null) { List.empty<Review>() };
       case (?existing) { existing };
@@ -654,7 +802,6 @@ actor {
   };
 
   public query ({ caller }) func getProductReviews(productId : Text) : async ([Review], Float) {
-    // Public access - anyone can view product reviews
     let reviewsList = switch (productReviews.get(productId)) {
       case (null) { List.empty<Review>() };
       case (?existing) { existing };
@@ -672,7 +819,6 @@ actor {
   };
 
   public shared ({ caller }) func recordAnalyticsEvent(eventType : { #productClick : Text; #contentView : Text; #orderComplete }) : async () {
-    // Public access - guests and users can record analytics events
     let id = "analytics_" # Time.now().toText();
     let userPrincipal = if (caller.isAnonymous()) {
       null
@@ -705,7 +851,6 @@ actor {
       Runtime.trap("Unauthorized: Only admins can view analytics data");
     };
 
-    // Calculate most clicked products
     let productClicks = Map.empty<Text, Nat>();
     for (event in analytics.values()) {
       switch (event.eventType) {
@@ -722,7 +867,6 @@ actor {
 
     let mostClicked = productClicks.toArray();
 
-    // Calculate most viewed content
     let contentViews = Map.empty<Text, Nat>();
     for (event in analytics.values()) {
       switch (event.eventType) {
@@ -739,7 +883,6 @@ actor {
 
     let mostViewed = contentViews.toArray();
 
-    // Calculate total revenue and order count
     var totalRevenue = 0;
     let orderCount = orders.size();
 
@@ -754,7 +897,6 @@ actor {
       };
     };
 
-    // Find low inventory products
     let lowInventory = products.values().filter(func(p) { p.inventory < 5 }).toArray();
 
     {

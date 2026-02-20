@@ -16,9 +16,11 @@ export class ExternalBlob {
 }
 export interface Product {
     id: string;
+    hasVariants: boolean;
     inventory: bigint;
     name: string;
     description: string;
+    variants?: Array<ProductVariant>;
     price: bigint;
     images: Array<ExternalBlob>;
 }
@@ -41,6 +43,7 @@ export interface SocialMediaContent {
 }
 export interface OrderItem {
     productId: string;
+    variantId?: string;
     quantity: bigint;
 }
 export interface DiscussionPost {
@@ -51,6 +54,14 @@ export interface DiscussionPost {
     timestamp: Time;
     replies: Array<Reply>;
 }
+export interface ProductVariant {
+    id: string;
+    inventory: bigint;
+    color: string;
+    size: string;
+    parentProductId: string;
+    price: bigint;
+}
 export interface Order {
     id: string;
     status: OrderStatus;
@@ -60,9 +71,11 @@ export interface Order {
 }
 export type Customer = Principal;
 export interface CreateProductData {
+    hasVariants: boolean;
     inventory: bigint;
     name: string;
     description: string;
+    variants?: Array<ProductVariant>;
     price: bigint;
 }
 export type NotificationType = {
@@ -93,6 +106,7 @@ export interface Message {
 export interface Review {
     reviewText: string;
     productId: string;
+    variantId?: string;
     timestamp: Time;
     rating: bigint;
     reviewer: Principal;
@@ -139,6 +153,7 @@ export interface backendInterface {
     getOrders(): Promise<Array<Order>>;
     getProduct(productId: string): Promise<Product | null>;
     getProductReviews(productId: string): Promise<[Array<Review>, number]>;
+    getProductVariants(productId: string): Promise<Array<ProductVariant> | null>;
     getProducts(): Promise<Array<Product>>;
     getSocialMediaContent(): Promise<Array<SocialMediaContent>>;
     getUnreadNotifications(): Promise<Array<Notification>>;
@@ -158,7 +173,7 @@ export interface backendInterface {
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     sendAdminBroadcastAlert(message: string): Promise<void>;
     sendMessage(content: string, recipient: Customer | null): Promise<void>;
-    submitReview(productId: string, rating: bigint, reviewText: string): Promise<void>;
+    submitReview(productId: string, rating: bigint, reviewText: string, variantId: string | null): Promise<void>;
     updateOrderStatus(orderId: string, status: OrderStatus): Promise<void>;
     updateProduct(productId: string, productData: CreateProductData, images: Array<ExternalBlob>): Promise<void>;
     viewCart(): Promise<Array<OrderItem>>;

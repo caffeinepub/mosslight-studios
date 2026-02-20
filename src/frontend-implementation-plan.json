@@ -1,388 +1,92 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Add customer notifications, product reviews, analytics dashboard, search/filtering, About/FAQ pages, and social media links",
+  "title": "Add size-based pricing to product variant system - Frontend Implementation",
   "requirements": [
     {
-      "id": "REQ-36",
-      "summary": "Create React Query hook for managing notifications with fetch and mark-as-read operations",
+      "id": "REQ-77",
+      "summary": "Update VariantManager component to include price input field for each variant",
       "acceptanceCriteria": [
-        "Hook fetches unread notifications with loading and error states",
-        "Mutation to mark notification as read with cache invalidation",
-        "Mutation to mark all notifications as read"
+        "Each variant row in the table displays a price input field",
+        "Price values are validated as positive numbers",
+        "New variants include price when added",
+        "Edited variants can update price values"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useNotifications.ts",
-          "operation": "create",
-          "description": "Create hook exporting useGetUnreadNotifications query and useMarkNotificationAsRead mutation. Query fetches notifications using actor.getUnreadNotifications(). Mutation calls actor.markNotificationAsRead(notificationId) and invalidates 'unreadNotifications' query key on success."
-        }
-      ]
-    },
-    {
-      "id": "REQ-37",
-      "summary": "Create NotificationBell component in Header showing unread count badge and notification dropdown",
-      "acceptanceCriteria": [
-        "Bell icon displays in Header with unread count badge",
-        "Clicking bell opens dropdown showing notifications",
-        "Notifications show message, timestamp, and read/unread status",
-        "Clicking notification marks it as read",
-        "Shows empty state when no notifications exist"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/NotificationBell.tsx",
-          "operation": "create",
-          "description": "Create component using useGetUnreadNotifications hook to display bell icon with badge showing count. On click, open dropdown panel listing notifications with message, formatted timestamp, and type-based styling. Clicking a notification triggers useMarkNotificationAsRead mutation. Include empty state message. Use shadcn/ui DropdownMenu, Badge, and Bell icon from lucide-react."
-        },
-        {
-          "path": "frontend/src/components/Header.tsx",
+          "path": "frontend/src/components/VariantManager.tsx",
           "operation": "modify",
-          "description": "Import and add NotificationBell component to the navigation bar between the cart icon and login button. Ensure it only renders when user is authenticated using identity check from useInternetIdentity."
+          "description": "Add price input field to the variant table alongside size, color, and inventory fields. Include validation to ensure price is a positive number. Update the add and edit handlers to include price in the variant data structure. Ensure the table displays price in a currency-formatted column."
         }
       ]
     },
     {
-      "id": "REQ-38",
-      "summary": "Add Notifications section to admin dashboard for admin-specific alerts",
+      "id": "REQ-78",
+      "summary": "Update ProductDetailPage to display selected variant's price dynamically",
       "acceptanceCriteria": [
-        "Admin dashboard shows notifications section with recent alerts",
-        "Low inventory alerts are prominently displayed",
-        "Admin can mark alerts as read or dismiss them"
+        "Price updates immediately when size selector changes",
+        "Selected variant price displays in the product price area",
+        "Price formatting matches existing currency format",
+        "Falls back to base product price if no variant is selected"
       ],
       "file_operations": [
-        {
-          "path": "frontend/src/components/AdminNotificationsPanel.tsx",
-          "operation": "create",
-          "description": "Create component using useGetUnreadNotifications to display admin notifications (adminAlert and lowInventory types). Show alerts in card format with alert icon, message, timestamp, and mark-as-read button. Highlight low inventory alerts with warning styling. Use shadcn/ui Card, Alert, and AlertTriangle icon."
-        },
-        {
-          "path": "frontend/src/pages/AdminDashboardPage.tsx",
-          "operation": "modify",
-          "description": "Import and add AdminNotificationsPanel component below the heading and above the navigation cards grid. Display it prominently at the top of the dashboard content area."
-        }
-      ]
-    },
-    {
-      "id": "REQ-39",
-      "summary": "Create React Query hook for product reviews with fetch, submit, and rating retrieval",
-      "acceptanceCriteria": [
-        "Hook fetches all reviews for a product with loading states",
-        "Mutation to submit new review with star rating and text",
-        "Retrieves average rating and review count for products",
-        "Handles verification errors when user hasn't purchased product"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useReviews.ts",
-          "operation": "create",
-          "description": "Create hook exporting useGetProductReviews(productId) query calling actor.getProductReviews(productId) which returns [Review[], averageRating]. Export useSubmitReview mutation calling actor.submitReview(productId, rating, reviewText) with error handling for purchase verification failures. Invalidate productReviews query key on success."
-        }
-      ]
-    },
-    {
-      "id": "REQ-40",
-      "summary": "Create ProductReviews component displaying reviews with ratings and verified badges on product detail page",
-      "acceptanceCriteria": [
-        "Component displays all reviews in chronological order",
-        "Shows star rating, review text, and timestamp for each review",
-        "Displays verified purchaser badge on reviews",
-        "Shows average rating and total review count at the top",
-        "Shows empty state when no reviews exist"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/ProductReviews.tsx",
-          "operation": "create",
-          "description": "Create component accepting productId prop and using useGetProductReviews hook. Display average rating with star icons and review count at top. Map reviews array to cards showing star rating visualization, review text, formatted timestamp, and verified purchase badge. Sort by timestamp descending. Show 'No reviews yet' empty state. Use shadcn/ui Card, Badge, and Star icon from lucide-react."
-        },
         {
           "path": "frontend/src/pages/ProductDetailPage.tsx",
           "operation": "modify",
-          "description": "Import and add ProductReviews component below the AddToCartButton section, passing productId from route params. Add section heading 'Customer Reviews' above the component."
+          "description": "Modify the price display logic to show the selected variant's price when a size is selected. Update the price rendering to dynamically switch between the base product price (when no variant is selected) and the variant-specific price (when a size is chosen). Ensure the price updates immediately when the size selector changes and maintains consistent currency formatting."
         }
       ]
     },
     {
-      "id": "REQ-41",
-      "summary": "Create ReviewForm component for verified purchasers to submit product reviews",
+      "id": "REQ-79",
+      "summary": "Update addToCart functionality to use selected variant's price",
       "acceptanceCriteria": [
-        "Form includes star rating selector (1-5 stars)",
-        "Form includes textarea for review text",
-        "Only shows form to authenticated users who purchased the product",
-        "Shows error message if user hasn't purchased product",
-        "Validates review text is not empty before submission"
+        "Cart items store the variant price at time of addition",
+        "Cart calculations use variant price for line item totals",
+        "Checkout uses variant price for order total calculation"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/ReviewForm.tsx",
-          "operation": "create",
-          "description": "Create form component accepting productId prop. Use useSubmitReview mutation and useInternetIdentity for auth check. Include star rating selector (1-5 interactive stars), textarea for review text with validation, and submit button. Show login prompt if not authenticated. Display error toast if purchase verification fails. Use shadcn/ui Form, Textarea, Button, and Star icon. Reset form on successful submission."
+          "path": "frontend/src/components/AddToCartButton.tsx",
+          "operation": "modify",
+          "description": "Modify the add-to-cart logic to pass the selected variant's price when adding items with variants to the cart. Ensure the component retrieves the price from the selected variant object and includes it in the cart item data structure sent to the backend."
         },
         {
-          "path": "frontend/src/pages/ProductDetailPage.tsx",
+          "path": "frontend/src/hooks/useCart.ts",
           "operation": "modify",
-          "description": "Import and add ReviewForm component between AddToCartButton and ProductReviews sections, passing productId from route params. Add section heading 'Write a Review'."
+          "description": "Update the addToCart hook to handle variant price data. Ensure the hook passes variant price information to the backend capability when items are added to the cart. Verify that cart queries properly reflect variant prices in returned data."
         }
       ]
     },
     {
-      "id": "REQ-42",
-      "summary": "Update ProductCard to display average star rating and review count",
+      "id": "REQ-80",
+      "summary": "Update CartPage to display variant-specific price for cart items",
       "acceptanceCriteria": [
-        "Shows average star rating as visual stars or numeric value",
-        "Displays review count next to rating",
-        "Handles products with no reviews gracefully"
+        "Cart line items show the price of the selected variant",
+        "Line item subtotals calculate correctly with variant price",
+        "Cart total reflects all variant prices accurately"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/ProductCard.tsx",
+          "path": "frontend/src/pages/CartPage.tsx",
           "operation": "modify",
-          "description": "Add productId prop to component. Use useGetProductReviews(productId) hook to fetch review data. Display average rating as visual stars (filled/half-filled/empty) and show review count text (e.g., '(12 reviews)'). Position rating display below product name and above description. Show no rating UI if review count is zero."
+          "description": "Update the cart item rendering to display the variant-specific price for each line item that includes product variants. Modify the line item subtotal calculation to use variant price multiplied by quantity. Ensure the cart total accurately sums all variant prices. Update the price display to show the variant price instead of the base product price when variants are present."
         }
       ]
     },
     {
-      "id": "REQ-43",
-      "summary": "Create React Query hook for fetching analytics data including products, content, revenue, and inventory",
+      "id": "REQ-81",
+      "summary": "Update MyOrderCard to display variant-specific price in order history",
       "acceptanceCriteria": [
-        "Hook fetches top clicked products with counts",
-        "Hook fetches top viewed content with counts",
-        "Hook fetches revenue and order statistics",
-        "Hook fetches low inventory products"
+        "Order history shows the exact variant price paid at purchase time",
+        "Order line items display size, color, and price together",
+        "Order total calculations match the sum of variant prices"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useAnalytics.ts",
-          "operation": "create",
-          "description": "Create hook exporting useGetAnalyticsData query calling actor.getAnalyticsData() which returns object with mostClickedProducts, mostViewedContent, totalRevenue, orderCount, and lowInventoryProducts arrays. Include enabled flag checking for admin authentication. Use 'analyticsData' as query key."
-        },
-        {
-          "path": "frontend/src/hooks/useAnalytics.ts",
+          "path": "frontend/src/components/MyOrderCard.tsx",
           "operation": "modify",
-          "description": "Add useRecordAnalyticsEvent mutation hook calling actor.recordAnalyticsEvent(eventType) for tracking product clicks and content views. Include error handling but no cache invalidation needed for fire-and-forget tracking."
-        }
-      ]
-    },
-    {
-      "id": "REQ-44",
-      "summary": "Create AdminAnalyticsPage displaying dashboard with revenue, products, content, and inventory metrics",
-      "acceptanceCriteria": [
-        "Displays total revenue and order count metrics",
-        "Shows top 10 most clicked products with click counts",
-        "Shows top 10 most viewed gallery content with view counts",
-        "Displays low inventory alerts prominently",
-        "Uses charts or visual representations for data where appropriate",
-        "Protected by AdminGuard component"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/AdminAnalyticsPage.tsx",
-          "operation": "create",
-          "description": "Create page wrapped in AdminGuard using useGetAnalyticsData hook. Display heading 'Analytics Dashboard'. Show metric cards for total revenue (formatted as currency) and order count at top. Create sections for 'Top Clicked Products' and 'Most Viewed Content' displaying items in lists with counts. Add 'Low Inventory Alert' section showing products below threshold with warning styling. Use shadcn/ui Card, Alert, and responsive grid layout. Include loading and error states."
-        }
-      ]
-    },
-    {
-      "id": "REQ-45",
-      "summary": "Add Analytics navigation card to AdminDashboardPage",
-      "acceptanceCriteria": [
-        "Analytics card appears on admin dashboard with appropriate icon",
-        "Card links to /admin/analytics route",
-        "Card styling matches existing dashboard cards"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/AdminDashboardPage.tsx",
-          "operation": "modify",
-          "description": "Add new navigation card linking to '/admin/analytics' with BarChart3 icon from lucide-react. Title 'Analytics' with description 'View performance metrics and insights'. Position card after Orders card in the grid, maintaining consistent styling with existing cards."
-        }
-      ]
-    },
-    {
-      "id": "REQ-46",
-      "summary": "Update ProductCard click handler to record product click analytics",
-      "acceptanceCriteria": [
-        "Records analytics event when product card is clicked",
-        "Event tracking does not block navigation",
-        "Works for both authenticated and anonymous users"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/ProductCard.tsx",
-          "operation": "modify",
-          "description": "Import useRecordAnalyticsEvent hook. Add onClick handler to card link that calls recordAnalyticsEvent mutation with productClick event type and productId. Use fire-and-forget pattern (no await) so tracking doesn't block navigation. Wrap in try-catch to silently handle errors."
-        }
-      ]
-    },
-    {
-      "id": "REQ-47",
-      "summary": "Update GalleryItem to record content view analytics when rendered",
-      "acceptanceCriteria": [
-        "Records analytics event when gallery item is rendered or viewed",
-        "Event tracking does not impact performance",
-        "Works for both authenticated and anonymous users"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/GalleryItem.tsx",
-          "operation": "modify",
-          "description": "Import useRecordAnalyticsEvent hook. Add useEffect that triggers once on mount, calling recordAnalyticsEvent mutation with contentView event type and content.id. Use fire-and-forget pattern and wrap in try-catch. Include content.id in dependency array."
-        }
-      ]
-    },
-    {
-      "id": "REQ-48",
-      "summary": "Create ProductSearch component with text search and filters for category and price range",
-      "acceptanceCriteria": [
-        "Text search input filters products by name and description",
-        "Category filter dropdown (if categories exist in product data)",
-        "Price range filter with min/max inputs or predefined ranges",
-        "Filters update product list in real-time",
-        "Clear filters button to reset all filters"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/ProductSearch.tsx",
-          "operation": "create",
-          "description": "Create component accepting products array and onFilterChange callback props. Include text Input for search term, Select for price ranges (Under $50, $50-$100, $100-$200, Over $200), and Clear Filters button. Implement local state for filters. Call onFilterChange with filtered products whenever filters change. Filter logic: search checks name/description (case-insensitive), price range checks product.price. Use shadcn/ui Input, Select, and Button components."
-        }
-      ]
-    },
-    {
-      "id": "REQ-49",
-      "summary": "Update ProductsPage to include ProductSearch and display filtered products",
-      "acceptanceCriteria": [
-        "Search component appears above product grid",
-        "Product list updates based on active filters",
-        "Shows filtered count (e.g., 'Showing 5 of 20 products')",
-        "Shows empty state when no products match filters"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/ProductsPage.tsx",
-          "operation": "modify",
-          "description": "Import ProductSearch component. Add local state for filtered products initialized with all products. Add ProductSearch component above the products grid, passing products and setFilteredProducts callback. Update grid to map filteredProducts instead of products. Add count display showing 'Showing X of Y products'. Update empty state to differentiate between no products and no matches."
-        }
-      ]
-    },
-    {
-      "id": "REQ-50",
-      "summary": "Create AboutPage with business story, mission, and contact information",
-      "acceptanceCriteria": [
-        "Page includes business story section",
-        "Page includes mission statement",
-        "Page includes contact information (email, social media)",
-        "Uses Mosslight Studios brand colors (dark emerald green and cool light nude)",
-        "Responsive layout for mobile and desktop"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/AboutPage.tsx",
-          "operation": "create",
-          "description": "Create page with heading 'About Mosslight Studios'. Include sections: 'Our Story' (placeholder text about handcrafted products), 'Our Mission' (placeholder mission statement), and 'Contact Us' (email placeholder and social media note). Use brand colors from theme (emerald primary, nude secondary). Implement responsive grid layout with prose styling. Use shadcn/ui Card components for sections."
-        }
-      ]
-    },
-    {
-      "id": "REQ-51",
-      "summary": "Create FAQPage with collapsible accordion sections for shipping, returns, and product care",
-      "acceptanceCriteria": [
-        "FAQ items organized in collapsible accordion sections",
-        "Covers shipping information and timeframes",
-        "Covers return and exchange policies",
-        "Covers product care instructions",
-        "Covers ordering and payment questions",
-        "Uses brand styling consistently"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/FAQPage.tsx",
-          "operation": "create",
-          "description": "Create page with heading 'Frequently Asked Questions'. Use shadcn/ui Accordion component with collapsible items. Include FAQ items: 'Shipping & Delivery' (processing times, shipping methods), 'Returns & Exchanges' (return policy, process), 'Product Care' (care instructions, materials), 'Ordering & Payment' (accepted methods, order tracking). Add placeholder content for each section. Use brand styling and responsive layout."
-        }
-      ]
-    },
-    {
-      "id": "REQ-52",
-      "summary": "Update Header navigation to include About and FAQ links",
-      "acceptanceCriteria": [
-        "About link appears in main navigation menu",
-        "FAQ link appears in main navigation menu",
-        "Links are properly highlighted when on respective pages",
-        "Navigation remains responsive on mobile"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/Header.tsx",
-          "operation": "modify",
-          "description": "Add navigation links for '/about' (text: 'About') and '/faq' (text: 'FAQ') to the nav menu after Gallery link and before cart icon. Use Link component from TanStack Router with activeProps for highlighting active page. Ensure links are included in mobile menu if applicable."
-        }
-      ]
-    },
-    {
-      "id": "REQ-53",
-      "summary": "Create SocialMediaLinks component with clickable social media profile icons",
-      "acceptanceCriteria": [
-        "Component displays social media icons as clickable links",
-        "Icons open social media profiles in new tabs",
-        "Component uses brand styling",
-        "Icons are visually consistent and properly sized"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/SocialMediaLinks.tsx",
-          "operation": "create",
-          "description": "Create component displaying social media icons (Instagram, Facebook, TikTok) as external links with target='_blank' and rel='noopener noreferrer'. Use placeholder URLs (e.g., 'https://instagram.com/mosslightstudios'). Use lucide-react icons (Instagram, Facebook) and TikTok SVG. Style icons with brand colors on hover. Arrange horizontally with gap spacing. Accept optional className prop for positioning flexibility."
-        }
-      ]
-    },
-    {
-      "id": "REQ-54",
-      "summary": "Update GalleryPage to display SocialMediaLinks prominently",
-      "acceptanceCriteria": [
-        "Social media links appear on gallery page",
-        "Links are positioned prominently for visibility",
-        "Layout remains responsive on mobile devices"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/GalleryPage.tsx",
-          "operation": "modify",
-          "description": "Import SocialMediaLinks component. Add component above the gallery grid with center alignment and margin spacing. Include heading 'Follow Us' above the social links for context."
-        }
-      ]
-    },
-    {
-      "id": "REQ-55",
-      "summary": "Update Footer to include SocialMediaLinks for consistent site-wide access",
-      "acceptanceCriteria": [
-        "Social media icons appear in footer",
-        "Footer layout accommodates social links without breaking existing content",
-        "Links are visible but not overwhelming in footer context"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/Footer.tsx",
-          "operation": "modify",
-          "description": "Import SocialMediaLinks component. Add component above or below the copyright text with center alignment. Reduce icon size slightly for footer context by passing appropriate className. Maintain existing footer layout and spacing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-56",
-      "summary": "Add routes for About, FAQ, and Admin Analytics pages",
-      "acceptanceCriteria": [
-        "Route /about loads AboutPage component",
-        "Route /faq loads FAQPage component",
-        "Route /admin/analytics loads AdminAnalyticsPage with AdminGuard",
-        "All routes are properly registered with TanStack Router"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/App.tsx",
-          "operation": "modify",
-          "description": "Import AboutPage, FAQPage, and AdminAnalyticsPage components. Add route definitions: Route for '/about' rendering AboutPage, Route for '/faq' rendering FAQPage, and Route for '/admin/analytics' rendering AdminAnalyticsPage wrapped in AdminGuard. Position new routes in the router configuration maintaining consistent structure with existing routes."
+          "description": "Modify the order line item rendering to display the variant-specific price that was paid at the time of purchase. Update the component to show size, color, and price together for each order item with variants. Ensure the order total calculation correctly sums variant prices for accurate historical records."
         }
       ]
     }

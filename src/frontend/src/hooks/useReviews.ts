@@ -25,13 +25,15 @@ export function useSubmitReview() {
       productId,
       rating,
       reviewText,
+      variantId,
     }: {
       productId: string;
       rating: number;
       reviewText: string;
+      variantId?: string | null;
     }) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.submitReview(productId, BigInt(rating), reviewText);
+      return actor.submitReview(productId, BigInt(rating), reviewText, variantId || null);
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['productReviews', variables.productId] });

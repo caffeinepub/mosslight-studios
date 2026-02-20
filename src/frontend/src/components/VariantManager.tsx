@@ -1,0 +1,262 @@
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Plus, Trash2, Edit2, Check, X } from 'lucide-react';
+import { toast } from 'sonner';
+import type { ProductVariant } from '../backend';
+
+interface VariantManagerProps {
+  variants: ProductVariant[];
+  onChange: (variants: ProductVariant[]) => void;
+  productId: string;
+}
+
+export default function VariantManager({ variants, onChange, productId }: VariantManagerProps) {
+  const [size, setSize] = useState('');
+  const [color, setColor] = useState('');
+  const [price, setPrice] = useState('');
+  const [inventory, setInventory] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editPrice, setEditPrice] = useState('');
+  const [editInventory, setEditInventory] = useState('');
+
+  const handleAddVariant = () => {
+    if (!size.trim() || !color.trim() || !price || !inventory) {
+      toast.error('Please fill in all variant fields');
+      return;
+    }
+
+    const priceNum = parseFloat(price);
+    const inventoryNum = parseInt(inventory);
+    
+    if (priceNum <= 0) {
+      toast.error('Price must be greater than 0');
+      return;
+    }
+
+    if (inventoryNum < 0) {
+      toast.error('Inventory must be 0 or greater');
+      return;
+    }
+
+    const newVariant: ProductVariant = {
+      id: crypto.randomUUID(),
+      size: size.trim(),
+      color: color.trim(),
+      price: BigInt(Math.round(priceNum * 100)),
+      inventory: BigInt(inventoryNum),
+      parentProductId: productId,
+    };
+
+    onChange([...variants, newVariant]);
+    setSize('');
+    setColor('');
+    setPrice('');
+    setInventory('');
+    toast.success('Variant added');
+  };
+
+  const handleRemoveVariant = (variantId: string) => {
+    onChange(variants.filter(v => v.id !== variantId));
+    toast.success('Variant removed');
+  };
+
+  const handleStartEdit = (variant: ProductVariant) => {
+    setEditingId(variant.id);
+    setEditPrice((Number(variant.price) / 100).toFixed(2));
+    setEditInventory(Number(variant.inventory).toString());
+  };
+
+  const handleSaveEdit = (variantId: string) => {
+    const priceNum = parseFloat(editPrice);
+    const inventoryNum = parseInt(editInventory);
+    
+    if (priceNum <= 0) {
+      toast.error('Price must be greater than 0');
+      return;
+    }
+
+    if (inventoryNum < 0) {
+      toast.error('Inventory must be 0 or greater');
+      return;
+    }
+
+    onChange(
+      variants.map(v =>
+        v.id === variantId
+          ? { 
+              ...v, 
+              price: BigInt(Math.round(priceNum * 100)),
+              inventory: BigInt(inventoryNum) 
+            }
+          : v
+      )
+    );
+    setEditingId(null);
+    setEditPrice('');
+    setEditInventory('');
+    toast.success('Variant updated');
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setEditPrice('');
+    setEditInventory('');
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg">Product Variants</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Add Variant Form */}
+        <div className="grid grid-cols-5 gap-3 items-end">
+          <div className="space-y-2">
+            <Label htmlFor="variant-size">Size</Label>
+            <Input
+              id="variant-size"
+              value={size}
+              onChange={(e) => setSize(e.target.value)}
+              placeholder="e.g., Small, M, XL"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="variant-color">Color</Label>
+            <Input
+              id="variant-color"
+              value={color}
+              onChange={(e) => setColor(e.target.value)}
+              placeholder="e.g., Red, Blue"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="variant-price">Price ($)</Label>
+            <Input
+              id="variant-price"
+              type="number"
+              min="0.01"
+              step="0.01"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              placeholder="0.00"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="variant-inventory">Inventory</Label>
+            <Input
+              id="variant-inventory"
+              type="number"
+              min="0"
+              value={inventory}
+              onChange={(e) => setInventory(e.target.value)}
+              placeholder="0"
+            />
+          </div>
+          <Button onClick={handleAddVariant} className="gap-2">
+            <Plus className="h-4 w-4" />
+            Add Variant
+          </Button>
+        </div>
+
+        {/* Variants List */}
+        {variants.length > 0 ? (
+          <div className="border rounded-lg">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Size</TableHead>
+                  <TableHead>Color</TableHead>
+                  <TableHead>Price</TableHead>
+                  <TableHead>Inventory</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {variants.map((variant) => (
+                  <TableRow key={variant.id}>
+                    <TableCell className="font-medium">{variant.size}</TableCell>
+                    <TableCell>{variant.color}</TableCell>
+                    <TableCell>
+                      {editingId === variant.id ? (
+                        <Input
+                          type="number"
+                          min="0.01"
+                          step="0.01"
+                          value={editPrice}
+                          onChange={(e) => setEditPrice(e.target.value)}
+                          className="w-24"
+                        />
+                      ) : (
+                        `$${(Number(variant.price) / 100).toFixed(2)}`
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {editingId === variant.id ? (
+                        <Input
+                          type="number"
+                          min="0"
+                          value={editInventory}
+                          onChange={(e) => setEditInventory(e.target.value)}
+                          className="w-24"
+                        />
+                      ) : (
+                        Number(variant.inventory)
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        {editingId === variant.id ? (
+                          <>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => handleSaveEdit(variant.id)}
+                            >
+                              <Check className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={handleCancelEdit}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </>
+                        ) : (
+                          <>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => handleStartEdit(variant)}
+                            >
+                              <Edit2 className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => handleRemoveVariant(variant.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground text-center py-4">
+            No variants added yet. Add your first variant above.
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  );
+}

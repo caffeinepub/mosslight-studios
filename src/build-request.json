@@ -1,609 +1,147 @@
 {
   "kind": "build_request",
-  "title": "Add customer notifications, product reviews, analytics dashboard, search/filtering, About/FAQ pages, and social media links",
+  "title": "Add size-based pricing to product variant system",
   "projectName": "Mosslight Studios",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-27",
-      "text": "Create a backend data model for notifications with fields for recipient principal, notification type (order_update, admin_alert, low_inventory), message text, timestamp, read status, and optional order ID reference",
+      "id": "REQ-76",
+      "text": "Update the backend Variant data type in main.mo to include a price field (Nat) alongside the existing size, color, and inventory fields",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-5",
-          "msg-7"
+          "msg-final"
         ],
         "quotes": [
-          "yes in app notification is perfect !",
-          "In-app notification system for order updates and admin alerts"
+          "a small hoodie could be $ 6  where a 5x could be $14"
         ]
       },
       "acceptanceCriteria": [
-        "Notification model includes recipient, type, message, timestamp, read status, and optional order ID",
-        "Supports notification types: order_update, admin_alert, low_inventory"
+        "Variant type includes a price: Nat field",
+        "Existing variant creation methods accept price parameter",
+        "Price is stored with each size/color combination"
       ]
     },
     {
-      "id": "REQ-28",
-      "text": "Implement backend methods for creating notifications when order status changes, inventory falls below threshold (5 units), and for admin broadcast alerts",
+      "id": "REQ-77",
+      "text": "Update the VariantManager component to include a price input field for each variant, allowing admins to set individual prices when adding or editing size/color combinations",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-final"
+        ],
+        "quotes": [
+          "a small hoodie could be $ 6  where a 5x could be $14"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Each variant row in the table displays a price input field",
+        "Price values are validated as positive numbers",
+        "New variants include price when added",
+        "Edited variants can update price values"
+      ]
+    },
+    {
+      "id": "REQ-78",
+      "text": "Update ProductDetailPage to display the selected variant's price dynamically when the size selection changes, replacing the base product price display",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-final"
+        ],
+        "quotes": [
+          "a small hoodie could be $ 6  where a 5x could be $14"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Price updates immediately when size selector changes",
+        "Selected variant price displays in the product price area",
+        "Price formatting matches existing currency format",
+        "Falls back to base product price if no variant is selected"
+      ]
+    },
+    {
+      "id": "REQ-79",
+      "text": "Update the addToCart functionality in useCart hook and backend to use the selected variant's price instead of the base product price when adding items with variants to the cart",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-final"
+        ],
+        "quotes": [
+          "a small hoodie could be $ 6  where a 5x could be $14"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Cart items store the variant price at time of addition",
+        "Cart calculations use variant price for line item totals",
+        "Checkout uses variant price for order total calculation"
+      ]
+    },
+    {
+      "id": "REQ-80",
+      "text": "Update CartPage to display the variant-specific price for each cart item that includes product variants",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-final"
+        ],
+        "quotes": [
+          "a small hoodie could be $ 6  where a 5x could be $14"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Cart line items show the price of the selected variant",
+        "Line item subtotals calculate correctly with variant price",
+        "Cart total reflects all variant prices accurately"
+      ]
+    },
+    {
+      "id": "REQ-81",
+      "text": "Update MyOrderCard component to display the variant-specific price that was paid for each order line item with product variants in the order history",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-final"
+        ],
+        "quotes": [
+          "a small hoodie could be $ 6  where a 5x could be $14"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Order history shows the exact variant price paid at purchase time",
+        "Order line items display size, color, and price together",
+        "Order total calculations match the sum of variant prices"
+      ]
+    },
+    {
+      "id": "REQ-82",
+      "text": "Create a migration.mo module to transform existing variant data structures from the current schema (without price field) to the new schema (with price field) by adding a default price field to existing variants",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-5",
-          "msg-7"
-        ],
-        "quotes": [
-          "In-app notification system for order updates and admin alerts",
-          "Inventory alerts - Notifications when products run low or out of stock"
+          "msg-final"
         ]
       },
       "acceptanceCriteria": [
-        "Automatically create customer notification when order status is updated",
-        "Create admin notification when product inventory drops below 5 units",
-        "Support admin creating broadcast alert notifications"
-      ]
-    },
-    {
-      "id": "REQ-29",
-      "text": "Implement backend query methods to retrieve unread notifications for the current user and mark notifications as read",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-5"
-        ],
-        "quotes": [
-          "in-app notification system where customers see order updates when they log in, and you get admin alerts in your dashboard"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Query method returns all unread notifications for authenticated user",
-        "Method to mark individual notification as read",
-        "Method to mark all notifications as read for a user"
-      ]
-    },
-    {
-      "id": "REQ-30",
-      "text": "Create a backend data model for product reviews with fields for product ID, reviewer principal, star rating (1-5), review text, timestamp, and verified purchase flag",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-6",
-          "msg-7"
-        ],
-        "quotes": [
-          "verified customers can leave a review",
-          "Product reviews - Only verified purchasers can review"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Review model includes productId, reviewer principal, star rating, review text, timestamp, and verified purchase flag",
-        "Star rating is constrained to integers 1-5"
-      ]
-    },
-    {
-      "id": "REQ-31",
-      "text": "Implement backend method for verified customers to submit product reviews only for products they have purchased, validating purchase history before allowing review submission",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-6",
-          "msg-7"
-        ],
-        "quotes": [
-          "verified customers can leave a review",
-          "only verified purchasers can review"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Method checks if user has purchased the product before allowing review",
-        "Returns error if user has not purchased the product",
-        "Stores review with verified purchase flag set to true"
-      ]
-    },
-    {
-      "id": "REQ-32",
-      "text": "Implement backend query methods to retrieve all reviews for a specific product with average rating calculation and reviewer anonymization (showing only partial principal)",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-8"
-        ],
-        "quotes": [
-          "product reviews should show up under the listing when you click on it"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Query returns all reviews for a given product ID",
-        "Calculates and returns average star rating for the product",
-        "Returns review count for the product"
-      ]
-    },
-    {
-      "id": "REQ-33",
-      "text": "Create a backend data model for analytics events tracking product clicks, content gallery views, and order completions with timestamp, user principal (optional for anonymous), event type, and target ID",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-7",
-          "msg-9"
-        ],
-        "quotes": [
-          "what items were clicked on the most , what content is most viewed , and normal small business analytics , financial ,content etc",
-          "Analytics tracking - Starting fresh with real data"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Event model includes timestamp, optional user principal, event type, and target ID",
-        "Supports event types: product_click, product_view, content_view, order_completed",
-        "Allows anonymous event tracking (no principal required)"
-      ]
-    },
-    {
-      "id": "REQ-34",
-      "text": "Implement backend methods to record analytics events when products are clicked, content items are viewed, and orders are completed",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-7"
-        ],
-        "quotes": [
-          "what items were clicked on the most , what content is most viewed"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Method to record product click with product ID",
-        "Method to record content view with content ID",
-        "Automatically record order completion event when checkout succeeds"
-      ]
-    },
-    {
-      "id": "REQ-35",
-      "text": "Implement backend query methods to retrieve analytics data including most clicked products, most viewed content, total revenue, order count by date range, and low inventory products (below 5 units)",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-7"
-        ],
-        "quotes": [
-          "what items were clicked on the most , what content is most viewed , and normal small business analytics , financial ,content etc"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Query returns top 10 most clicked products with click counts",
-        "Query returns top 10 most viewed content items with view counts",
-        "Query calculates total revenue from all orders",
-        "Query returns order count and revenue for specified date ranges",
-        "Query returns products with inventory below 5 units"
-      ]
-    },
-    {
-      "id": "REQ-36",
-      "text": "Create React Query hook for fetching unread notifications for the current user and marking notifications as read",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-5"
-        ],
-        "quotes": [
-          "in-app notification system where customers see order updates when they log in, and you get admin alerts in your dashboard"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Hook fetches unread notifications with loading and error states",
-        "Mutation to mark notification as read with cache invalidation",
-        "Mutation to mark all notifications as read"
-      ]
-    },
-    {
-      "id": "REQ-37",
-      "text": "Create a NotificationBell component in the Header that displays unread notification count badge and opens a dropdown panel showing recent notifications with timestamps and read/unread status",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-5"
-        ],
-        "quotes": [
-          "in-app notification system where customers see order updates when they log in, and you get admin alerts in your dashboard"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Bell icon displays in Header with unread count badge",
-        "Clicking bell opens dropdown showing notifications",
-        "Notifications show message, timestamp, and read/unread status",
-        "Clicking notification marks it as read",
-        "Shows empty state when no notifications exist"
-      ]
-    },
-    {
-      "id": "REQ-38",
-      "text": "Add a Notifications section to the admin dashboard displaying admin-specific alerts including low inventory warnings and system notifications",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-5",
-          "msg-7"
-        ],
-        "quotes": [
-          "you get admin alerts in your dashboard",
-          "Inventory alerts - Notifications when products run low or out of stock"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Admin dashboard shows notifications section with recent alerts",
-        "Low inventory alerts are prominently displayed",
-        "Admin can mark alerts as read or dismiss them"
-      ]
-    },
-    {
-      "id": "REQ-39",
-      "text": "Create React Query hook for fetching product reviews, submitting new reviews, and retrieving average ratings for products",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-6",
-          "msg-7"
-        ],
-        "quotes": [
-          "verified customers can leave a review",
-          "Product reviews - Only verified purchasers can review"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Hook fetches all reviews for a product with loading states",
-        "Mutation to submit new review with star rating and text",
-        "Retrieves average rating and review count for products",
-        "Handles verification errors when user hasn't purchased product"
-      ]
-    },
-    {
-      "id": "REQ-40",
-      "text": "Create a ProductReviews component that displays all reviews for a product with star ratings, review text, timestamps, and verified purchaser badges, shown on the ProductDetailPage below the product information",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-8"
-        ],
-        "quotes": [
-          "product reviews should show up under the listing when you click on it"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Component displays all reviews in chronological order",
-        "Shows star rating, review text, and timestamp for each review",
-        "Displays verified purchaser badge on reviews",
-        "Shows average rating and total review count at the top",
-        "Shows empty state when no reviews exist"
-      ]
-    },
-    {
-      "id": "REQ-41",
-      "text": "Create a ReviewForm component that allows authenticated customers who have purchased the product to submit a review with a star rating selector (1-5 stars) and text input",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-6",
-          "msg-7"
-        ],
-        "quotes": [
-          "verified customers can leave a review",
-          "star ratings (1-5 stars) plus written comments"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Form includes star rating selector (1-5 stars)",
-        "Form includes textarea for review text",
-        "Only shows form to authenticated users who purchased the product",
-        "Shows error message if user hasn't purchased product",
-        "Validates review text is not empty before submission"
-      ]
-    },
-    {
-      "id": "REQ-42",
-      "text": "Update ProductCard component to display average star rating and review count for each product in the catalog grid",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-6"
-        ],
-        "quotes": [
-          "Product Reviews: Allow customers to leave reviews/ratings on products"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Shows average star rating as visual stars or numeric value",
-        "Displays review count next to rating",
-        "Handles products with no reviews gracefully"
-      ]
-    },
-    {
-      "id": "REQ-43",
-      "text": "Create React Query hook for fetching analytics data including most clicked products, most viewed content, revenue metrics, and inventory alerts",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-7"
-        ],
-        "quotes": [
-          "what items were clicked on the most , what content is most viewed , and normal small business analytics , financial ,content etc"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Hook fetches top clicked products with counts",
-        "Hook fetches top viewed content with counts",
-        "Hook fetches revenue and order statistics",
-        "Hook fetches low inventory products"
-      ]
-    },
-    {
-      "id": "REQ-44",
-      "text": "Create an AdminAnalyticsPage displaying dashboard cards with key metrics including total revenue, order count, top clicked products, most viewed content, and low inventory alerts",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-7"
-        ],
-        "quotes": [
-          "Admin analytics dashboard with financial metrics, content performance, and inventory alerts",
-          "what items were clicked on the most , what content is most viewed , and normal small business analytics , financial ,content etc"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Displays total revenue and order count metrics",
-        "Shows top 10 most clicked products with click counts",
-        "Shows top 10 most viewed gallery content with view counts",
-        "Displays low inventory alerts prominently",
-        "Uses charts or visual representations for data where appropriate",
-        "Protected by AdminGuard component"
-      ]
-    },
-    {
-      "id": "REQ-45",
-      "text": "Add Analytics navigation card to the AdminDashboardPage linking to the new analytics page",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-7"
-        ],
-        "quotes": [
-          "Admin Analytics: A dashboard showing key metrics"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Analytics card appears on admin dashboard with appropriate icon",
-        "Card links to /admin/analytics route",
-        "Card styling matches existing dashboard cards"
-      ]
-    },
-    {
-      "id": "REQ-46",
-      "text": "Update ProductCard component click handler to record product click analytics event when users click on products in the catalog",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-7"
-        ],
-        "quotes": [
-          "what items were clicked on the most"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Records analytics event when product card is clicked",
-        "Event tracking does not block navigation",
-        "Works for both authenticated and anonymous users"
-      ]
-    },
-    {
-      "id": "REQ-47",
-      "text": "Update GalleryItem component to record content view analytics event when gallery content is viewed",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-7"
-        ],
-        "quotes": [
-          "what content is most viewed"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Records analytics event when gallery item is rendered or viewed",
-        "Event tracking does not impact performance",
-        "Works for both authenticated and anonymous users"
-      ]
-    },
-    {
-      "id": "REQ-48",
-      "text": "Create a ProductSearch component with text input for searching products by name or description and dropdown filters for category and price range",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-7"
-        ],
-        "quotes": [
-          "Product search & filtering - By category, price range, etc."
-        ]
-      },
-      "acceptanceCriteria": [
-        "Text search input filters products by name and description",
-        "Category filter dropdown (if categories exist in product data)",
-        "Price range filter with min/max inputs or predefined ranges",
-        "Filters update product list in real-time",
-        "Clear filters button to reset all filters"
-      ]
-    },
-    {
-      "id": "REQ-49",
-      "text": "Update ProductsPage to include the ProductSearch component above the product grid and filter displayed products based on search criteria",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-7"
-        ],
-        "quotes": [
-          "Product search & filtering - By category, price range, etc."
-        ]
-      },
-      "acceptanceCriteria": [
-        "Search component appears above product grid",
-        "Product list updates based on active filters",
-        "Shows filtered count (e.g., 'Showing 5 of 20 products')",
-        "Shows empty state when no products match filters"
-      ]
-    },
-    {
-      "id": "REQ-50",
-      "text": "Create an AboutPage displaying Mosslight Studios business story, mission statement, and contact information with brand styling",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-9"
-        ],
-        "quotes": [
-          "About/Contact page - Your business story, mission, and contact information"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Page includes business story section",
-        "Page includes mission statement",
-        "Page includes contact information (email, social media)",
-        "Uses Mosslight Studios brand colors (dark emerald green and cool light nude)",
-        "Responsive layout for mobile and desktop"
-      ]
-    },
-    {
-      "id": "REQ-51",
-      "text": "Create an FAQPage displaying common questions and answers about shipping, returns, product care, and ordering process with collapsible accordion sections",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-9"
-        ],
-        "quotes": [
-          "FAQ section - Common questions about shipping, returns, and product care"
-        ]
-      },
-      "acceptanceCriteria": [
-        "FAQ items organized in collapsible accordion sections",
-        "Covers shipping information and timeframes",
-        "Covers return and exchange policies",
-        "Covers product care instructions",
-        "Covers ordering and payment questions",
-        "Uses brand styling consistently"
-      ]
-    },
-    {
-      "id": "REQ-52",
-      "text": "Update Header navigation to include links to About and FAQ pages in the main menu",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-9"
-        ],
-        "quotes": [
-          "About/Contact page",
-          "FAQ section"
-        ]
-      },
-      "acceptanceCriteria": [
-        "About link appears in main navigation menu",
-        "FAQ link appears in main navigation menu",
-        "Links are properly highlighted when on respective pages",
-        "Navigation remains responsive on mobile"
-      ]
-    },
-    {
-      "id": "REQ-53",
-      "text": "Create a SocialMediaLinks component displaying clickable icon links to Mosslight Studios social media profiles (Instagram, TikTok, Facebook, etc.)",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-7"
-        ],
-        "quotes": [
-          "Social media links - Clickable profile links integrated with your content gallery"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Component displays social media icons as clickable links",
-        "Icons open social media profiles in new tabs",
-        "Component uses brand styling",
-        "Icons are visually consistent and properly sized"
-      ]
-    },
-    {
-      "id": "REQ-54",
-      "text": "Update GalleryPage to display the SocialMediaLinks component prominently above or below the gallery content grid",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-7"
-        ],
-        "quotes": [
-          "adding clickable links to your actual social profiles (Instagram, TikTok, etc.)"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Social media links appear on gallery page",
-        "Links are positioned prominently for visibility",
-        "Layout remains responsive on mobile devices"
-      ]
-    },
-    {
-      "id": "REQ-55",
-      "text": "Update Footer component to include the SocialMediaLinks component for consistent access to social profiles across all pages",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-7"
-        ],
-        "quotes": [
-          "Social media links"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Social media icons appear in footer",
-        "Footer layout accommodates social links without breaking existing content",
-        "Links are visible but not overwhelming in footer context"
-      ]
-    },
-    {
-      "id": "REQ-56",
-      "text": "Add routes in App.tsx for /about, /faq, and /admin/analytics pages with appropriate route configuration",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-9"
-        ],
-        "quotes": [
-          "About/Contact page",
-          "FAQ section",
-          "Admin analytics dashboard"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Route /about loads AboutPage component",
-        "Route /faq loads FAQPage component",
-        "Route /admin/analytics loads AdminAnalyticsPage with AdminGuard",
-        "All routes are properly registered with TanStack Router"
+        "Migration adds price field to existing variants without losing data",
+        "Default price value is set for variants that lack pricing",
+        "Migration preserves size, color, and inventory data"
       ]
     }
   ],
   "constraints": [
-    "Do not modify files in frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui directory",
-    "Backend must remain single-actor architecture with all logic in backend/main.mo",
-    "Use only Internet Identity for customer authentication, not third-party auth providers",
-    "Do not integrate external email services (SendGrid, SMTP) - use in-app notifications only",
-    "Admin passcode must remain 09131991 as hardcoded",
-    "Maintain Mosslight Studios brand colors: dark emerald green primary and cool light nude secondary"
+    "Maintain single-actor backend architecture in main.mo",
+    "Do not modify immutable frontend paths: useInternetIdentity.ts, useInternetIdentity.tsx, useActor.ts, main.tsx, components/ui",
+    "Colors remain aesthetic choices without price impact",
+    "Preserve existing variant system with size/color combinations and individual inventory"
   ],
   "nonGoals": [
-    "External email notification system",
-    "Third-party authentication providers",
-    "Real-time WebSocket notifications",
-    "Multi-language internationalization",
-    "Advanced analytics with external services like Google Analytics",
-    "Integration with external inventory management systems",
-    "Automated chatbot for customer support",
-    "Mobile native applications"
+    "Color-based pricing variations",
+    "Dynamic pricing rules or algorithms",
+    "Bulk pricing or quantity discounts",
+    "Currency conversion or multi-currency support",
+    "Price history or price change tracking"
   ],
   "imageRequirements": {
     "required": [],

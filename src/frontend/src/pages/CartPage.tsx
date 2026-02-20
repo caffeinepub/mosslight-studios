@@ -5,6 +5,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Loader2, ShoppingBag, Trash2 } from 'lucide-react';
 import { useNavigate } from '@tanstack/react-router';
 import { toast } from 'sonner';
+import type { ProductVariant } from '../backend';
 
 export default function CartPage() {
   const navigate = useNavigate();
@@ -16,11 +17,16 @@ export default function CartPage() {
 
   const cartWithDetails = cartItems.map(item => {
     const product = products.find(p => p.id === item.productId);
-    return { ...item, product };
+    let variant: ProductVariant | undefined = undefined;
+    if (product?.hasVariants && item.variantId && product.variants) {
+      variant = product.variants.find(v => v.id === item.variantId);
+    }
+    return { ...item, product, variant };
   }).filter(item => item.product);
 
   const total = cartWithDetails.reduce((sum, item) => {
-    return sum + (Number(item.product!.price) * Number(item.quantity));
+    const itemPrice = item.variant ? Number(item.variant.price) : Number(item.product!.price);
+    return sum + (itemPrice * Number(item.quantity));
   }, 0);
 
   const handleClearCart = async () => {
@@ -80,10 +86,13 @@ export default function CartPage() {
         </div>
 
         <div className="space-y-4">
-          {cartWithDetails.map((item) => {
+          {cartWithDetails.map((item, index) => {
             const imageUrl = item.product!.images[0]?.getDirectURL();
+            const itemPrice = item.variant ? Number(item.variant.price) : Number(item.product!.price);
+            const lineTotal = itemPrice * Number(item.quantity);
+            
             return (
-              <Card key={item.productId}>
+              <Card key={`${item.productId}-${item.variantId || index}`}>
                 <CardContent className="p-6">
                   <div className="flex gap-6">
                     {imageUrl ? (
@@ -99,11 +108,22 @@ export default function CartPage() {
                       <h3 className="font-serif text-xl font-semibold">
                         {item.product!.name}
                       </h3>
+                      {item.variant && (
+                        <div className="text-sm text-muted-foreground space-x-3">
+                          <span>Size: <span className="font-medium">{item.variant.size}</span></span>
+                          <span>Color: <span className="font-medium">{item.variant.color}</span></span>
+                        </div>
+                      )}
                       <p className="text-muted-foreground">
                         Quantity: {Number(item.quantity)}
                       </p>
+                      <div className="flex items-baseline gap-2">
+                        <p className="text-sm text-muted-foreground">
+                          ${(itemPrice / 100).toFixed(2)} each
+                        </p>
+                      </div>
                       <p className="text-lg font-semibold text-primary">
-                        ${((Number(item.product!.price) * Number(item.quantity)) / 100).toFixed(2)}
+                        ${(lineTotal / 100).toFixed(2)}
                       </p>
                     </div>
                   </div>
@@ -129,9 +149,9 @@ export default function CartPage() {
           </CardContent>
           <CardFooter>
             <Button 
-              className="w-full" 
-              size="lg"
               onClick={() => navigate({ to: '/checkout' })}
+              size="lg"
+              className="w-full"
             >
               Proceed to Checkout
             </Button>
@@ -141,4 +161,3 @@ export default function CartPage() {
     </div>
   );
 }
-

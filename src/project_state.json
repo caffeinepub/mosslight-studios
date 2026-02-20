@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 11,
+  "projectStateVersion": 15,
   "summary": "Ecommerce website for Mosslight Studios with admin backend, customer portal, and social media content gallery",
   "architectural_notes": [
     "Ecommerce platform with admin and customer-facing components",
@@ -10,10 +10,12 @@
     "Unified admin dashboard provides complete control over products, orders, messaging, and discussion board",
     "Analytics tracking system for product clicks and content views",
     "Product review system limited to verified purchasers only",
-    "In-app notification system for order updates and admin alerts"
+    "In-app notification system for order updates and admin alerts",
+    "Product variants support multiple size/color combinations with separate inventory tracking per variant",
+    "Product variants support individual pricing per size/color combination (e.g., Small $6, 5XL $14)"
   ],
   "known_issues": [],
-  "isFixRequest": true,
+  "isFixRequest": false,
   "existing_features": [
     {
       "id": "feature-create-a-product-management-system-where-administrators-can-upload-new-products-with-details-including-name-description-price-images-and-inventory-quantity",
@@ -350,6 +352,102 @@
         "REQ-56"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-update-productform-component-to-include-a-checkbox-to-enable-variants-mode-and-display-a-variant-management-interface-when-enabled",
+      "title": "Update ProductForm component to include a checkbox to enable variants mode and display a variant management interface when enabled",
+      "reqIds": [
+        "REQ-63"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-variantmanager-component-that-allows-admins-to-add-edit-and-remove-size-color-combinations-with-individual-inventory-quantities",
+      "title": "Create a VariantManager component that allows admins to add, edit, and remove size/color combinations with individual inventory quantities",
+      "reqIds": [
+        "REQ-64"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-productdetailpage-to-display-size-selector-dropdown-and-color-selector-dropdown-when-the-product-has-variants",
+      "title": "Update ProductDetailPage to display size selector dropdown and color selector dropdown when the product has variants",
+      "reqIds": [
+        "REQ-65"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-addtocartbutton-component-to-require-size-and-color-selection-before-enabling-the-add-to-cart-action-when-product-has-variants",
+      "title": "Update AddToCartButton component to require size and color selection before enabling the add to cart action when product has variants",
+      "reqIds": [
+        "REQ-66"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-display-variant-specific-inventory-availability-on-productdetailpage-based-on-selected-size-and-color-combination",
+      "title": "Display variant-specific inventory availability on ProductDetailPage based on selected size and color combination",
+      "reqIds": [
+        "REQ-67"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-cartpage-to-display-selected-size-and-color-information-for-cart-items-that-include-product-variants",
+      "title": "Update CartPage to display selected size and color information for cart items that include product variants",
+      "reqIds": [
+        "REQ-68"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-myordercard-component-to-display-size-and-color-information-for-order-line-items-that-include-product-variants",
+      "title": "Update MyOrderCard component to display size and color information for order line items that include product variants",
+      "reqIds": [
+        "REQ-69"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-react-query-hooks-for-variant-operations-including-fetching-variants-for-a-product-and-validating-variant-availability",
+      "title": "Create React Query hooks for variant operations including fetching variants for a product and validating variant availability",
+      "reqIds": [
+        "REQ-70"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-variantmanager-component-to-include-a-price-input-field-for-each-variant-allowing-admins-to-set-individual-prices-when-adding-or-editing-size-color-combinations",
+      "title": "Update the VariantManager component to include a price input field for each variant, allowing admins to set individual prices when adding or editing size/color combinations",
+      "reqIds": [
+        "REQ-77"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-productdetailpage-to-display-the-selected-variant-s-price-dynamically-when-the-size-selection-changes-replacing-the-base-product-price-display",
+      "title": "Update ProductDetailPage to display the selected variant's price dynamically when the size selection changes, replacing the base product price display",
+      "reqIds": [
+        "REQ-78"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-cartpage-to-display-the-variant-specific-price-for-each-cart-item-that-includes-product-variants",
+      "title": "Update CartPage to display the variant-specific price for each cart item that includes product variants",
+      "reqIds": [
+        "REQ-80"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-myordercard-component-to-display-the-variant-specific-price-that-was-paid-for-each-order-line-item-with-product-variants-in-the-order-history",
+      "title": "Update MyOrderCard component to display the variant-specific price that was paid for each order line item with product variants in the order history",
+      "reqIds": [
+        "REQ-81"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -564,6 +662,130 @@
       "summary": "Implement backend query methods to retrieve analytics data including most clicked products, most viewed content, total revenue, order count by date range, and low inventory products (below 5 units)",
       "reqIds": [
         "REQ-35"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-36",
+      "summary": "Add product variant support with size and color options, individual inventory per variant, and required selection before purchase",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-37",
+      "summary": "Create a backend data model for product variants with fields for size, color, inventory quantity, and parent product ID reference",
+      "reqIds": [
+        "REQ-57"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-38",
+      "summary": "Update the Product data model to include an optional variants array and a hasVariants boolean flag",
+      "reqIds": [
+        "REQ-58"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-39",
+      "summary": "Implement backend method to add product variants when creating or editing a product, storing each size/color combination with individual inventory",
+      "reqIds": [
+        "REQ-59"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-40",
+      "summary": "Implement backend query method to retrieve all variants for a specific product ID",
+      "reqIds": [
+        "REQ-60"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-41",
+      "summary": "Update the addToCart backend method to accept optional variant ID parameter and validate variant inventory availability before adding to cart",
+      "reqIds": [
+        "REQ-61"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-42",
+      "summary": "Update the checkout backend method to decrement variant-specific inventory quantities when processing orders for products with variants",
+      "reqIds": [
+        "REQ-62"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-43",
+      "summary": "Extend product variant system to include individual pricing per variant (size-specific pricing)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-44",
+      "summary": "Update backend variant data model to include price field for each size/color combination",
+      "reqIds": [
+        "REQ-71"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-45",
+      "summary": "Update ProductForm/VariantManager component to allow admins to set individual prices when creating size/color variants",
+      "reqIds": [
+        "REQ-72"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-46",
+      "summary": "Update ProductDetailPage to display variant-specific price dynamically when size selection changes",
+      "reqIds": [
+        "REQ-73"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-47",
+      "summary": "Update cart and checkout logic to use selected variant's price instead of base product price",
+      "reqIds": [
+        "REQ-74"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-48",
+      "summary": "Update order history display to show the variant-specific price that was paid at purchase time",
+      "reqIds": [
+        "REQ-75"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-49",
+      "summary": "Update the backend Variant data type in main.mo to include a price field (Nat) alongside the existing size, color, and inventory fields",
+      "reqIds": [
+        "REQ-76"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-52",
+      "summary": "Update the addToCart functionality in useCart hook and backend to use the selected variant's price instead of the base product price when adding items with variants to the cart",
+      "reqIds": [
+        "REQ-79"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-55",
+      "summary": "Create a migration.mo module to transform existing variant data structures from the current schema (without price field) to the new schema (with price field) by adding a default price field to existing variants",
+      "reqIds": [
+        "REQ-82"
       ],
       "status": "pending"
     }

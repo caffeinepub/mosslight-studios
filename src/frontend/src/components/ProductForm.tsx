@@ -3,13 +3,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { ArrowLeft, Loader2, Upload, X } from 'lucide-react';
 import { useAddProduct, useUpdateProduct } from '../hooks/useProducts';
 import { ExternalBlob } from '../backend';
 import { toast } from 'sonner';
-import type { Product } from '../backend';
+import type { Product, ProductVariant } from '../backend';
+import VariantManager from './VariantManager';
 
 interface ProductFormProps {
   product?: Product | null;
@@ -21,6 +23,8 @@ export default function ProductForm({ product, onClose }: ProductFormProps) {
   const [description, setDescription] = useState(product?.description || '');
   const [price, setPrice] = useState(product ? (Number(product.price) / 100).toString() : '');
   const [inventory, setInventory] = useState(product ? Number(product.inventory).toString() : '');
+  const [hasVariants, setHasVariants] = useState(product?.hasVariants || false);
+  const [variants, setVariants] = useState<ProductVariant[]>(product?.variants || []);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [uploadProgress, setUploadProgress] = useState(0);
 
@@ -38,15 +42,25 @@ export default function ProductForm({ product, onClose }: ProductFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!name.trim() || !description.trim() || !price || !inventory) {
-      toast.error('Please fill in all fields');
+    if (!name.trim() || !description.trim() || !price) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    if (hasVariants && variants.length === 0) {
+      toast.error('Please add at least one variant or disable variants');
+      return;
+    }
+
+    if (!hasVariants && !inventory) {
+      toast.error('Please enter inventory quantity');
       return;
     }
 
     const priceInCents = Math.round(parseFloat(price) * 100);
-    const inventoryCount = parseInt(inventory);
+    const inventoryCount = hasVariants ? 0 : parseInt(inventory);
 
-    if (priceInCents <= 0 || inventoryCount < 0) {
+    if (priceInCents <= 0 || (!hasVariants && inventoryCount < 0)) {
       toast.error('Invalid price or inventory');
       return;
     }
@@ -73,6 +87,8 @@ export default function ProductForm({ product, onClose }: ProductFormProps) {
         description: description.trim(),
         price: BigInt(priceInCents),
         inventory: BigInt(inventoryCount),
+        hasVariants,
+        variants: hasVariants ? variants : undefined,
       };
 
       if (isEditing) {
@@ -97,7 +113,7 @@ export default function ProductForm({ product, onClose }: ProductFormProps) {
   const isPending = addProduct.isPending || updateProduct.isPending;
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-4xl mx-auto">
       <Button variant="ghost" onClick={onClose} className="mb-6">
         <ArrowLeft className="h-4 w-4 mr-2" />
         Back to Products
@@ -110,7 +126,7 @@ export default function ProductForm({ product, onClose }: ProductFormProps) {
           </CardTitle>
         </CardHeader>
         <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="name">Product Name</Label>
               <Input
@@ -134,21 +150,38 @@ export default function ProductForm({ product, onClose }: ProductFormProps) {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="price">Price ($)</Label>
-                <Input
-                  id="price"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={price}
-                  onChange={(e) => setPrice(e.target.value)}
-                  placeholder="0.00"
-                  required
-                />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="price">Price ($)</Label>
+              <Input
+                id="price"
+                type="number"
+                step="0.01"
+                min="0"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                placeholder="0.00"
+                required
+              />
+            </div>
 
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="hasVariants"
+                checked={hasVariants}
+                onCheckedChange={(checked) => setHasVariants(checked === true)}
+              />
+              <Label htmlFor="hasVariants" className="cursor-pointer">
+                Enable Variants (sizes and colors)
+              </Label>
+            </div>
+
+            {hasVariants ? (
+              <VariantManager
+                variants={variants}
+                onChange={setVariants}
+                productId={product?.id || 'new'}
+              />
+            ) : (
               <div className="space-y-2">
                 <Label htmlFor="inventory">Inventory</Label>
                 <Input
@@ -161,7 +194,7 @@ export default function ProductForm({ product, onClose }: ProductFormProps) {
                   required
                 />
               </div>
-            </div>
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="images">Product Images</Label>
@@ -228,4 +261,3 @@ export default function ProductForm({ product, onClose }: ProductFormProps) {
     </div>
   );
 }
-

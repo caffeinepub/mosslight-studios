@@ -5,16 +5,38 @@ import { Label } from '@/components/ui/label';
 import { ShoppingCart, Loader2 } from 'lucide-react';
 import { useAddItemToCart } from '../hooks/useCart';
 import { toast } from 'sonner';
-import type { Product } from '../backend';
+import type { Product, ProductVariant } from '../backend';
 
 interface AddToCartButtonProps {
   product: Product;
   disabled?: boolean;
+  hasVariants?: boolean;
+  selectedSize?: string | null;
+  selectedColor?: string | null;
+  variants?: ProductVariant[];
 }
 
-export default function AddToCartButton({ product, disabled }: AddToCartButtonProps) {
+export default function AddToCartButton({ 
+  product, 
+  disabled,
+  hasVariants = false,
+  selectedSize = null,
+  selectedColor = null,
+  variants = []
+}: AddToCartButtonProps) {
   const [quantity, setQuantity] = useState(1);
   const addToCart = useAddItemToCart();
+
+  const selectedVariant = hasVariants && selectedSize && selectedColor
+    ? variants.find(v => v.size === selectedSize && v.color === selectedColor)
+    : null;
+
+  const maxInventory = hasVariants && selectedVariant
+    ? Number(selectedVariant.inventory)
+    : Number(product.inventory);
+
+  const isVariantSelectionIncomplete = hasVariants && (!selectedSize || !selectedColor);
+  const isDisabled = disabled || isVariantSelectionIncomplete;
 
   const handleAddToCart = async () => {
     if (quantity < 1) {
@@ -22,8 +44,18 @@ export default function AddToCartButton({ product, disabled }: AddToCartButtonPr
       return;
     }
 
-    if (quantity > Number(product.inventory)) {
+    if (hasVariants && !selectedVariant) {
+      toast.error('Please select size and color');
+      return;
+    }
+
+    if (quantity > maxInventory) {
       toast.error('Not enough inventory available');
+      return;
+    }
+
+    if (hasVariants && selectedVariant && Number(selectedVariant.inventory) === 0) {
+      toast.error('This variant is out of stock');
       return;
     }
 
@@ -31,13 +63,26 @@ export default function AddToCartButton({ product, disabled }: AddToCartButtonPr
       await addToCart.mutateAsync({
         productId: product.id,
         quantity: BigInt(quantity),
+        variantId: selectedVariant?.id || undefined,
       });
       toast.success('Added to cart!');
       setQuantity(1);
-    } catch (error) {
-      toast.error('Failed to add to cart');
+    } catch (error: any) {
+      if (error.message?.includes('Insufficient inventory')) {
+        toast.error('Not enough inventory available');
+      } else if (error.message?.includes('Variant required')) {
+        toast.error('Please select size and color');
+      } else {
+        toast.error('Failed to add to cart');
+      }
     }
   };
+
+  const buttonText = isVariantSelectionIncomplete
+    ? 'Select size and color'
+    : addToCart.isPending
+    ? 'Adding...'
+    : 'Add to Cart';
 
   return (
     <div className="space-y-4">
@@ -47,32 +92,31 @@ export default function AddToCartButton({ product, disabled }: AddToCartButtonPr
           id="quantity"
           type="number"
           min="1"
-          max={Number(product.inventory)}
+          max={maxInventory}
           value={quantity}
           onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
           className="w-32"
-          disabled={disabled}
+          disabled={isDisabled}
         />
       </div>
       <Button
         onClick={handleAddToCart}
-        disabled={disabled || addToCart.isPending}
+        disabled={isDisabled || addToCart.isPending}
         size="lg"
         className="w-full gap-2"
       >
         {addToCart.isPending ? (
           <>
             <Loader2 className="h-5 w-5 animate-spin" />
-            Adding...
+            {buttonText}
           </>
         ) : (
           <>
             <ShoppingCart className="h-5 w-5" />
-            Add to Cart
+            {buttonText}
           </>
         )}
       </Button>
     </div>
   );
 }
-

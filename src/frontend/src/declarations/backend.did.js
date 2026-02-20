@@ -21,12 +21,23 @@ export const _CaffeineStorageRefillResult = IDL.Record({
 });
 export const OrderItem = IDL.Record({
   'productId' : IDL.Text,
+  'variantId' : IDL.Opt(IDL.Text),
   'quantity' : IDL.Nat,
 });
+export const ProductVariant = IDL.Record({
+  'id' : IDL.Text,
+  'inventory' : IDL.Nat,
+  'color' : IDL.Text,
+  'size' : IDL.Text,
+  'parentProductId' : IDL.Text,
+  'price' : IDL.Nat,
+});
 export const CreateProductData = IDL.Record({
+  'hasVariants' : IDL.Bool,
   'inventory' : IDL.Nat,
   'name' : IDL.Text,
   'description' : IDL.Text,
+  'variants' : IDL.Opt(IDL.Vec(ProductVariant)),
   'price' : IDL.Nat,
 });
 export const ExternalBlob = IDL.Vec(IDL.Nat8);
@@ -55,9 +66,11 @@ export const DiscussionPost = IDL.Record({
 });
 export const Product = IDL.Record({
   'id' : IDL.Text,
+  'hasVariants' : IDL.Bool,
   'inventory' : IDL.Nat,
   'name' : IDL.Text,
   'description' : IDL.Text,
+  'variants' : IDL.Opt(IDL.Vec(ProductVariant)),
   'price' : IDL.Nat,
   'images' : IDL.Vec(ExternalBlob),
 });
@@ -88,6 +101,7 @@ export const Order = IDL.Record({
 export const Review = IDL.Record({
   'reviewText' : IDL.Text,
   'productId' : IDL.Text,
+  'variantId' : IDL.Opt(IDL.Text),
   'timestamp' : Time,
   'rating' : IDL.Nat,
   'reviewer' : IDL.Principal,
@@ -178,6 +192,11 @@ export const idlService = IDL.Service({
       [IDL.Vec(Review), IDL.Float64],
       ['query'],
     ),
+  'getProductVariants' : IDL.Func(
+      [IDL.Text],
+      [IDL.Opt(IDL.Vec(ProductVariant))],
+      ['query'],
+    ),
   'getProducts' : IDL.Func([], [IDL.Vec(Product)], ['query']),
   'getSocialMediaContent' : IDL.Func(
       [],
@@ -206,7 +225,11 @@ export const idlService = IDL.Service({
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'sendAdminBroadcastAlert' : IDL.Func([IDL.Text], [], []),
   'sendMessage' : IDL.Func([IDL.Text, IDL.Opt(Customer)], [], []),
-  'submitReview' : IDL.Func([IDL.Text, IDL.Nat, IDL.Text], [], []),
+  'submitReview' : IDL.Func(
+      [IDL.Text, IDL.Nat, IDL.Text, IDL.Opt(IDL.Text)],
+      [],
+      [],
+    ),
   'updateOrderStatus' : IDL.Func([IDL.Text, OrderStatus], [], []),
   'updateProduct' : IDL.Func(
       [IDL.Text, CreateProductData, IDL.Vec(ExternalBlob)],
@@ -232,12 +255,23 @@ export const idlFactory = ({ IDL }) => {
   });
   const OrderItem = IDL.Record({
     'productId' : IDL.Text,
+    'variantId' : IDL.Opt(IDL.Text),
     'quantity' : IDL.Nat,
   });
+  const ProductVariant = IDL.Record({
+    'id' : IDL.Text,
+    'inventory' : IDL.Nat,
+    'color' : IDL.Text,
+    'size' : IDL.Text,
+    'parentProductId' : IDL.Text,
+    'price' : IDL.Nat,
+  });
   const CreateProductData = IDL.Record({
+    'hasVariants' : IDL.Bool,
     'inventory' : IDL.Nat,
     'name' : IDL.Text,
     'description' : IDL.Text,
+    'variants' : IDL.Opt(IDL.Vec(ProductVariant)),
     'price' : IDL.Nat,
   });
   const ExternalBlob = IDL.Vec(IDL.Nat8);
@@ -263,9 +297,11 @@ export const idlFactory = ({ IDL }) => {
   });
   const Product = IDL.Record({
     'id' : IDL.Text,
+    'hasVariants' : IDL.Bool,
     'inventory' : IDL.Nat,
     'name' : IDL.Text,
     'description' : IDL.Text,
+    'variants' : IDL.Opt(IDL.Vec(ProductVariant)),
     'price' : IDL.Nat,
     'images' : IDL.Vec(ExternalBlob),
   });
@@ -296,6 +332,7 @@ export const idlFactory = ({ IDL }) => {
   const Review = IDL.Record({
     'reviewText' : IDL.Text,
     'productId' : IDL.Text,
+    'variantId' : IDL.Opt(IDL.Text),
     'timestamp' : Time,
     'rating' : IDL.Nat,
     'reviewer' : IDL.Principal,
@@ -390,6 +427,11 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Vec(Review), IDL.Float64],
         ['query'],
       ),
+    'getProductVariants' : IDL.Func(
+        [IDL.Text],
+        [IDL.Opt(IDL.Vec(ProductVariant))],
+        ['query'],
+      ),
     'getProducts' : IDL.Func([], [IDL.Vec(Product)], ['query']),
     'getSocialMediaContent' : IDL.Func(
         [],
@@ -418,7 +460,11 @@ export const idlFactory = ({ IDL }) => {
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'sendAdminBroadcastAlert' : IDL.Func([IDL.Text], [], []),
     'sendMessage' : IDL.Func([IDL.Text, IDL.Opt(Customer)], [], []),
-    'submitReview' : IDL.Func([IDL.Text, IDL.Nat, IDL.Text], [], []),
+    'submitReview' : IDL.Func(
+        [IDL.Text, IDL.Nat, IDL.Text, IDL.Opt(IDL.Text)],
+        [],
+        [],
+      ),
     'updateOrderStatus' : IDL.Func([IDL.Text, OrderStatus], [], []),
     'updateProduct' : IDL.Func(
         [IDL.Text, CreateProductData, IDL.Vec(ExternalBlob)],

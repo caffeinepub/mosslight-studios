@@ -1,352 +1,100 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-20T21:13:37.561Z",
+  "generatedAt": "2026-02-20T22:23:54.686Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 30,
-    "implemented": 21,
+    "total": 7,
+    "implemented": 4,
     "items": [
       {
-        "id": "REQ-27",
-        "summary": "Create a backend data model for notifications with fields for recipient principal, notification type (order_update, admin_alert, low_inventory), message text, timestamp, read status, and optional order ID reference",
+        "id": "REQ-76",
+        "summary": "Update the backend Variant data type in main.mo to include a price field (Nat) alongside the existing size, color, and inventory fields",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
       },
       {
-        "id": "REQ-28",
-        "summary": "Implement backend methods for creating notifications when order status changes, inventory falls below threshold (5 units), and for admin broadcast alerts",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-29",
-        "summary": "Implement backend query methods to retrieve unread notifications for the current user and mark notifications as read",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-30",
-        "summary": "Create a backend data model for product reviews with fields for product ID, reviewer principal, star rating (1-5), review text, timestamp, and verified purchase flag",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-31",
-        "summary": "Implement backend method for verified customers to submit product reviews only for products they have purchased, validating purchase history before allowing review submission",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-32",
-        "summary": "Implement backend query methods to retrieve all reviews for a specific product with average rating calculation and reviewer anonymization (showing only partial principal)",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-33",
-        "summary": "Create a backend data model for analytics events tracking product clicks, content gallery views, and order completions with timestamp, user principal (optional for anonymous), event type, and target ID",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-34",
-        "summary": "Implement backend methods to record analytics events when products are clicked, content items are viewed, and orders are completed",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-35",
-        "summary": "Implement backend query methods to retrieve analytics data including most clicked products, most viewed content, total revenue, order count by date range, and low inventory products (below 5 units)",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-36",
-        "summary": "Create React Query hook for fetching unread notifications for the current user and marking notifications as read",
+        "id": "REQ-77",
+        "summary": "Update the VariantManager component to include a price input field for each variant, allowing admins to set individual prices when adding or editing size/color combinations",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/hooks/useNotifications.ts"
+          "frontend/src/components/VariantManager.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/hooks/useNotifications.ts"
+          "frontend/src/components/VariantManager.tsx"
         ]
       },
       {
-        "id": "REQ-37",
-        "summary": "Create a NotificationBell component in the Header that displays unread notification count badge and opens a dropdown panel showing recent notifications with timestamps and read/unread status",
+        "id": "REQ-78",
+        "summary": "Update ProductDetailPage to display the selected variant's price dynamically when the size selection changes, replacing the base product price display",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/NotificationBell.tsx",
-          "frontend/src/components/Header.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/NotificationBell.tsx",
-          "frontend/src/components/Header.tsx"
-        ]
-      },
-      {
-        "id": "REQ-38",
-        "summary": "Add a Notifications section to the admin dashboard displaying admin-specific alerts including low inventory warnings and system notifications",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/AdminNotificationsPanel.tsx",
-          "frontend/src/pages/AdminDashboardPage.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/AdminNotificationsPanel.tsx",
-          "frontend/src/pages/AdminDashboardPage.tsx"
-        ]
-      },
-      {
-        "id": "REQ-39",
-        "summary": "Create React Query hook for fetching product reviews, submitting new reviews, and retrieving average ratings for products",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/hooks/useReviews.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/hooks/useReviews.ts"
-        ]
-      },
-      {
-        "id": "REQ-40",
-        "summary": "Create a ProductReviews component that displays all reviews for a product with star ratings, review text, timestamps, and verified purchaser badges, shown on the ProductDetailPage below the product information",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/ProductReviews.tsx",
           "frontend/src/pages/ProductDetailPage.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/ProductReviews.tsx",
           "frontend/src/pages/ProductDetailPage.tsx"
         ]
       },
       {
-        "id": "REQ-41",
-        "summary": "Create a ReviewForm component that allows authenticated customers who have purchased the product to submit a review with a star rating selector (1-5 stars) and text input",
+        "id": "REQ-79",
+        "summary": "Update the addToCart functionality in useCart hook and backend to use the selected variant's price instead of the base product price when adding items with variants to the cart",
+        "status": "missing",
+        "plannedFiles": [
+          "frontend/src/components/AddToCartButton.tsx",
+          "frontend/src/hooks/useCart.ts"
+        ],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-80",
+        "summary": "Update CartPage to display the variant-specific price for each cart item that includes product variants",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/ReviewForm.tsx",
-          "frontend/src/pages/ProductDetailPage.tsx"
+          "frontend/src/pages/CartPage.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/ReviewForm.tsx",
-          "frontend/src/pages/ProductDetailPage.tsx"
+          "frontend/src/pages/CartPage.tsx"
         ]
       },
       {
-        "id": "REQ-42",
-        "summary": "Update ProductCard component to display average star rating and review count for each product in the catalog grid",
+        "id": "REQ-81",
+        "summary": "Update MyOrderCard component to display the variant-specific price that was paid for each order line item with product variants in the order history",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/ProductCard.tsx"
+          "frontend/src/components/MyOrderCard.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/ProductCard.tsx"
+          "frontend/src/components/MyOrderCard.tsx"
         ]
       },
       {
-        "id": "REQ-43",
-        "summary": "Create React Query hook for fetching analytics data including most clicked products, most viewed content, revenue metrics, and inventory alerts",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/hooks/useAnalytics.ts",
-          "frontend/src/hooks/useAnalytics.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/hooks/useAnalytics.ts",
-          "frontend/src/hooks/useAnalytics.ts"
-        ]
-      },
-      {
-        "id": "REQ-44",
-        "summary": "Create an AdminAnalyticsPage displaying dashboard cards with key metrics including total revenue, order count, top clicked products, most viewed content, and low inventory alerts",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/AdminAnalyticsPage.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/AdminAnalyticsPage.tsx"
-        ]
-      },
-      {
-        "id": "REQ-45",
-        "summary": "Add Analytics navigation card to the AdminDashboardPage linking to the new analytics page",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/AdminDashboardPage.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/AdminDashboardPage.tsx"
-        ]
-      },
-      {
-        "id": "REQ-46",
-        "summary": "Update ProductCard component click handler to record product click analytics event when users click on products in the catalog",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/ProductCard.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/ProductCard.tsx"
-        ]
-      },
-      {
-        "id": "REQ-47",
-        "summary": "Update GalleryItem component to record content view analytics event when gallery content is viewed",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/GalleryItem.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/GalleryItem.tsx"
-        ]
-      },
-      {
-        "id": "REQ-48",
-        "summary": "Create a ProductSearch component with text input for searching products by name or description and dropdown filters for category and price range",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/ProductSearch.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/ProductSearch.tsx"
-        ]
-      },
-      {
-        "id": "REQ-49",
-        "summary": "Update ProductsPage to include the ProductSearch component above the product grid and filter displayed products based on search criteria",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/ProductsPage.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/ProductsPage.tsx"
-        ]
-      },
-      {
-        "id": "REQ-50",
-        "summary": "Create an AboutPage displaying Mosslight Studios business story, mission statement, and contact information with brand styling",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/AboutPage.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/AboutPage.tsx"
-        ]
-      },
-      {
-        "id": "REQ-51",
-        "summary": "Create an FAQPage displaying common questions and answers about shipping, returns, product care, and ordering process with collapsible accordion sections",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/FAQPage.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/FAQPage.tsx"
-        ]
-      },
-      {
-        "id": "REQ-52",
-        "summary": "Update Header navigation to include links to About and FAQ pages in the main menu",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/Header.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/Header.tsx"
-        ]
-      },
-      {
-        "id": "REQ-53",
-        "summary": "Create a SocialMediaLinks component displaying clickable icon links to Mosslight Studios social media profiles (Instagram, TikTok, Facebook, etc.)",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/SocialMediaLinks.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/SocialMediaLinks.tsx"
-        ]
-      },
-      {
-        "id": "REQ-54",
-        "summary": "Update GalleryPage to display the SocialMediaLinks component prominently above or below the gallery content grid",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/GalleryPage.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/GalleryPage.tsx"
-        ]
-      },
-      {
-        "id": "REQ-55",
-        "summary": "Update Footer component to include the SocialMediaLinks component for consistent access to social profiles across all pages",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/Footer.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/Footer.tsx"
-        ]
-      },
-      {
-        "id": "REQ-56",
-        "summary": "Add routes in App.tsx for /about, /faq, and /admin/analytics pages with appropriate route configuration",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/App.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/App.tsx"
-        ]
+        "id": "REQ-82",
+        "summary": "Create a migration.mo module to transform existing variant data structures from the current schema (without price field) to the new schema (with price field) by adding a default price field to existing variants",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
       }
     ]
   },
   "changedFiles": [
     "backend/main.mo",
+    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/App.tsx",
     "frontend/src/backend.d.ts",
     "frontend/src/backend.ts",
-    "frontend/src/components/AdminNotificationsPanel.tsx",
-    "frontend/src/components/Footer.tsx",
-    "frontend/src/components/GalleryItem.tsx",
-    "frontend/src/components/Header.tsx",
-    "frontend/src/components/NotificationBell.tsx",
-    "frontend/src/components/ProductCard.tsx",
-    "frontend/src/components/ProductReviews.tsx",
-    "frontend/src/components/ProductSearch.tsx",
-    "frontend/src/components/ReviewForm.tsx",
-    "frontend/src/components/SocialMediaLinks.tsx",
+    "frontend/src/components/MyOrderCard.tsx",
+    "frontend/src/components/VariantManager.tsx",
     "frontend/src/declarations/backend.did.d.ts",
     "frontend/src/declarations/backend.did.js",
-    "frontend/src/hooks/useAnalytics.ts",
-    "frontend/src/hooks/useNotifications.ts",
-    "frontend/src/hooks/useReviews.ts",
-    "frontend/src/pages/AboutPage.tsx",
-    "frontend/src/pages/AdminAnalyticsPage.tsx",
-    "frontend/src/pages/AdminDashboardPage.tsx",
-    "frontend/src/pages/FAQPage.tsx",
-    "frontend/src/pages/GalleryPage.tsx",
+    "frontend/src/pages/CartPage.tsx",
     "frontend/src/pages/ProductDetailPage.tsx",
-    "frontend/src/pages/ProductsPage.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",
