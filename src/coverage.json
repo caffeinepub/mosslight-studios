@@ -1,49 +1,32 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-20T23:16:00.975Z",
+  "generatedAt": "2026-02-21T00:32:18.912Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 4,
-    "implemented": 3,
+    "total": 3,
+    "implemented": 1,
     "items": [
       {
-        "id": "REQ-88",
-        "summary": "Update the backend addProduct method in main.mo to properly validate admin authentication by checking the admin authorization state before processing product creation requests",
+        "id": "REQ-94",
+        "summary": "Update the backend addProduct method in main.mo to remove or bypass the permission check that is incorrectly rejecting authenticated admin users who are logged in through the AdminAuthProvider with the correct passcode (09131991)",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
       },
       {
-        "id": "REQ-89",
-        "summary": "Verify that the useProducts hook addProduct mutation correctly passes admin authentication credentials or session tokens to the backend actor when invoking the addProduct method",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/hooks/useProducts.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/hooks/useProducts.ts"
-        ]
+        "id": "REQ-95",
+        "summary": "Add detailed error logging to the backend addProduct method that captures and logs the exact authentication state, caller principal, and permission validation results when product creation attempts fail",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
       },
       {
-        "id": "REQ-90",
-        "summary": "Ensure the AdminAuthProvider context state is accessible to the useProducts hook and ProductForm component so that admin authentication status can be verified before attempting product operations",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/ProductForm.tsx",
-          "frontend/src/hooks/useProducts.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/ProductForm.tsx",
-          "frontend/src/hooks/useProducts.ts"
-        ]
-      },
-      {
-        "id": "REQ-91",
-        "summary": "Add detailed error logging to both frontend (useProducts hook) and backend (addProduct method) to capture the exact point of failure when permission errors occur during product creation",
+        "id": "REQ-96",
+        "summary": "Update the useProducts hook addProduct mutation in the frontend to log detailed error information including the full error response from the backend when product creation fails",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/hooks/useProducts.ts",

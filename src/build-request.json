@@ -1,94 +1,75 @@
 {
   "kind": "build_request",
-  "title": "Fix admin authentication validation for product creation operations",
-  "projectName": "Mosslight Studios",
+  "title": "Fix admin authentication validation for product creation",
   "priority": "high",
   "requirements": [
     {
-      "id": "REQ-88",
-      "text": "Update the backend addProduct method in main.mo to properly validate admin authentication by checking the admin authorization state before processing product creation requests",
+      "id": "REQ-94",
+      "text": "Update the backend addProduct method in main.mo to remove or bypass the permission check that is incorrectly rejecting authenticated admin users who are logged in through the AdminAuthProvider with the correct passcode (09131991)",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-latest"
+          "msg-recent"
         ],
         "quotes": [
-          "i logged in to the admin portal , im adding a product and when i went to hit add product it gave me that error",
-          "it says i dont have permission to preform this action but im logged in to the admin page"
+          "still saying failed to add product",
+          "single item with one image and all the required feilds filled out"
         ]
       },
       "acceptanceCriteria": [
-        "Admin users authenticated with the correct passcode (09131991) can successfully add products without permission errors",
-        "The backend addProduct method validates admin session/authorization before rejecting requests",
-        "Non-admin users continue to receive permission denied errors when attempting to add products"
+        "Authenticated admin users can successfully add products with all required fields filled out",
+        "The addProduct method accepts product creation requests from users authenticated via AdminAuthProvider",
+        "No permission or authorization errors are thrown when admin users attempt to add products"
       ]
     },
     {
-      "id": "REQ-89",
-      "text": "Verify that the useProducts hook addProduct mutation correctly passes admin authentication credentials or session tokens to the backend actor when invoking the addProduct method",
+      "id": "REQ-95",
+      "text": "Add detailed error logging to the backend addProduct method that captures and logs the exact authentication state, caller principal, and permission validation results when product creation attempts fail",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-recent"
+        ],
+        "quotes": [
+          "failed to add product"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Backend logs show caller principal when addProduct is invoked",
+        "Backend logs show admin authentication check results",
+        "Backend logs indicate which specific permission validation failed if applicable"
+      ]
+    },
+    {
+      "id": "REQ-96",
+      "text": "Update the useProducts hook addProduct mutation in the frontend to log detailed error information including the full error response from the backend when product creation fails",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-latest"
+          "msg-recent"
         ],
         "quotes": [
-          "im able to see the admin dashboard after logging in it shows up as soon as i click add product"
+          "still saying failed to add product"
         ]
       },
       "acceptanceCriteria": [
-        "The addProduct mutation includes necessary authentication headers or context when calling the backend",
-        "Frontend successfully transmits admin session information established during passcode login to backend product operations",
-        "Console logs confirm authentication data is being sent with the addProduct request"
-      ]
-    },
-    {
-      "id": "REQ-90",
-      "text": "Ensure the AdminAuthProvider context state is accessible to the useProducts hook and ProductForm component so that admin authentication status can be verified before attempting product operations",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-latest"
-        ],
-        "quotes": [
-          "im able to see the admin dashboard after logging in"
-        ]
-      },
-      "acceptanceCriteria": [
-        "ProductForm component and useProducts hook have access to admin authentication state from AdminAuthProvider",
-        "Admin authentication status is verified in the UI before enabling product creation actions",
-        "Error messages differentiate between authentication failures and other product creation errors"
-      ]
-    },
-    {
-      "id": "REQ-91",
-      "text": "Add detailed error logging to both frontend (useProducts hook) and backend (addProduct method) to capture the exact point of failure when permission errors occur during product creation",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "msg-latest"
-        ],
-        "quotes": [
-          "I tried to add a product with no variants and its still saying failed to add product"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Frontend console logs show authentication state, request payload, and backend response when addProduct fails",
-        "Backend logs capture authentication validation results and the specific authorization check that is failing",
-        "Error messages in the UI indicate whether the failure is due to authentication, authorization, validation, or other issues"
+        "Console logs show the complete error object returned from backend when addProduct fails",
+        "Error messages from backend are displayed to the user instead of generic 'failed to add product' message",
+        "Users can see specific validation failures or permission errors in the UI"
       ]
     }
   ],
   "constraints": [
-    "Maintain the existing 8-digit passcode authentication system (09131991) for admin access",
-    "Do not modify the AdminAuthProvider implementation unless necessary to fix the authentication flow",
-    "Preserve the single-actor backend architecture with all logic in main.mo",
-    "Keep the existing admin dashboard routing and navigation structure intact"
+    "Maintain single-actor backend architecture in main.mo",
+    "Preserve existing admin authentication flow via AdminAuthProvider with passcode 09131991",
+    "Do not modify Internet Identity authentication system",
+    "Keep all existing product data models and variant support intact"
   ],
   "nonGoals": [
-    "Implementing a new authentication system or replacing the passcode mechanism",
-    "Adding new admin features or capabilities beyond fixing the permission issue",
-    "Modifying product variant validation or pricing logic",
-    "Changing the UI/UX of the ProductForm component"
+    "Changing the admin passcode",
+    "Modifying the AdminAuthProvider context implementation",
+    "Altering the Internet Identity login flow",
+    "Redesigning the ProductForm UI component"
   ],
   "imageRequirements": {
     "required": [],

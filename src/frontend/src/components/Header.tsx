@@ -14,7 +14,7 @@ export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const { identity } = useInternetIdentity();
-  const { isAdminAuthenticated, adminLogout } = useAdminAuth();
+  const { isAdminAuthenticated, logout } = useAdminAuth();
   const { data: userRole } = useGetCallerUserRole();
   const { data: cartItems = [] } = useViewCart();
   
@@ -23,7 +23,7 @@ export default function Header() {
   const cartItemCount = cartItems.reduce((sum, item) => sum + Number(item.quantity), 0);
 
   const handleAdminLogout = () => {
-    adminLogout();
+    logout();
     navigate({ to: '/' });
   };
 

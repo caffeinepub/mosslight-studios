@@ -1,62 +1,26 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix admin authentication validation for product creation operations",
+  "title": "Fix admin authentication validation for product creation",
   "requirements": [
     {
-      "id": "REQ-89",
-      "summary": "Verify that the useProducts hook addProduct mutation correctly passes admin authentication credentials or session tokens to the backend actor when invoking the addProduct method",
+      "id": "REQ-96",
+      "summary": "Update the useProducts hook addProduct mutation to log detailed error information including the full error response from the backend when product creation fails",
       "acceptanceCriteria": [
-        "The addProduct mutation includes necessary authentication headers or context when calling the backend",
-        "Frontend successfully transmits admin session information established during passcode login to backend product operations",
-        "Console logs confirm authentication data is being sent with the addProduct request"
+        "Console logs show the complete error object returned from backend when addProduct fails",
+        "Error messages from backend are displayed to the user instead of generic 'failed to add product' message",
+        "Users can see specific validation failures or permission errors in the UI"
       ],
       "file_operations": [
         {
           "path": "frontend/src/hooks/useProducts.ts",
           "operation": "modify",
-          "description": "Add detailed logging to the addProduct mutation to capture the complete request payload, authentication state from useActor, and any errors returned from the backend. Verify that the actor instance used by the mutation is properly authenticated with the admin identity. Include console logs showing: (1) actor availability status, (2) authentication state before the addProduct call, (3) the complete productData and images being sent, and (4) the full error response if the call fails. Ensure the mutation properly awaits the backend call and handles promise rejections with detailed error information."
-        }
-      ]
-    },
-    {
-      "id": "REQ-90",
-      "summary": "Ensure the AdminAuthProvider context state is accessible to the useProducts hook and ProductForm component so that admin authentication status can be verified before attempting product operations",
-      "acceptanceCriteria": [
-        "ProductForm component and useProducts hook have access to admin authentication state from AdminAuthProvider",
-        "Admin authentication status is verified in the UI before enabling product creation actions",
-        "Error messages differentiate between authentication failures and other product creation errors"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/ProductForm.tsx",
-          "operation": "modify",
-          "description": "Import and use the useAdminAuth hook to access admin authentication state. Before calling the addProduct mutation, verify that isAuthenticated is true from the AdminAuthProvider context. Display a specific error message if the user attempts to add a product while not authenticated as admin. Add console logging to show the admin authentication status at the time of form submission. If authentication fails, provide clear UI feedback distinguishing between 'not logged in as admin' vs 'backend permission denied' errors."
-        },
-        {
-          "path": "frontend/src/hooks/useProducts.ts",
-          "operation": "modify",
-          "description": "Import useAdminAuth hook and log the admin authentication state (isAuthenticated value) at the beginning of the addProduct mutation function. This provides visibility into whether the frontend believes the user is authenticated as admin when making the backend call. Add a comment reminding implementers to cross-reference this state with the actor's authentication context."
-        }
-      ]
-    },
-    {
-      "id": "REQ-91",
-      "summary": "Add detailed error logging to the frontend (useProducts hook) to capture the exact point of failure when permission errors occur during product creation",
-      "acceptanceCriteria": [
-        "Frontend console logs show authentication state, request payload, and backend response when addProduct fails",
-        "Error messages in the UI indicate whether the failure is due to authentication, authorization, validation, or other issues"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useProducts.ts",
-          "operation": "modify",
-          "description": "Enhance error handling in the addProduct mutation to capture and log: (1) the error type/name, (2) the full error message, (3) any error stack trace, (4) the actor authentication state at the time of failure, and (5) the request payload that was sent. Parse error messages to detect authorization failures (e.g., messages containing 'Unauthorized' or 'permission') and log them distinctly. Return structured error information to the UI so that ProductForm can display appropriate user-facing messages based on the failure type."
+          "description": "Enhance the addProduct mutation's error handling to log the complete error object (including error.message, error.stack, and any backend response details) to the console. Update the toast notification to display the specific error message from the backend instead of a generic failure message. Ensure that authorization errors, validation errors, and permission failures are clearly communicated to the user through the UI."
         },
         {
           "path": "frontend/src/components/ProductForm.tsx",
           "operation": "modify",
-          "description": "Update error handling in the form submission to parse and display different error messages based on the error type returned from useProducts addProduct mutation. Show specific messages for: (1) admin authentication failures ('You must be logged in as admin'), (2) backend authorization failures ('Permission denied - admin access required'), (3) validation errors (field-specific messages), and (4) generic errors. Log the full error object to the console along with the current form state when any submission error occurs."
+          "description": "Update the form submission handler to capture and display detailed error information when product creation fails. Add error state management to show backend validation errors or permission errors inline in the form. Ensure that authentication state and admin status are verified before submission and clearly communicated if checks fail."
         }
       ]
     }

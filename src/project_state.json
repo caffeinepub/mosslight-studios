@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 19,
+  "projectStateVersion": 23,
   "summary": "Ecommerce website for Mosslight Studios with admin backend, customer portal, and social media content gallery",
   "architectural_notes": [
     "Ecommerce platform with admin and customer-facing components",
@@ -499,6 +499,22 @@
         "REQ-91"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-verify-the-useproducts-hook-addproduct-mutation-correctly-passes-admin-authentication-credentials-to-the-backend-actor-when-invoking-the-addproduct-method",
+      "title": "Verify the useProducts hook addProduct mutation correctly passes admin authentication credentials to the backend actor when invoking the addProduct method",
+      "reqIds": [
+        "REQ-93"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-useproducts-hook-addproduct-mutation-in-the-frontend-to-log-detailed-error-information-including-the-full-error-response-from-the-backend-when-product-creation-fails",
+      "title": "Update the useProducts hook addProduct mutation in the frontend to log detailed error information including the full error response from the backend when product creation fails",
+      "reqIds": [
+        "REQ-96"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -867,6 +883,30 @@
       "summary": "Update the backend addProduct method in main.mo to properly validate admin authentication by checking the admin authorization state before processing product creation requests",
       "reqIds": [
         "REQ-88"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-61",
+      "summary": "Update the backend addProduct method to correctly validate and authorize admin users by checking the admin session state from AdminAuthProvider context instead of rejecting authenticated admin requests",
+      "reqIds": [
+        "REQ-92"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-62",
+      "summary": "Update the backend addProduct method in main.mo to remove or bypass the permission check that is incorrectly rejecting authenticated admin users who are logged in through the AdminAuthProvider with the correct passcode (09131991)",
+      "reqIds": [
+        "REQ-94"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-63",
+      "summary": "Add detailed error logging to the backend addProduct method that captures and logs the exact authentication state, caller principal, and permission validation results when product creation attempts fail",
+      "reqIds": [
+        "REQ-95"
       ],
       "status": "pending"
     }

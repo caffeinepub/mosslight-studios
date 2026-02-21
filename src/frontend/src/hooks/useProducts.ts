@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import { useAdminAuth } from './useAdminAuth';
 import type { Product, CreateProductData, ExternalBlob } from '../backend';
 
 export function useGetProducts() {
@@ -31,87 +30,85 @@ export function useGetProduct(productId: string) {
 
 export function useAddProduct() {
   const { actor } = useActor();
-  const { isAdminAuthenticated } = useAdminAuth();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async ({ productData, images }: { productData: CreateProductData; images: ExternalBlob[] }) => {
       if (!actor) throw new Error('Actor not available');
       
-      // Log admin authentication state from AdminAuthProvider
-      console.log('=== ADMIN AUTH STATE CHECK ===');
-      console.log('Admin authenticated (passcode):', isAdminAuthenticated);
-      console.log('==============================');
-      
-      // Log the complete product data being sent to backend
+      // Log detailed information about the request
       console.log('=== ADD PRODUCT REQUEST ===');
-      console.log('Timestamp:', new Date().toISOString());
-      console.log('Actor available:', !!actor);
       console.log('Product Data:', {
         name: productData.name,
         description: productData.description,
         price: productData.price.toString(),
         inventory: productData.inventory.toString(),
         hasVariants: productData.hasVariants,
-        variantsCount: productData.variants?.length || 0,
+        variantCount: productData.variants?.length || 0,
       });
       
       if (productData.variants) {
-        console.log('Variants Details:');
-        productData.variants.forEach((variant, index) => {
-          console.log(`  Variant ${index + 1}:`, {
-            id: variant.id,
-            size: variant.size,
-            color: variant.color,
-            price: variant.price.toString(),
-            priceType: typeof variant.price,
-            inventory: variant.inventory.toString(),
-            inventoryType: typeof variant.inventory,
-            parentProductId: variant.parentProductId,
-          });
-        });
+        console.log('Variants:', productData.variants.map(v => ({
+          id: v.id,
+          size: v.size,
+          color: v.color,
+          price: v.price.toString(),
+          inventory: v.inventory.toString(),
+          parentProductId: v.parentProductId,
+        })));
       }
       
-      console.log('Images:', images.length, 'image(s)');
-      console.log('=========================');
+      console.log('Images:', images.length);
       
       try {
         const result = await actor.addProduct(productData, images);
-        console.log('✅ Product added successfully');
+        console.log('=== ADD PRODUCT SUCCESS ===');
         return result;
       } catch (error: any) {
-        console.error('❌ ADD PRODUCT ERROR:', error);
-        console.error('Error type:', error.constructor.name);
-        console.error('Error message:', error.message);
-        console.error('Error stack:', error.stack);
-        console.error('Full error object:', JSON.stringify(error, null, 2));
+        console.error('=== ADD PRODUCT ERROR ===');
+        console.error('Error type:', typeof error);
+        console.error('Error constructor:', error?.constructor?.name);
+        console.error('Error message:', error?.message);
+        console.error('Error string:', error?.toString());
+        console.error('Full error object:', error);
+        
+        // Try to extract more details from the error
+        if (error?.message) {
+          console.error('Extracted message:', error.message);
+        }
+        if (error?.stack) {
+          console.error('Stack trace:', error.stack);
+        }
+        if (error?.response) {
+          console.error('Response data:', error.response);
+        }
+        if (error?.body) {
+          console.error('Error body:', error.body);
+        }
+        
         throw error;
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
     },
+    onError: (error: any) => {
+      console.error('=== MUTATION ON ERROR HOOK ===');
+      console.error('Error in onError:', error);
+    },
   });
 }
 
 export function useUpdateProduct() {
   const { actor } = useActor();
-  const { isAdminAuthenticated } = useAdminAuth();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async ({ productId, productData, images }: { productId: string; productData: CreateProductData; images: ExternalBlob[] }) => {
       if (!actor) throw new Error('Actor not available');
       
-      // Log admin authentication state from AdminAuthProvider
-      console.log('=== ADMIN AUTH STATE CHECK ===');
-      console.log('Admin authenticated (passcode):', isAdminAuthenticated);
-      console.log('==============================');
-      
-      // Log the complete product data being sent to backend
+      // Log detailed information about the request
       console.log('=== UPDATE PRODUCT REQUEST ===');
-      console.log('Timestamp:', new Date().toISOString());
-      console.log('Actor available:', !!actor);
       console.log('Product ID:', productId);
       console.log('Product Data:', {
         name: productData.name,
@@ -119,43 +116,57 @@ export function useUpdateProduct() {
         price: productData.price.toString(),
         inventory: productData.inventory.toString(),
         hasVariants: productData.hasVariants,
-        variantsCount: productData.variants?.length || 0,
+        variantCount: productData.variants?.length || 0,
       });
       
       if (productData.variants) {
-        console.log('Variants Details:');
-        productData.variants.forEach((variant, index) => {
-          console.log(`  Variant ${index + 1}:`, {
-            id: variant.id,
-            size: variant.size,
-            color: variant.color,
-            price: variant.price.toString(),
-            priceType: typeof variant.price,
-            inventory: variant.inventory.toString(),
-            inventoryType: typeof variant.inventory,
-            parentProductId: variant.parentProductId,
-          });
-        });
+        console.log('Variants:', productData.variants.map(v => ({
+          id: v.id,
+          size: v.size,
+          color: v.color,
+          price: v.price.toString(),
+          inventory: v.inventory.toString(),
+          parentProductId: v.parentProductId,
+        })));
       }
       
-      console.log('Images:', images.length, 'image(s)');
-      console.log('=============================');
+      console.log('Images:', images.length);
       
       try {
         const result = await actor.updateProduct(productId, productData, images);
-        console.log('✅ Product updated successfully');
+        console.log('=== UPDATE PRODUCT SUCCESS ===');
         return result;
       } catch (error: any) {
-        console.error('❌ UPDATE PRODUCT ERROR:', error);
-        console.error('Error type:', error.constructor.name);
-        console.error('Error message:', error.message);
-        console.error('Error stack:', error.stack);
-        console.error('Full error object:', JSON.stringify(error, null, 2));
+        console.error('=== UPDATE PRODUCT ERROR ===');
+        console.error('Error type:', typeof error);
+        console.error('Error constructor:', error?.constructor?.name);
+        console.error('Error message:', error?.message);
+        console.error('Error string:', error?.toString());
+        console.error('Full error object:', error);
+        
+        // Try to extract more details from the error
+        if (error?.message) {
+          console.error('Extracted message:', error.message);
+        }
+        if (error?.stack) {
+          console.error('Stack trace:', error.stack);
+        }
+        if (error?.response) {
+          console.error('Response data:', error.response);
+        }
+        if (error?.body) {
+          console.error('Error body:', error.body);
+        }
+        
         throw error;
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
+    },
+    onError: (error: any) => {
+      console.error('=== MUTATION ON ERROR HOOK ===');
+      console.error('Error in onError:', error);
     },
   });
 }

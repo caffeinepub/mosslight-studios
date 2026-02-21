@@ -7,7 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ArrowLeft, Loader2, Upload, X, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Loader2, X, AlertCircle } from 'lucide-react';
 import { useAddProduct, useUpdateProduct } from '../hooks/useProducts';
 import { useAdminAuth } from '../hooks/useAdminAuth';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
@@ -100,69 +100,87 @@ export default function ProductForm({ product, onClose }: ProductFormProps) {
   };
 
   const parseBackendError = (error: any): string => {
+    console.log('=== PARSING BACKEND ERROR ===');
+    console.log('Error object:', error);
+    console.log('Error type:', typeof error);
+    console.log('Error keys:', Object.keys(error || {}));
+    
     const errorMessage = error?.message || error?.toString() || 'Unknown error';
+    console.log('Extracted error message:', errorMessage);
     
     // Check for authorization/authentication errors first
     if (errorMessage.includes('Unauthorized') || errorMessage.includes('Only admins can')) {
+      console.log('Authorization error detected');
       // Provide specific guidance based on authentication state
       if (!identity) {
-        return 'Authentication Error: You must be logged in with Internet Identity AND have admin privileges. Please log in with Internet Identity first, then use the Admin Login with passcode.';
+        return 'Authentication Error: You must be logged in with Internet Identity first. Please log in, then use Admin Login with the passcode.';
       } else if (!isAdminAuthenticated) {
-        return 'Authorization Error: You are logged in with Internet Identity, but you need to authenticate as admin using the Admin Login button with the passcode (09131991).';
+        return 'Authorization Error: You need to authenticate as admin using the Admin Login button with the passcode.';
       } else {
-        return 'Permission Denied: Your Internet Identity account does not have admin privileges. Please contact the system administrator to grant admin access to your principal ID.';
+        return 'Permission Denied: Your Internet Identity principal is not registered as an admin in the backend. Please ensure you completed the admin setup process. Your principal: ' + identity.getPrincipal().toString();
       }
     }
     
     // Extract specific field errors from backend trap messages
     if (errorMessage.includes('Price must be provided')) {
-      return 'One or more variants are missing price values';
+      return 'Backend Error: One or more variants are missing price values';
     }
     if (errorMessage.includes('Inventory must be provided')) {
-      return 'One or more variants are missing inventory values';
+      return 'Backend Error: One or more variants are missing inventory values';
     }
     if (errorMessage.includes('Color must be provided')) {
-      return 'One or more variants are missing color values';
+      return 'Backend Error: One or more variants are missing color values';
     }
     if (errorMessage.includes('Size must be provided')) {
-      return 'One or more variants are missing size values';
+      return 'Backend Error: One or more variants are missing size values';
     }
     if (errorMessage.includes('Id must be provided')) {
-      return 'Variant ID generation failed - please try again';
+      return 'Backend Error: Variant ID generation failed - please try again';
     }
     if (errorMessage.includes('parentProductId must be provided')) {
-      return 'Variant parent product ID is missing - please try again';
+      return 'Backend Error: Variant parent product ID is missing - please try again';
     }
     if (errorMessage.includes('required to provide data for each of the 4 available variants')) {
-      return 'Backend requires exactly 4 variants: 2X2, 3X3, 4X4, and 6X6';
+      return 'Backend Error: Backend requires exactly 4 variants: 2X2, 3X3, 4X4, and 6X6';
     }
     if (errorMessage.includes('must provide data for all 4 available variants')) {
-      return 'Backend requires all 4 specific variants: 2X2, 3X3, 4X4, and 6X6';
+      return 'Backend Error: Backend requires all 4 specific variants: 2X2, 3X3, 4X4, and 6X6';
     }
     if (errorMessage.includes('Product not found')) {
-      return 'Product not found - it may have been deleted';
+      return 'Backend Error: Product not found - it may have been deleted';
     }
     
     // Return the original error message if no specific pattern matched
-    return errorMessage;
+    console.log('No specific error pattern matched, returning original message');
+    return 'Backend Error: ' + errorMessage;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    console.log('=== FORM SUBMISSION STARTED ===');
+    console.log('Authentication state:', {
+      hasIdentity: !!identity,
+      identityPrincipal: identity?.getPrincipal().toString(),
+      isAdminAuthenticated,
+    });
+
     // Clear previous validation errors
     setValidationErrors([]);
 
-    // Log authentication state at form submission
-    console.log('=== FORM SUBMISSION AUTH CHECK ===');
-    console.log('Admin authenticated (passcode):', isAdminAuthenticated);
-    console.log('Internet Identity logged in:', !!identity);
-    console.log('Principal ID:', identity?.getPrincipal().toString() || 'anonymous');
-    console.log('==================================');
+    // Check Internet Identity authentication first
+    if (!identity) {
+      const error = 'You must be logged in with Internet Identity to add or edit products.';
+      console.error('Authentication check failed:', error);
+      setValidationErrors([error]);
+      toast.error(error);
+      return;
+    }
 
-    // Check admin authentication before validation
+    // Check admin authentication
     if (!isAdminAuthenticated) {
-      const error = 'You must be logged in as admin to add or edit products. Please use the Admin Login button.';
+      const error = 'You must be authenticated as admin. Please use the Admin Login button with the passcode.';
+      console.error('Admin authentication check failed:', error);
       setValidationErrors([error]);
       toast.error(error);
       return;
@@ -170,19 +188,31 @@ export default function ProductForm({ product, onClose }: ProductFormProps) {
 
     // Validate form
     if (!validateForm()) {
+      console.error('Form validation failed');
       toast.error('Please fix the validation errors before submitting');
       return;
     }
 
+    console.log('All pre-submission checks passed');
+
     const priceInCents = Math.round(parseFloat(price) * 100);
     const inventoryCount = hasVariants ? 0 : parseInt(inventory);
+
+    console.log('Prepared data:', {
+      priceInCents,
+      inventoryCount,
+      hasVariants,
+      variantCount: variants.length,
+    });
 
     try {
       let images: ExternalBlob[] = [];
 
       if (imageFiles.length > 0) {
+        console.log('Processing image files:', imageFiles.length);
         setUploadProgress(0);
         const imagePromises = imageFiles.map(async (file, index) => {
+          console.log(`Processing image ${index + 1}:`, file.name, file.size, 'bytes');
           const bytes = new Uint8Array(await file.arrayBuffer());
           const blob = ExternalBlob.fromBytes(bytes).withUploadProgress((percentage) => {
             setUploadProgress((prev) => Math.max(prev, (index + percentage / 100) / imageFiles.length * 100));
@@ -190,7 +220,9 @@ export default function ProductForm({ product, onClose }: ProductFormProps) {
           return blob;
         });
         images = await Promise.all(imagePromises);
+        console.log('All images processed successfully');
       } else if (product?.images) {
+        console.log('Using existing product images:', product.images.length);
         images = product.images;
       }
 
@@ -203,17 +235,15 @@ export default function ProductForm({ product, onClose }: ProductFormProps) {
         variants: hasVariants ? variants : undefined,
       };
 
-      console.log('=== SUBMITTING PRODUCT ===');
-      console.log('Form state at submission:', {
-        isEditing,
-        productId: product?.id,
-        hasVariants,
-        variantCount: variants.length,
+      console.log('Final product data prepared:', {
+        name: productData.name,
+        hasVariants: productData.hasVariants,
+        variantCount: productData.variants?.length || 0,
         imageCount: images.length,
       });
-      console.log('==========================');
 
       if (isEditing) {
+        console.log('Calling updateProduct mutation...');
         await updateProduct.mutateAsync({
           productId: product.id,
           productData,
@@ -221,22 +251,24 @@ export default function ProductForm({ product, onClose }: ProductFormProps) {
         });
         toast.success('Product updated successfully');
       } else {
+        console.log('Calling addProduct mutation...');
         await addProduct.mutateAsync({ productData, images });
         toast.success('Product added successfully');
       }
 
+      console.log('=== FORM SUBMISSION SUCCESSFUL ===');
       onClose();
     } catch (error: any) {
-      console.error('=== PRODUCT SUBMISSION FAILED ===');
-      console.error('Error caught in form handler:', error);
-      console.error('Admin auth state:', isAdminAuthenticated);
-      console.error('II auth state:', !!identity);
-      console.error('=================================');
+      console.error('=== FORM SUBMISSION ERROR ===');
+      console.error('Caught error:', error);
+      console.error('Error type:', typeof error);
+      console.error('Error constructor:', error?.constructor?.name);
       
       const errorMessage = parseBackendError(error);
+      console.error('Parsed error message:', errorMessage);
+      
       setValidationErrors([errorMessage]);
       toast.error(errorMessage);
-      console.error('Product submission error:', error);
     }
   };
 
@@ -247,50 +279,72 @@ export default function ProductForm({ product, onClose }: ProductFormProps) {
     !v.size || !v.color || !v.price || v.inventory === undefined
   );
 
-  // Disable submit if variants are incomplete
-  const isSubmitDisabled = isPending || (hasVariants && (variants.length === 0 || hasIncompleteVariants));
+  // Disable submit if not authenticated or variants are incomplete
+  const isSubmitDisabled = isPending || !identity || !isAdminAuthenticated || hasIncompleteVariants;
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <Button variant="ghost" onClick={onClose} className="mb-6">
-        <ArrowLeft className="h-4 w-4 mr-2" />
-        Back to Products
-      </Button>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="font-serif text-2xl">
+    <Card className="max-w-4xl mx-auto">
+      <CardHeader>
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={onClose}>
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <CardTitle className="font-serif text-3xl">
             {isEditing ? 'Edit Product' : 'Add New Product'}
           </CardTitle>
-        </CardHeader>
-        <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-6">
-            {/* Admin Authentication Warning */}
-            {!isAdminAuthenticated && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
-                  <div className="font-semibold mb-1">Admin Authentication Required</div>
-                  <p>You must be logged in as admin to add or edit products. Please use the "Admin Login" button in the header.</p>
-                </AlertDescription>
-              </Alert>
-            )}
+        </div>
+      </CardHeader>
 
-            {/* Validation Errors Alert */}
-            {validationErrors.length > 0 && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
-                  <div className="font-semibold mb-2">Please fix the following errors:</div>
-                  <ul className="list-disc list-inside space-y-1">
-                    {validationErrors.map((error, index) => (
-                      <li key={index} className="text-sm">{error}</li>
-                    ))}
-                  </ul>
-                </AlertDescription>
-              </Alert>
-            )}
+      <form onSubmit={handleSubmit}>
+        <CardContent className="space-y-6">
+          {/* Authentication warnings */}
+          {!identity && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                You must be logged in with Internet Identity to add or edit products.
+              </AlertDescription>
+            </Alert>
+          )}
 
+          {identity && !isAdminAuthenticated && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                You must authenticate as admin using the Admin Login button.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* Validation errors */}
+          {validationErrors.length > 0 && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                <ul className="list-disc list-inside space-y-1">
+                  {validationErrors.map((error, index) => (
+                    <li key={index}>{error}</li>
+                  ))}
+                </ul>
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* Debug info for admin */}
+          {identity && isAdminAuthenticated && (
+            <Alert>
+              <AlertDescription className="text-xs font-mono">
+                <div>✓ Authenticated as: {identity.getPrincipal().toString().substring(0, 20)}...</div>
+                <div>✓ Admin status: Verified</div>
+                <div className="mt-2 text-muted-foreground">
+                  Check browser console (F12) for detailed error logs if submission fails.
+                </div>
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* Basic Information */}
+          <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">Product Name *</Label>
               <Input
@@ -298,7 +352,7 @@ export default function ProductForm({ product, onClose }: ProductFormProps) {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Enter product name"
-                required
+                disabled={isPending}
               />
             </div>
 
@@ -310,12 +364,12 @@ export default function ProductForm({ product, onClose }: ProductFormProps) {
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Enter product description"
                 rows={4}
-                required
+                disabled={isPending}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="price">Base Price ($) *</Label>
+              <Label htmlFor="price">Base Price (USD) *</Label>
               <Input
                 id="price"
                 type="number"
@@ -324,33 +378,33 @@ export default function ProductForm({ product, onClose }: ProductFormProps) {
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
                 placeholder="0.00"
-                required
+                disabled={isPending}
               />
-              <p className="text-xs text-muted-foreground">
-                {hasVariants ? 'This is the base price. Individual variant prices will be used for checkout.' : 'This is the price customers will pay.'}
-              </p>
             </div>
 
+            {/* Variants Toggle */}
             <div className="flex items-center space-x-2">
               <Checkbox
                 id="hasVariants"
                 checked={hasVariants}
-                onCheckedChange={(checked) => setHasVariants(checked === true)}
+                onCheckedChange={(checked) => setHasVariants(checked as boolean)}
+                disabled={isPending}
               />
               <Label htmlFor="hasVariants" className="cursor-pointer">
-                Enable Variants (sizes and colors)
+                This product has variants (size, color, etc.)
               </Label>
             </div>
 
+            {/* Conditional: Variants or Simple Inventory */}
             {hasVariants ? (
               <VariantManager
                 variants={variants}
                 onChange={setVariants}
-                productId={product?.id || 'new'}
+                productId={product?.id || 'new-product'}
               />
             ) : (
               <div className="space-y-2">
-                <Label htmlFor="inventory">Inventory *</Label>
+                <Label htmlFor="inventory">Inventory Quantity *</Label>
                 <Input
                   id="inventory"
                   type="number"
@@ -358,13 +412,16 @@ export default function ProductForm({ product, onClose }: ProductFormProps) {
                   value={inventory}
                   onChange={(e) => setInventory(e.target.value)}
                   placeholder="0"
-                  required
+                  disabled={isPending}
                 />
               </div>
             )}
 
+            {/* Image Upload */}
             <div className="space-y-2">
-              <Label htmlFor="images">Product Images {!isEditing && '*'}</Label>
+              <Label htmlFor="images">
+                Product Images {!isEditing && '*'}
+              </Label>
               <div className="flex items-center gap-2">
                 <Input
                   id="images"
@@ -372,6 +429,7 @@ export default function ProductForm({ product, onClose }: ProductFormProps) {
                   accept="image/*"
                   multiple
                   onChange={handleImageChange}
+                  disabled={isPending}
                   className="flex-1"
                 />
                 {imageFiles.length > 0 && (
@@ -380,6 +438,7 @@ export default function ProductForm({ product, onClose }: ProductFormProps) {
                     variant="ghost"
                     size="icon"
                     onClick={() => setImageFiles([])}
+                    disabled={isPending}
                   >
                     <X className="h-4 w-4" />
                   </Button>
@@ -390,41 +449,38 @@ export default function ProductForm({ product, onClose }: ProductFormProps) {
                   {imageFiles.length} file(s) selected
                 </p>
               )}
-              {product?.images && imageFiles.length === 0 && (
+              {isEditing && product?.images && imageFiles.length === 0 && (
                 <p className="text-sm text-muted-foreground">
                   Current: {product.images.length} image(s)
                 </p>
               )}
             </div>
 
+            {/* Upload Progress */}
             {uploadProgress > 0 && uploadProgress < 100 && (
               <div className="space-y-2">
                 <Label>Upload Progress</Label>
                 <Progress value={uploadProgress} />
               </div>
             )}
-          </CardContent>
+          </div>
+        </CardContent>
 
-          <CardFooter className="flex justify-end gap-4">
-            <Button type="button" variant="outline" onClick={onClose} disabled={isPending}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isSubmitDisabled}>
-              {isPending ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {isEditing ? 'Updating...' : 'Adding...'}
-                </>
-              ) : (
-                <>
-                  <Upload className="mr-2 h-4 w-4" />
-                  {isEditing ? 'Update Product' : 'Add Product'}
-                </>
-              )}
-            </Button>
-          </CardFooter>
-        </form>
-      </Card>
-    </div>
+        <CardFooter className="flex justify-end gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            disabled={isPending}
+          >
+            Cancel
+          </Button>
+          <Button type="submit" disabled={isSubmitDisabled}>
+            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isEditing ? 'Update Product' : 'Add Product'}
+          </Button>
+        </CardFooter>
+      </form>
+    </Card>
   );
 }

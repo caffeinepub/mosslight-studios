@@ -2,28 +2,8 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-verify-that-the-useproducts-hook-addproduct-mutation-correctly-passes-admin-authentication-credentials-or-session-tokens-to-the-backend-actor-when-invoking-the-addproduct-method",
-      "featureTitle": "Verify that the useProducts hook addProduct mutation correctly passes admin authentication credentials or session tokens to the backend actor when invoking the addProduct method",
-      "files": [
-        "frontend/src/hooks/useProducts.ts"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-89"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-ensure-the-adminauthprovider-context-state-is-accessible-to-the-useproducts-hook-and-productform-component-so-that-admin-authentication-status-can-be-verified-before-attempting-product-operations",
-      "featureTitle": "Ensure the AdminAuthProvider context state is accessible to the useProducts hook and ProductForm component so that admin authentication status can be verified before attempting product operations",
+      "featureId": "feature-update-the-useproducts-hook-addproduct-mutation-in-the-frontend-to-log-detailed-error-information-including-the-full-error-response-from-the-backend-when-product-creation-fails",
+      "featureTitle": "Update the useProducts hook addProduct mutation in the frontend to log detailed error information including the full error response from the backend when product creation fails",
       "files": [
         "frontend/src/components/ProductForm.tsx",
         "frontend/src/hooks/useProducts.ts"
@@ -38,28 +18,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-90"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-detailed-error-logging-to-both-frontend-useproducts-hook-and-backend-addproduct-method-to-capture-the-exact-point-of-failure-when-permission-errors-occur-during-product-creation",
-      "featureTitle": "Add detailed error logging to both frontend (useProducts hook) and backend (addProduct method) to capture the exact point of failure when permission errors occur during product creation",
-      "files": [
-        "frontend/src/components/ProductForm.tsx",
-        "frontend/src/hooks/useProducts.ts"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-91"
+        "REQ-96"
       ],
       "confidence": "high"
     }
