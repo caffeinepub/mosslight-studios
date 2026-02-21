@@ -7,10 +7,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ArrowLeft, Loader2, X, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Loader2, X, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useAddProduct, useUpdateProduct } from '../hooks/useProducts';
 import { useAdminAuth } from '../hooks/useAdminAuth';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
+import { useActor } from '../hooks/useActor';
 import { ExternalBlob } from '../backend';
 import { toast } from 'sonner';
 import type { Product, ProductVariant } from '../backend';
@@ -36,8 +37,10 @@ export default function ProductForm({ product, onClose }: ProductFormProps) {
   const updateProduct = useUpdateProduct();
   const { isAdminAuthenticated } = useAdminAuth();
   const { identity } = useInternetIdentity();
+  const { actor } = useActor();
 
   const isEditing = !!product;
+  const productId = product?.id || 'new-product';
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -158,11 +161,13 @@ export default function ProductForm({ product, onClose }: ProductFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    console.log('=== FORM SUBMISSION STARTED ===');
-    console.log('Authentication state:', {
-      hasIdentity: !!identity,
-      identityPrincipal: identity?.getPrincipal().toString(),
+    console.log('=== PRODUCT FORM SUBMISSION STARTED ===');
+    console.log('Frontend Authentication State:', {
+      hasInternetIdentity: !!identity,
+      identityPrincipal: identity?.getPrincipal().toString() || 'none',
+      isAnonymous: identity?.getPrincipal().isAnonymous() || 'N/A',
       isAdminAuthenticated,
+      hasActor: !!actor,
     });
 
     // Clear previous validation errors
@@ -171,29 +176,44 @@ export default function ProductForm({ product, onClose }: ProductFormProps) {
     // Check Internet Identity authentication first
     if (!identity) {
       const error = 'You must be logged in with Internet Identity to add or edit products.';
-      console.error('Authentication check failed:', error);
+      console.error('❌ Authentication check failed:', error);
       setValidationErrors([error]);
       toast.error(error);
       return;
     }
+
+    console.log('✓ Internet Identity check passed');
 
     // Check admin authentication
     if (!isAdminAuthenticated) {
       const error = 'You must be authenticated as admin. Please use the Admin Login button with the passcode.';
-      console.error('Admin authentication check failed:', error);
+      console.error('❌ Admin authentication check failed:', error);
       setValidationErrors([error]);
       toast.error(error);
       return;
     }
 
+    console.log('✓ Admin authentication check passed');
+
+    // Check actor availability
+    if (!actor) {
+      const error = 'Backend actor not available. Please refresh the page and try again.';
+      console.error('❌ Actor availability check failed');
+      setValidationErrors([error]);
+      toast.error(error);
+      return;
+    }
+
+    console.log('✓ Actor availability check passed');
+
     // Validate form
     if (!validateForm()) {
-      console.error('Form validation failed');
+      console.error('❌ Form validation failed');
       toast.error('Please fix the validation errors before submitting');
       return;
     }
 
-    console.log('All pre-submission checks passed');
+    console.log('✓ Form validation passed');
 
     const priceInCents = Math.round(parseFloat(price) * 100);
     const inventoryCount = hasVariants ? 0 : parseInt(inventory);
@@ -220,7 +240,7 @@ export default function ProductForm({ product, onClose }: ProductFormProps) {
           return blob;
         });
         images = await Promise.all(imagePromises);
-        console.log('All images processed successfully');
+        console.log('✓ All images processed successfully');
       } else if (product?.images) {
         console.log('Using existing product images:', product.images.length);
         images = product.images;
@@ -243,7 +263,7 @@ export default function ProductForm({ product, onClose }: ProductFormProps) {
       });
 
       if (isEditing) {
-        console.log('Calling updateProduct mutation...');
+        console.log('→ Calling updateProduct mutation...');
         await updateProduct.mutateAsync({
           productId: product.id,
           productData,
@@ -251,15 +271,15 @@ export default function ProductForm({ product, onClose }: ProductFormProps) {
         });
         toast.success('Product updated successfully');
       } else {
-        console.log('Calling addProduct mutation...');
+        console.log('→ Calling addProduct mutation...');
         await addProduct.mutateAsync({ productData, images });
         toast.success('Product added successfully');
       }
 
-      console.log('=== FORM SUBMISSION SUCCESSFUL ===');
+      console.log('=== ✓ FORM SUBMISSION SUCCESSFUL ===');
       onClose();
     } catch (error: any) {
-      console.error('=== FORM SUBMISSION ERROR ===');
+      console.error('=== ❌ FORM SUBMISSION ERROR ===');
       console.error('Caught error:', error);
       console.error('Error type:', typeof error);
       console.error('Error constructor:', error?.constructor?.name);
@@ -297,6 +317,29 @@ export default function ProductForm({ product, onClose }: ProductFormProps) {
 
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-6">
+          {/* Authentication status display */}
+          <div className="space-y-2">
+            <Alert variant={identity && isAdminAuthenticated && actor ? "default" : "destructive"}>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    {identity ? <CheckCircle2 className="h-4 w-4 text-green-600" /> : <X className="h-4 w-4 text-red-600" />}
+                    <span>Internet Identity: {identity ? `Logged in (${identity.getPrincipal().toString().slice(0, 10)}...)` : 'Not logged in'}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {isAdminAuthenticated ? <CheckCircle2 className="h-4 w-4 text-green-600" /> : <X className="h-4 w-4 text-red-600" />}
+                    <span>Admin Authentication: {isAdminAuthenticated ? 'Authenticated' : 'Not authenticated'}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {actor ? <CheckCircle2 className="h-4 w-4 text-green-600" /> : <X className="h-4 w-4 text-red-600" />}
+                    <span>Backend Actor: {actor ? 'Connected' : 'Not available'}</span>
+                  </div>
+                </div>
+              </AlertDescription>
+            </Alert>
+          </div>
+
           {/* Authentication warnings */}
           {!identity && (
             <Alert variant="destructive">
@@ -311,7 +354,7 @@ export default function ProductForm({ product, onClose }: ProductFormProps) {
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                You must authenticate as admin using the Admin Login button.
+                You must authenticate as admin using the Admin Login button with the passcode.
               </AlertDescription>
             </Alert>
           )}
@@ -330,154 +373,148 @@ export default function ProductForm({ product, onClose }: ProductFormProps) {
             </Alert>
           )}
 
-          {/* Debug info for admin */}
-          {identity && isAdminAuthenticated && (
-            <Alert>
-              <AlertDescription className="text-xs font-mono">
-                <div>✓ Authenticated as: {identity.getPrincipal().toString().substring(0, 20)}...</div>
-                <div>✓ Admin status: Verified</div>
-                <div className="mt-2 text-muted-foreground">
-                  Check browser console (F12) for detailed error logs if submission fails.
-                </div>
+          {/* Incomplete variants warning */}
+          {hasIncompleteVariants && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Some variants are missing required fields. Please complete all variant information before submitting.
               </AlertDescription>
             </Alert>
           )}
 
-          {/* Basic Information */}
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Product Name *</Label>
-              <Input
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Enter product name"
-                disabled={isPending}
-              />
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="name">Product Name</Label>
+            <Input
+              id="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Enter product name"
+              disabled={isPending}
+            />
+          </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="description">Description *</Label>
-              <Textarea
-                id="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Enter product description"
-                rows={4}
-                disabled={isPending}
-              />
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="description">Description</Label>
+            <Textarea
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Enter product description"
+              rows={4}
+              disabled={isPending}
+            />
+          </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="price">Base Price (USD) *</Label>
-              <Input
-                id="price"
-                type="number"
-                step="0.01"
-                min="0"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                placeholder="0.00"
-                disabled={isPending}
-              />
-            </div>
-
-            {/* Variants Toggle */}
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="hasVariants"
-                checked={hasVariants}
-                onCheckedChange={(checked) => setHasVariants(checked as boolean)}
-                disabled={isPending}
-              />
-              <Label htmlFor="hasVariants" className="cursor-pointer">
-                This product has variants (size, color, etc.)
-              </Label>
-            </div>
-
-            {/* Conditional: Variants or Simple Inventory */}
-            {hasVariants ? (
-              <VariantManager
-                variants={variants}
-                onChange={setVariants}
-                productId={product?.id || 'new-product'}
-              />
-            ) : (
-              <div className="space-y-2">
-                <Label htmlFor="inventory">Inventory Quantity *</Label>
-                <Input
-                  id="inventory"
-                  type="number"
-                  min="0"
-                  value={inventory}
-                  onChange={(e) => setInventory(e.target.value)}
-                  placeholder="0"
-                  disabled={isPending}
-                />
-              </div>
-            )}
-
-            {/* Image Upload */}
-            <div className="space-y-2">
-              <Label htmlFor="images">
-                Product Images {!isEditing && '*'}
-              </Label>
-              <div className="flex items-center gap-2">
-                <Input
-                  id="images"
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={handleImageChange}
-                  disabled={isPending}
-                  className="flex-1"
-                />
-                {imageFiles.length > 0 && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setImageFiles([])}
-                    disabled={isPending}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-              {imageFiles.length > 0 && (
-                <p className="text-sm text-muted-foreground">
-                  {imageFiles.length} file(s) selected
-                </p>
-              )}
-              {isEditing && product?.images && imageFiles.length === 0 && (
-                <p className="text-sm text-muted-foreground">
-                  Current: {product.images.length} image(s)
-                </p>
-              )}
-            </div>
-
-            {/* Upload Progress */}
-            {uploadProgress > 0 && uploadProgress < 100 && (
-              <div className="space-y-2">
-                <Label>Upload Progress</Label>
-                <Progress value={uploadProgress} />
-              </div>
+          <div className="space-y-2">
+            <Label htmlFor="price">Price ($)</Label>
+            <Input
+              id="price"
+              type="number"
+              step="0.01"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              placeholder="0.00"
+              disabled={isPending || hasVariants}
+            />
+            {hasVariants && (
+              <p className="text-sm text-muted-foreground">
+                Price will be determined by variant prices
+              </p>
             )}
           </div>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="hasVariants"
+              checked={hasVariants}
+              onCheckedChange={(checked) => setHasVariants(checked as boolean)}
+              disabled={isPending}
+            />
+            <Label htmlFor="hasVariants" className="cursor-pointer">
+              This product has variants (sizes/colors)
+            </Label>
+          </div>
+
+          {hasVariants ? (
+            <VariantManager
+              variants={variants}
+              onChange={setVariants}
+              productId={productId}
+            />
+          ) : (
+            <div className="space-y-2">
+              <Label htmlFor="inventory">Inventory</Label>
+              <Input
+                id="inventory"
+                type="number"
+                value={inventory}
+                onChange={(e) => setInventory(e.target.value)}
+                placeholder="0"
+                disabled={isPending}
+              />
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <Label htmlFor="images">Product Images</Label>
+            <Input
+              id="images"
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleImageChange}
+              disabled={isPending}
+            />
+            {imageFiles.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {imageFiles.map((file, index) => (
+                  <div key={index} className="relative">
+                    <img
+                      src={URL.createObjectURL(file)}
+                      alt={`Preview ${index + 1}`}
+                      className="w-20 h-20 object-cover rounded"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setImageFiles(imageFiles.filter((_, i) => i !== index))}
+                      className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1"
+                      disabled={isPending}
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            {isEditing && product?.images && imageFiles.length === 0 && (
+              <p className="text-sm text-muted-foreground">
+                Current images will be kept if no new images are uploaded
+              </p>
+            )}
+          </div>
+
+          {uploadProgress > 0 && uploadProgress < 100 && (
+            <div className="space-y-2">
+              <Label>Upload Progress</Label>
+              <Progress value={uploadProgress} />
+            </div>
+          )}
         </CardContent>
 
-        <CardFooter className="flex justify-end gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onClose}
-            disabled={isPending}
-          >
+        <CardFooter className="flex justify-end gap-4">
+          <Button type="button" variant="outline" onClick={onClose} disabled={isPending}>
             Cancel
           </Button>
           <Button type="submit" disabled={isSubmitDisabled}>
-            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {isEditing ? 'Update Product' : 'Add Product'}
+            {isPending ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {isEditing ? 'Updating...' : 'Adding...'}
+              </>
+            ) : (
+              <>{isEditing ? 'Update Product' : 'Add Product'}</>
+            )}
           </Button>
         </CardFooter>
       </form>

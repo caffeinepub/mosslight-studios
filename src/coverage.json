@@ -1,7 +1,7 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-21T00:32:18.912Z",
+  "generatedAt": "2026-02-21T01:14:40.349Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
@@ -11,22 +11,22 @@
     "implemented": 1,
     "items": [
       {
-        "id": "REQ-94",
-        "summary": "Update the backend addProduct method in main.mo to remove or bypass the permission check that is incorrectly rejecting authenticated admin users who are logged in through the AdminAuthProvider with the correct passcode (09131991)",
+        "id": "REQ-97",
+        "summary": "Update the backend addProduct method in main.mo to correctly validate admin authentication by verifying the caller's principal against the admin authorization state, allowing authenticated admin users logged in with passcode 09131991 to successfully create products",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
       },
       {
-        "id": "REQ-95",
-        "summary": "Add detailed error logging to the backend addProduct method that captures and logs the exact authentication state, caller principal, and permission validation results when product creation attempts fail",
+        "id": "REQ-98",
+        "summary": "Add comprehensive error logging to the backend addProduct method that logs the caller principal, admin authorization check result, and specific validation failure points to help diagnose authentication issues",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
       },
       {
-        "id": "REQ-96",
-        "summary": "Update the useProducts hook addProduct mutation in the frontend to log detailed error information including the full error response from the backend when product creation fails",
+        "id": "REQ-99",
+        "summary": "Verify that the frontend useProducts hook addProduct mutation correctly passes the authenticated caller's identity to the backend actor when invoking the addProduct method",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/hooks/useProducts.ts",
@@ -40,10 +40,13 @@
     ]
   },
   "changedFiles": [
+    "backend/main.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
     "frontend/src/components/ProductForm.tsx",
     "frontend/src/hooks/useProducts.ts",
     "project_state.json",

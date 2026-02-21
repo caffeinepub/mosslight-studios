@@ -221,7 +221,7 @@ export interface backendInterface {
     _caffeineStorageUpdateGatewayPrincipals(): Promise<void>;
     _initializeAccessControlWithSecret(userSecret: string): Promise<void>;
     addItemToCart(item: OrderItem): Promise<void>;
-    addProduct(productData: CreateProductData, images: Array<ExternalBlob>): Promise<void>;
+    addProduct(product: CreateProductData, images: Array<ExternalBlob>): Promise<void>;
     addReply(postId: string, content: string): Promise<void>;
     addToCart(items: Array<OrderItem>): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;

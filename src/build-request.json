@@ -1,75 +1,80 @@
 {
   "kind": "build_request",
-  "title": "Fix admin authentication validation for product creation",
+  "title": "Fix admin authentication issue preventing product creation",
+  "projectName": "Mosslight Studios",
   "priority": "high",
   "requirements": [
     {
-      "id": "REQ-94",
-      "text": "Update the backend addProduct method in main.mo to remove or bypass the permission check that is incorrectly rejecting authenticated admin users who are logged in through the AdminAuthProvider with the correct passcode (09131991)",
+      "id": "REQ-97",
+      "text": "Update the backend addProduct method in main.mo to correctly validate admin authentication by verifying the caller's principal against the admin authorization state, allowing authenticated admin users logged in with passcode 09131991 to successfully create products",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-recent"
+          "msg-final"
         ],
         "quotes": [
-          "still saying failed to add product",
-          "single item with one image and all the required feilds filled out"
+          "fix it",
+          "failed to add product",
+          "permission validation failure in backend"
         ]
       },
       "acceptanceCriteria": [
-        "Authenticated admin users can successfully add products with all required fields filled out",
-        "The addProduct method accepts product creation requests from users authenticated via AdminAuthProvider",
-        "No permission or authorization errors are thrown when admin users attempt to add products"
+        "Admin users logged in through AdminAuthProvider with correct passcode can successfully add products",
+        "The addProduct method validates admin status by checking caller principal against stored admin authorization",
+        "Product creation succeeds for both products with variants and products without variants",
+        "Error messages clearly indicate authentication issues if admin is not properly authenticated"
       ]
     },
     {
-      "id": "REQ-95",
-      "text": "Add detailed error logging to the backend addProduct method that captures and logs the exact authentication state, caller principal, and permission validation results when product creation attempts fail",
+      "id": "REQ-98",
+      "text": "Add comprehensive error logging to the backend addProduct method that logs the caller principal, admin authorization check result, and specific validation failure points to help diagnose authentication issues",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-recent"
+          "msg-final"
         ],
         "quotes": [
-          "failed to add product"
+          "Add detailed error logging to both frontend (useProducts hook) and backend (addProduct method)"
         ]
       },
       "acceptanceCriteria": [
-        "Backend logs show caller principal when addProduct is invoked",
-        "Backend logs show admin authentication check results",
-        "Backend logs indicate which specific permission validation failed if applicable"
+        "Backend logs the caller principal when addProduct is invoked",
+        "Backend logs whether the caller is authorized as admin",
+        "Backend logs specific validation failure reasons (authentication, permissions, data validation)",
+        "Error logs include timestamps and context for debugging"
       ]
     },
     {
-      "id": "REQ-96",
-      "text": "Update the useProducts hook addProduct mutation in the frontend to log detailed error information including the full error response from the backend when product creation fails",
+      "id": "REQ-99",
+      "text": "Verify that the frontend useProducts hook addProduct mutation correctly passes the authenticated caller's identity to the backend actor when invoking the addProduct method",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-recent"
+          "msg-final"
         ],
         "quotes": [
-          "still saying failed to add product"
+          "Verify that the useProducts hook addProduct mutation correctly passes admin authentication credentials to the backend actor"
         ]
       },
       "acceptanceCriteria": [
-        "Console logs show the complete error object returned from backend when addProduct fails",
-        "Error messages from backend are displayed to the user instead of generic 'failed to add product' message",
-        "Users can see specific validation failures or permission errors in the UI"
+        "The useProducts hook uses the authenticated actor instance from useActor hook",
+        "The addProduct mutation invokes backend.addProduct with the caller's authenticated identity",
+        "Frontend logs confirm the authenticated actor is being used for product creation",
+        "Identity delegation is valid and not expired when making backend calls"
       ]
     }
   ],
   "constraints": [
-    "Maintain single-actor backend architecture in main.mo",
-    "Preserve existing admin authentication flow via AdminAuthProvider with passcode 09131991",
-    "Do not modify Internet Identity authentication system",
-    "Keep all existing product data models and variant support intact"
+    "Maintain the existing admin passcode authentication system (09131991)",
+    "Do not modify the AdminAuthProvider or Internet Identity integration",
+    "Keep all Motoko logic in the main actor file (backend/main.mo)",
+    "Preserve the existing product data model and variant structure"
   ],
   "nonGoals": [
-    "Changing the admin passcode",
-    "Modifying the AdminAuthProvider context implementation",
-    "Altering the Internet Identity login flow",
-    "Redesigning the ProductForm UI component"
+    "Changing the admin authentication passcode",
+    "Modifying the frontend ProductForm UI or validation logic",
+    "Altering the product variant data structure",
+    "Adding new authentication methods beyond Internet Identity and passcode"
   ],
   "imageRequirements": {
     "required": [],

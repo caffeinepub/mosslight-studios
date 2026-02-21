@@ -1,11 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Fix admin authentication validation to allow authenticated admin users to successfully create products.
+**Goal:** Fix the admin authentication issue preventing authenticated admin users from creating products in the Mosslight Studios application.
 
 **Planned changes:**
-- Remove or bypass the permission check in the backend addProduct method that is incorrectly rejecting authenticated admin users
-- Add detailed error logging to the backend addProduct method to capture authentication state, caller principal, and permission validation results
-- Update the frontend useProducts hook to log complete error responses and display specific error messages to users instead of generic failure messages
+- Update backend addProduct method to correctly validate admin authentication by verifying caller principal against admin authorization state
+- Add comprehensive error logging to backend addProduct method including caller principal, authorization check results, and validation failure points
+- Verify frontend useProducts hook passes authenticated caller identity correctly to backend actor
 
-**User-visible outcome:** Admin users authenticated with the correct passcode can successfully add products with all required fields, and see specific error messages if creation fails.
+**User-visible outcome:** Admin users logged in with passcode 09131991 can successfully create products (both with and without variants) through the admin interface, with clear error messages if authentication fails.

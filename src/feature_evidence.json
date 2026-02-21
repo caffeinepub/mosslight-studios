@@ -2,8 +2,8 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-update-the-useproducts-hook-addproduct-mutation-in-the-frontend-to-log-detailed-error-information-including-the-full-error-response-from-the-backend-when-product-creation-fails",
-      "featureTitle": "Update the useProducts hook addProduct mutation in the frontend to log detailed error information including the full error response from the backend when product creation fails",
+      "featureId": "feature-verify-that-the-frontend-useproducts-hook-addproduct-mutation-correctly-passes-the-authenticated-caller-s-identity-to-the-backend-actor-when-invoking-the-addproduct-method",
+      "featureTitle": "Verify that the frontend useProducts hook addProduct mutation correctly passes the authenticated caller's identity to the backend actor when invoking the addProduct method",
       "files": [
         "frontend/src/components/ProductForm.tsx",
         "frontend/src/hooks/useProducts.ts"
@@ -18,7 +18,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-96"
+        "REQ-99"
       ],
       "confidence": "high"
     }

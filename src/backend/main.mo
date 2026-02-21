@@ -222,14 +222,15 @@ actor {
     };
   };
 
-  public shared ({ caller }) func addProduct(productData : CreateProductData, images : [Storage.ExternalBlob]) : async () {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
+  public shared ({ caller }) func addProduct(product : CreateProductData, images : [Storage.ExternalBlob]) : async () {
+    // Check if caller is admin
+    if (not (AccessControl.isAdmin(accessControlState, caller))) {
       Runtime.trap("Unauthorized: Only admins can add products");
     };
 
-    validateVarientDataStructure(productData);
+    validateVarientDataStructure(product);
 
-    let variantsToCheck = switch (productData.variants) {
+    let variantsToCheck = switch (product.variants) {
       case (null) { [] };
       case (?variants) { variants };
     };
@@ -257,17 +258,17 @@ actor {
 
     productIdCounter += 1;
     let id = "product_" # productIdCounter.toText();
-    let product : Product = {
+    let productWithId = {
       id;
-      name = productData.name;
-      description = productData.description;
-      price = productData.price;
+      name = product.name;
+      description = product.description;
+      price = product.price;
       images;
-      inventory = productData.inventory;
-      variants = productData.variants;
-      hasVariants = productData.hasVariants;
+      inventory = product.inventory;
+      variants = product.variants;
+      hasVariants = product.hasVariants;
     };
-    products.add(id, product);
+    products.add(id, productWithId);
     sendLowInventoryNotifications(id);
   };
 

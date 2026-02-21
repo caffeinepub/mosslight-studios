@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 23,
+  "projectStateVersion": 25,
   "summary": "Ecommerce website for Mosslight Studios with admin backend, customer portal, and social media content gallery",
   "architectural_notes": [
     "Ecommerce platform with admin and customer-facing components",
@@ -515,6 +515,14 @@
         "REQ-96"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-verify-that-the-frontend-useproducts-hook-addproduct-mutation-correctly-passes-the-authenticated-caller-s-identity-to-the-backend-actor-when-invoking-the-addproduct-method",
+      "title": "Verify that the frontend useProducts hook addProduct mutation correctly passes the authenticated caller's identity to the backend actor when invoking the addProduct method",
+      "reqIds": [
+        "REQ-99"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -907,6 +915,22 @@
       "summary": "Add detailed error logging to the backend addProduct method that captures and logs the exact authentication state, caller principal, and permission validation results when product creation attempts fail",
       "reqIds": [
         "REQ-95"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-64",
+      "summary": "Update the backend addProduct method in main.mo to correctly validate admin authentication by verifying the caller's principal against the admin authorization state, allowing authenticated admin users logged in with passcode 09131991 to successfully create products",
+      "reqIds": [
+        "REQ-97"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-65",
+      "summary": "Add comprehensive error logging to the backend addProduct method that logs the caller principal, admin authorization check result, and specific validation failure points to help diagnose authentication issues",
+      "reqIds": [
+        "REQ-98"
       ],
       "status": "pending"
     }
