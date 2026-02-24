@@ -10,17 +10,10 @@ import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
+import Migration "migration";
 
-
-
+(with migration = Migration.run)
 actor {
-  let HARD_CODED_ADMIN_PRINCIPAL = Principal.fromText("axgif-6oipb-lnqzh-ddzf3-hsjsz-2nw65-g34cg-npb6b-jxnhn-jnnch-6qe");
-
-  let accessControlState = AccessControl.initState();
-  include MixinAuthorization(accessControlState);
-
-  include MixinStorage();
-
   public type ProductVariant = {
     id : Text;
     size : Text;
@@ -86,6 +79,15 @@ actor {
     email : Text;
     shippingAddress : Text;
   };
+
+  var adminPrincipal : ?Principal = null;
+
+  let HARD_CODED_ADMIN_PRINCIPAL = Principal.fromText("axgif-6oipb-lnqzh-ddzf3-hsjsz-2nw65-g34cg-npb6b-jxnhn-jnnch-6qe");
+
+  let accessControlState = AccessControl.initState();
+  include MixinAuthorization(accessControlState);
+
+  include MixinStorage();
 
   public type CreateProductData = {
     name : Text;
@@ -190,33 +192,49 @@ actor {
   let productReviews = Map.empty<Text, List.List<Review>>();
 
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
-    if (not (isHardCodedAdmin(caller) or AccessControl.hasPermission(accessControlState, caller, #user))) {
+    if (not isAdmin(caller) and not AccessControl.hasPermission(accessControlState, caller, #user)) {
       Runtime.trap("Unauthorized: Only users can view profiles");
     };
     userProfiles.get(caller);
   };
 
   public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
-    if (caller != user and not (isHardCodedAdmin(caller) or AccessControl.isAdmin(accessControlState, caller))) {
+    if (caller != user and not isAdmin(caller) and not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Can only view your own profile");
     };
     userProfiles.get(user);
   };
 
   public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
-    if (not (isHardCodedAdmin(caller) or AccessControl.hasPermission(accessControlState, caller, #user))) {
+    if (not isAdmin(caller) and not AccessControl.hasPermission(accessControlState, caller, #user)) {
       Runtime.trap("Unauthorized: Only users can save profiles");
     };
     userProfiles.add(caller, profile);
   };
 
-  func isHardCodedAdmin(caller : Principal) : Bool {
-    caller == HARD_CODED_ADMIN_PRINCIPAL;
+  func isAdmin(caller : Principal) : Bool {
+    let currentAdmin = switch (adminPrincipal) {
+      case (?admin) { admin };
+      case (null) { HARD_CODED_ADMIN_PRINCIPAL };
+    };
+    caller == currentAdmin;
   };
 
   func requireAdmin(caller : Principal) {
-    if (not isHardCodedAdmin(caller) and not AccessControl.hasPermission(accessControlState, caller, #admin)) {
+    if (not isAdmin(caller) and not AccessControl.hasPermission(accessControlState, caller, #admin)) {
       Runtime.trap("Unauthorized: Admin access required");
+    };
+  };
+
+  public shared ({ caller }) func registerOrLogin() : async () {
+    if (caller.isAnonymous()) {
+      Runtime.trap("Anonymous principals cannot register as admin");
+    };
+    switch (adminPrincipal) {
+      case (null) {
+        adminPrincipal := ?caller;
+      };
+      case (?_admin) {};
     };
   };
 
@@ -323,7 +341,7 @@ actor {
   };
 
   public shared ({ caller }) func sendMessage(content : Text, recipient : ?Customer) : async () {
-    if (not (isHardCodedAdmin(caller) or AccessControl.hasPermission(accessControlState, caller, #user))) {
+    if (not isAdmin(caller) and not AccessControl.hasPermission(accessControlState, caller, #user)) {
       Runtime.trap("Unauthorized: Only users can send messages");
     };
 
@@ -358,7 +376,7 @@ actor {
   };
 
   public shared ({ caller }) func createDiscussionPost(question : Text) : async Text {
-    if (not (isHardCodedAdmin(caller) or AccessControl.hasPermission(accessControlState, caller, #user))) {
+    if (not isAdmin(caller) and not AccessControl.hasPermission(accessControlState, caller, #user)) {
       Runtime.trap("Unauthorized: Only users can create discussion posts");
     };
 
@@ -379,7 +397,7 @@ actor {
   };
 
   public shared ({ caller }) func addReply(postId : Text, content : Text) : async () {
-    if (not (isHardCodedAdmin(caller) or AccessControl.hasPermission(accessControlState, caller, #user))) {
+    if (not isAdmin(caller) and not AccessControl.hasPermission(accessControlState, caller, #user)) {
       Runtime.trap("Unauthorized: Only users can add replies");
     };
 
@@ -425,7 +443,7 @@ actor {
   };
 
   public query ({ caller }) func getMyOrders() : async [Order] {
-    if (not (isHardCodedAdmin(caller) or AccessControl.hasPermission(accessControlState, caller, #user))) {
+    if (not isAdmin(caller) and not AccessControl.hasPermission(accessControlState, caller, #user)) {
       Runtime.trap("Unauthorized: Only users can view orders");
     };
     orders.values().filter(func(order : Order) : Bool {
@@ -434,7 +452,7 @@ actor {
   };
 
   public query ({ caller }) func getMyOrder(orderId : Text) : async ?Order {
-    if (not (isHardCodedAdmin(caller) or AccessControl.hasPermission(accessControlState, caller, #user))) {
+    if (not isAdmin(caller) and not AccessControl.hasPermission(accessControlState, caller, #user)) {
       Runtime.trap("Unauthorized: Only users can view orders");
     };
 
@@ -456,7 +474,7 @@ actor {
   };
 
   public query ({ caller }) func getMyMessages() : async [Message] {
-    if (not (isHardCodedAdmin(caller) or AccessControl.hasPermission(accessControlState, caller, #user))) {
+    if (not isAdmin(caller) and not AccessControl.hasPermission(accessControlState, caller, #user)) {
       Runtime.trap("Unauthorized: Only users can view messages");
     };
     messages.values().filter(func(msg : Message) : Bool {
@@ -472,7 +490,7 @@ actor {
   };
 
   public shared ({ caller }) func addToCart(items : [OrderItem]) : async () {
-    if (not (isHardCodedAdmin(caller) or AccessControl.hasPermission(accessControlState, caller, #user))) {
+    if (not isAdmin(caller) and not AccessControl.hasPermission(accessControlState, caller, #user)) {
       Runtime.trap("Unauthorized: Only users can add to cart");
     };
 
@@ -522,7 +540,7 @@ actor {
   };
 
   public shared ({ caller }) func addItemToCart(item : OrderItem) : async () {
-    if (not (isHardCodedAdmin(caller) or AccessControl.hasPermission(accessControlState, caller, #user))) {
+    if (not isAdmin(caller) and not AccessControl.hasPermission(accessControlState, caller, #user)) {
       Runtime.trap("Unauthorized: Only users can add items to cart");
     };
 
@@ -569,7 +587,7 @@ actor {
   };
 
   public query ({ caller }) func viewCart() : async [OrderItem] {
-    if (not (isHardCodedAdmin(caller) or AccessControl.hasPermission(accessControlState, caller, #user))) {
+    if (not isAdmin(caller) and not AccessControl.hasPermission(accessControlState, caller, #user)) {
       Runtime.trap("Unauthorized: Only users can view cart");
     };
 
@@ -580,14 +598,14 @@ actor {
   };
 
   public shared ({ caller }) func clearCart() : async () {
-    if (not (isHardCodedAdmin(caller) or AccessControl.hasPermission(accessControlState, caller, #user))) {
+    if (not isAdmin(caller) and not AccessControl.hasPermission(accessControlState, caller, #user)) {
       Runtime.trap("Unauthorized: Only users can clear cart");
     };
     shoppingCarts.remove(caller);
   };
 
   public shared ({ caller }) func checkout() : async Text {
-    if (not (isHardCodedAdmin(caller) or AccessControl.hasPermission(accessControlState, caller, #user))) {
+    if (not isAdmin(caller) and not AccessControl.hasPermission(accessControlState, caller, #user)) {
       Runtime.trap("Unauthorized: Only users can checkout");
     };
 
@@ -717,7 +735,7 @@ actor {
   };
 
   public query ({ caller }) func getUnreadNotifications() : async [Notification] {
-    if (not (isHardCodedAdmin(caller) or AccessControl.hasPermission(accessControlState, caller, #user))) {
+    if (not isAdmin(caller) and not AccessControl.hasPermission(accessControlState, caller, #user)) {
       Runtime.trap("Unauthorized: Only users can view notifications");
     };
 
@@ -730,7 +748,7 @@ actor {
   };
 
   public shared ({ caller }) func markNotificationAsRead(notificationId : Text) : async () {
-    if (not (isHardCodedAdmin(caller) or AccessControl.hasPermission(accessControlState, caller, #user))) {
+    if (not isAdmin(caller) and not AccessControl.hasPermission(accessControlState, caller, #user)) {
       Runtime.trap("Unauthorized: Only users can mark notifications as read");
     };
 
@@ -792,7 +810,7 @@ actor {
   };
 
   public shared ({ caller }) func submitReview(productId : Text, rating : Nat, reviewText : Text, variantId : ?Text) : async () {
-    if (not (isHardCodedAdmin(caller) or AccessControl.hasPermission(accessControlState, caller, #user))) {
+    if (not isAdmin(caller) and not AccessControl.hasPermission(accessControlState, caller, #user)) {
       Runtime.trap("Unauthorized: Only users can submit reviews");
     };
 
@@ -930,3 +948,4 @@ actor {
     };
   };
 };
+

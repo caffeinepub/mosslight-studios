@@ -2,10 +2,12 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-add-a-visible-functional-sku-input-field-to-the-add-product-form-in-adminproductspage-the-sku-field-should-appear-in-the-productform-component-be-required-accept-alphanumeric-input-and-its-value-must-be-submitted-along-with-the-other-product-fields-when-the-form-is-saved",
-      "featureTitle": "Add a visible, functional SKU input field to the Add Product form in AdminProductsPage. The SKU field should appear in the ProductForm component, be required, accept alphanumeric input, and its value must be submitted along with the other product fields when the form is saved.",
+      "featureId": "feature-update-the-frontend-admin-authentication-flow-so-that-when-a-user-logs-in-via-internet-identity-and-no-admin-is-yet-registered-the-app-automatically-registers-that-user-as-admin-and-grants-admin-access-without-showing-a-permission-denied-error",
+      "featureTitle": "Update the frontend admin authentication flow so that when a user logs in via Internet Identity and no admin is yet registered, the app automatically registers that user as admin and grants admin access without showing a 'Permission Denied' error.",
       "files": [
-        "frontend/src/components/ProductForm.tsx"
+        "frontend/src/components/AdminGuard.tsx",
+        "frontend/src/components/Header.tsx",
+        "frontend/src/hooks/useAdminAuth.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -17,7 +19,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-1"
+        "REQ-2"
       ],
       "confidence": "high"
     }

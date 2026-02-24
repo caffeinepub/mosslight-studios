@@ -1,23 +1,31 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Add SKU field to Add Product page",
+  "title": "Auto-register first login user as admin",
   "requirements": [
     {
-      "id": "REQ-1",
-      "summary": "Add a visible, functional SKU input field to the Add Product form that accepts alphanumeric input, is required, and submits with other product fields",
+      "id": "REQ-2",
+      "summary": "Update the frontend admin authentication flow to automatically register the first Internet Identity user as admin without showing permission errors",
       "acceptanceCriteria": [
-        "A labeled 'SKU' text input field is visible in the Add Product form on the AdminProductsPage.",
-        "The SKU field accepts alphanumeric characters.",
-        "The SKU value is included in the product data submitted when the form is saved.",
-        "The SKU field shows a validation error if left empty on form submission.",
-        "The SKU field is pre-populated when editing an existing product that has a SKU value."
+        "On first login, no 'Permission Denied' error is shown.",
+        "The first logged-in user is seamlessly granted admin access.",
+        "If an admin is already registered and a different principal logs in, the permission denied message is still shown appropriately."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/ProductForm.tsx",
+          "path": "frontend/src/hooks/useAdminAuth.tsx",
           "operation": "modify",
-          "description": "Add a labeled SKU text input field to the ProductForm component between the name and description fields. The field should be required, accept alphanumeric characters, validate on submission to show an error if empty, and pre-populate when editing an existing product. The SKU value should be included in the form data passed to onSubmit alongside name, description, price, inventory, images, variants, categories, colors, and sizes."
+          "description": "Update the AdminAuthProvider to call the registerOrLogin backend method immediately after Internet Identity authentication completes. This ensures that if no admin is registered yet, the current principal is automatically registered as admin. The existing passcode-based auth flow remains unchanged. Use the authorization component's guidance to verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/AdminGuard.tsx",
+          "operation": "modify",
+          "description": "Update the AdminGuard component to check both the passcode-based authentication state and the backend admin role before showing the AccessDeniedScreen. When a user logs in via Internet Identity, query the backend to verify their admin status. If they are admin (either newly registered or previously registered), grant access without showing the permission error. Maintain the existing guard behavior for non-admin principals."
+        },
+        {
+          "path": "frontend/src/components/Header.tsx",
+          "operation": "modify",
+          "description": "Update the admin access flow in the Header component. After Internet Identity login, attempt to call registerOrLogin to ensure first-time users are registered as admin. Then verify admin status before showing the AdminLoginModal. If the user is already admin, skip the passcode modal and grant direct access to admin routes. This prevents the 'Permission Denied' message for the first logged-in user."
         }
       ]
     }

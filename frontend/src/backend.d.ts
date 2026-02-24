@@ -178,6 +178,7 @@ export interface backendInterface {
         __kind__: "productClick";
         productClick: string;
     }): Promise<void>;
+    registerOrLogin(): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     sendAdminBroadcastAlert(message: string): Promise<void>;
     sendMessage(content: string, recipient: Customer | null): Promise<void>;

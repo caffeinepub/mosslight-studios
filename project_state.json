@@ -1,21 +1,18 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "E-commerce or product management app with admin authentication and product management features. Currently working on adding SKU field to the add product page and fixing admin permission denied error.",
+  "summary": "App with Internet Identity login and admin functionality. Auto-registers the first user who logs in as admin principal.",
   "architectural_notes": [
-    "Uses Internet Identity for authentication with admin role checking",
-    "Backend has admin registration/permission logic that needs first-user auto-admin setup"
+    "First user to log in via Internet Identity is auto-registered as admin principal in the backend."
   ],
-  "known_issues": [
-    "Admin permission denied error: current Internet Identity principal not registered as admin"
-  ],
+  "known_issues": [],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-add-a-visible-functional-sku-input-field-to-the-add-product-form-in-adminproductspage-the-sku-field-should-appear-in-the-productform-component-be-required-accept-alphanumeric-input-and-its-value-must-be-submitted-along-with-the-other-product-fields-when-the-form-is-saved",
-      "title": "Add a visible, functional SKU input field to the Add Product form in AdminProductsPage. The SKU field should appear in the ProductForm component, be required, accept alphanumeric input, and its value must be submitted along with the other product fields when the form is saved.",
+      "id": "feature-update-the-frontend-admin-authentication-flow-so-that-when-a-user-logs-in-via-internet-identity-and-no-admin-is-yet-registered-the-app-automatically-registers-that-user-as-admin-and-grants-admin-access-without-showing-a-permission-denied-error",
+      "title": "Update the frontend admin authentication flow so that when a user logs in via Internet Identity and no admin is yet registered, the app automatically registers that user as admin and grants admin access without showing a 'Permission Denied' error.",
       "reqIds": [
-        "REQ-1"
+        "REQ-2"
       ],
       "version": 1
     }
@@ -23,19 +20,15 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Add SKU field to the add product page",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-2",
-      "summary": "Fix admin permission denied error - first logged-in user becomes admin",
-      "reqIds": [],
+      "summary": "Update the backend to auto-register the first Internet Identity principal that calls a registration or login endpoint as the admin principal. If an admin principal is already set, subsequent logins should not overwrite it.",
+      "reqIds": [
+        "REQ-1"
+      ],
       "status": "pending"
     }
   ],
   "gameProjectType": "none",
-  "projectName": "Mosslight Studios",
+  "projectName": "Auto-register first login user as admin",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

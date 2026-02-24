@@ -193,6 +193,7 @@ export interface _SERVICE {
     ],
     undefined
   >,
+  'registerOrLogin' : ActorMethod<[], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'sendAdminBroadcastAlert' : ActorMethod<[string], undefined>,
   'sendMessage' : ActorMethod<[string, [] | [Customer]], undefined>,

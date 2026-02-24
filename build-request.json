@@ -1,38 +1,53 @@
 {
   "kind": "build_request",
-  "title": "Add SKU field to Add Product page",
-  "projectName": "Mosslight Studios",
+  "title": "Auto-register first login user as admin",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Add a visible, functional SKU input field to the Add Product form in AdminProductsPage. The SKU field should appear in the ProductForm component, be required, accept alphanumeric input, and its value must be submitted along with the other product fields when the form is saved.",
-      "target": "frontend",
+      "text": "Update the backend to auto-register the first Internet Identity principal that calls a registration or login endpoint as the admin principal. If an admin principal is already set, subsequent logins should not overwrite it.",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-latest"
+          "msg-recent"
         ],
         "quotes": [
-          "lets build the sku feild in the add product page first"
+          "Auto-register the first user who logs in as admin on first login, your Internet Identity principal will automatically be stored as the admin principal"
         ]
       },
       "acceptanceCriteria": [
-        "A labeled 'SKU' text input field is visible in the Add Product form on the AdminProductsPage.",
-        "The SKU field accepts alphanumeric characters.",
-        "The SKU value is included in the product data submitted when the form is saved.",
-        "The SKU field shows a validation error if left empty on form submission.",
-        "The SKU field is pre-populated when editing an existing product that has a SKU value."
+        "If no admin principal is stored, the first authenticated caller's principal is saved as admin.",
+        "Subsequent logins do not overwrite the stored admin principal.",
+        "The existing admin authorization checks use the stored principal correctly."
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Update the frontend admin authentication flow so that when a user logs in via Internet Identity and no admin is yet registered, the app automatically registers that user as admin and grants admin access without showing a 'Permission Denied' error.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-recent"
+        ],
+        "quotes": [
+          "Permission Denied: Your Internet Identity principal is not registered as an admin. Please log out and log back in as admin."
+        ]
+      },
+      "acceptanceCriteria": [
+        "On first login, no 'Permission Denied' error is shown.",
+        "The first logged-in user is seamlessly granted admin access.",
+        "If an admin is already registered and a different principal logs in, the permission denied message is still shown appropriately."
       ]
     }
   ],
   "constraints": [
-    "Do not modify any files listed in frontend.immutablePaths.",
-    "Only add the SKU field to the frontend ProductForm — do not change backend schema or data model unless the field is already supported by the backend."
+    "Do not change any existing admin feature logic beyond the first-login auto-registration flow.",
+    "The immutable frontend paths (useInternetIdentity, useActor, main.tsx, components/ui) must not be modified."
   ],
   "nonGoals": [
-    "Fixing the admin permission denied error (separate task).",
-    "Adding SKU to the product listing or product detail pages.",
-    "Any backend schema migration related to SKU."
+    "Multi-admin support or admin role management.",
+    "Manual admin principal update UI.",
+    "Changing the passcode-based admin auth flow beyond what is needed for first-login registration."
   ],
   "imageRequirements": {
     "required": [],

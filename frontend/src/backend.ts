@@ -271,6 +271,7 @@ export interface backendInterface {
         __kind__: "productClick";
         productClick: string;
     }): Promise<void>;
+    registerOrLogin(): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     sendAdminBroadcastAlert(message: string): Promise<void>;
     sendMessage(content: string, recipient: Customer | null): Promise<void>;
@@ -790,6 +791,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.recordAnalyticsEvent(to_candid_variant_n58(this._uploadFile, this._downloadFile, arg0));
+            return result;
+        }
+    }
+    async registerOrLogin(): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.registerOrLogin();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.registerOrLogin();
             return result;
         }
     }

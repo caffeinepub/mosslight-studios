@@ -1,14 +1,36 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-24T22:53:23.740Z",
-  "summary": "The diff modifies ProductForm.tsx to add a SKU field with state initialization from existing product data (pre-population), a skuError state for validation, and the field value is tracked via useState. The implementation appears to cover most REQ-1 acceptance criteria based on visible code, though the diff is truncated so some details (validation on submit, inclusion in submitted data) cannot be fully confirmed. The evidence strongly suggests the implementation is largely complete.",
-  "missing_requirements": [],
-  "hallucinated_features": [],
-  "confidence": 0.72,
+  "generatedAt": "2026-02-24T23:29:40.208Z",
+  "summary": "The diff implements both REQ-1 (backend auto-registration of first admin principal) and REQ-2 (frontend seamless admin grant on first login). The backend adds a registerOrLogin endpoint and isCallerAdmin check with an adminPrincipal optional field, and the frontend useAdminAuth hook calls these endpoints to auto-register and verify admin status. Both requirements appear substantially addressed, though the backend implementation is truncated and some details cannot be fully verified.",
+  "missing_requirements": [
+    {
+      "id": "REQ-1",
+      "requirement": "The existing admin authorization checks use the stored principal correctly.",
+      "reason": "The backend main.mo is truncated, so it cannot be confirmed that the existing authorization checks on admin-only endpoints have been updated to use the new adminPrincipal optional field instead of the old HARD_CODED_ADMIN_PRINCIPAL. The migration.mo sets adminPrincipal = null and discards the hard-coded value, but whether the authorization mixin or inline checks were updated to use the stored principal is not visible in the truncated diff.",
+      "evidence": [
+        "backend/main.mo",
+        "backend/migration.mo"
+      ]
+    }
+  ],
+  "hallucinated_features": [
+    {
+      "description": "A HARD_CODED_ADMIN_PRINCIPAL constant is still defined in main.mo alongside the new adminPrincipal optional state variable.",
+      "reason": "The build request only asks for auto-registration of the first caller as admin. Keeping a hard-coded admin principal constant was not requested and may conflict with the new dynamic registration flow if it is still used in authorization checks.",
+      "evidence": [
+        "backend/main.mo"
+      ]
+    }
+  ],
+  "confidence": 0.65,
   "changed_files": [
+    "backend/main.mo",
+    "backend/migration.mo",
     "frontend-file-summaries.txt",
-    "frontend/src/components/ProductForm.tsx",
+    "frontend/src/components/AdminGuard.tsx",
+    "frontend/src/components/Header.tsx",
+    "frontend/src/hooks/useAdminAuth.tsx",
     "project_state.json"
   ]
 }

@@ -9,10 +9,7 @@ import { useAdminAuth } from '../hooks/useAdminAuth';
 import { useViewCart } from '../hooks/useCart';
 import AdminLoginModal from './AdminLoginModal';
 import LoginButton from './LoginButton';
-import PrincipalDisplay from './PrincipalDisplay';
 import { useQueryClient } from '@tanstack/react-query';
-
-const HARDCODED_ADMIN_PRINCIPAL = 'axgif-6oipb-lnqzh-ddzf3-hsjsz-2nw65-g34cg-npb6b-jxnhn-jnnch-6qe';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -27,22 +24,13 @@ export default function Header() {
   const isLoggingIn = loginStatus === 'logging-in';
   const cartItemCount = cartItems.reduce((sum, item) => sum + Number(item.quantity), 0);
 
-  // Check if the current user is the hardcoded admin (no passcode needed)
-  const isHardcodedAdmin = !!identity && identity.getPrincipal().toString() === HARDCODED_ADMIN_PRINCIPAL;
-
   const handleAdminLogout = () => {
-    // Don't allow logout for hardcoded admin via this button
-    if (!isHardcodedAdmin) {
-      logout();
-    }
+    logout();
     navigate({ to: '/' });
   };
 
   const handleAdminAccess = () => {
     if (isAdminAuthenticated) {
-      navigate({ to: '/admin-dashboard' });
-    } else if (isHardcodedAdmin) {
-      // Hardcoded admin: go directly to dashboard without passcode
       navigate({ to: '/admin-dashboard' });
     } else {
       setShowAdminModal(true);
@@ -69,9 +57,6 @@ export default function Header() {
   return (
     <>
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        {/* Principal display banner — only shown when logged in */}
-        {isAuthenticated && <PrincipalDisplay />}
-
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-8">
             <Link to="/" className="flex items-center gap-2">
@@ -138,18 +123,15 @@ export default function Header() {
                   <Shield className="h-3 w-3" />
                   Admin
                 </Badge>
-                {/* Only show logout button for passcode-based admins, not hardcoded admin */}
-                {!isHardcodedAdmin && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleAdminLogout}
-                    className="gap-2"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    Logout Admin
-                  </Button>
-                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleAdminLogout}
+                  className="gap-2"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Logout Admin
+                </Button>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -300,20 +282,18 @@ export default function Header() {
                       <Shield className="h-4 w-4" />
                       Admin Dashboard
                     </Link>
-                    {!isHardcodedAdmin && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          handleAdminLogout();
-                          setMobileMenuOpen(false);
-                        }}
-                        className="gap-2 justify-start w-full"
-                      >
-                        <LogOut className="h-4 w-4" />
-                        Logout Admin
-                      </Button>
-                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        handleAdminLogout();
+                        setMobileMenuOpen(false);
+                      }}
+                      className="gap-2 justify-start w-full"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      Logout Admin
+                    </Button>
                   </>
                 ) : (
                   <Button
