@@ -1,0 +1,41 @@
+{
+  "kind": "build_request",
+  "title": "Add temporary principal display to help owner find their Internet Identity principal",
+  "priority": "normal",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "text": "After the user logs in with Internet Identity, display their principal ID prominently on screen (e.g., in the header or a banner at the top of the page) so the owner can easily copy it. The display should show the full principal string in a copyable format (e.g., a text field or a copy-to-clipboard button). Label it clearly as 'Your Internet Identity Principal'.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-recent"
+        ],
+        "quotes": [
+          "yes please",
+          "I can update the app to display your principal on screen after you log in, so you can easily copy and paste it back to me"
+        ]
+      },
+      "acceptanceCriteria": [
+        "When logged in with Internet Identity, the user's principal ID is visible on screen",
+        "The principal is displayed as a readable string that can be selected and copied",
+        "A copy-to-clipboard button is available next to the principal string",
+        "The display is clearly labeled 'Your Internet Identity Principal'",
+        "The principal display only appears when the user is logged in (not shown to anonymous visitors)"
+      ]
+    }
+  ],
+  "constraints": [
+    "Do not modify any files listed in frontend.immutablePaths",
+    "Do not change the backend schema or admin authorization logic"
+  ],
+  "nonGoals": [
+    "Hardcoding the admin principal (this will be done after the owner shares their principal)",
+    "Any changes to the merchandise store, blog, polls, or gallery features",
+    "Stripe or Venmo payment changes"
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  }
+}

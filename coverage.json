@@ -1,0 +1,40 @@
+{
+  "kind": "coverage_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-24T18:42:40.031Z",
+  "sources": {
+    "buildRequest": true,
+    "implementationPlan": true
+  },
+  "requirements": {
+    "total": 1,
+    "implemented": 1,
+    "items": [
+      {
+        "id": "REQ-1",
+        "summary": "After the user logs in with Internet Identity, display their principal ID prominently on screen (e.g., in the header or a banner at the top of the page) so the owner can easily copy it. The display should show the full principal string in a copyable format (e.g., a text field or a copy-to-clipboard button). Label it clearly as 'Your Internet Identity Principal'.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/PrincipalDisplay.tsx",
+          "frontend/src/components/Header.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/PrincipalDisplay.tsx",
+          "frontend/src/components/Header.tsx"
+        ]
+      }
+    ]
+  },
+  "changedFiles": [
+    "build-request.json",
+    "feature_evidence.json",
+    "frontend-file-summaries.txt",
+    "frontend-implementation-plan.json",
+    "frontend/src/components/Header.tsx",
+    "frontend/src/components/PrincipalDisplay.tsx",
+    "project_state.json",
+    "scratch/component-selection.json",
+    "spec.md",
+    "spec_vs_diff_report.json"
+  ]
+}

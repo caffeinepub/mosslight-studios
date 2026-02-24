@@ -1,0 +1,26 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-after-the-user-logs-in-with-internet-identity-display-their-principal-id-prominently-on-screen-e-g-in-the-header-or-a-banner-at-the-top-of-the-page-so-the-owner-can-easily-copy-it-the-display-should-show-the-full-principal-string-in-a-copyable-format-e-g-a-text-field-or-a-copy-to-clipboard-button-label-it-clearly-as-your-internet-identity-principal",
+      "featureTitle": "After the user logs in with Internet Identity, display their principal ID prominently on screen (e.g., in the header or a banner at the top of the page) so the owner can easily copy it. The display should show the full principal string in a copyable format (e.g., a text field or a copy-to-clipboard button). Label it clearly as 'Your Internet Identity Principal'.",
+      "files": [
+        "frontend/src/components/Header.tsx",
+        "frontend/src/components/PrincipalDisplay.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-1"
+      ],
+      "confidence": "high"
+    }
+  ]
+}

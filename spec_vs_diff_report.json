@@ -1,0 +1,15 @@
+{
+  "kind": "spec_vs_diff_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-24T18:42:40.027Z",
+  "summary": "The diff fully implements REQ-1. A new PrincipalDisplay component is added that shows the user's Internet Identity principal in a labeled banner with a copy-to-clipboard button, and it is conditionally rendered in the Header only when the user is authenticated. All acceptance criteria are satisfied.",
+  "missing_requirements": [],
+  "hallucinated_features": [],
+  "confidence": 0.98,
+  "changed_files": [
+    "frontend-file-summaries.txt",
+    "frontend/src/components/Header.tsx",
+    "frontend/src/components/PrincipalDisplay.tsx",
+    "project_state.json"
+  ]
+}

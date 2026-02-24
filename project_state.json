@@ -1,0 +1,77 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 3,
+  "summary": "Personal art portfolio and merchandise store for a solo artist/admin. Features include photo/video portfolio, merchandise store with Stripe payments and Venmo option, blog, and polls. Admin is hardcoded to the owner's Internet Identity principal. Currently adding a temporary 'show my principal' display to help the owner find their principal ID.",
+  "architectural_notes": [
+    "Single hardcoded admin via Internet Identity principal on ICP blockchain",
+    "Stripe integration for payments; Venmo shown as alternative at checkout"
+  ],
+  "known_issues": [
+    "Admin principal not yet hardcoded — owner's Internet Identity principal still unknown; temporary principal display added to resolve this"
+  ],
+  "isFixRequest": true,
+  "existing_features": [
+    {
+      "id": "feature-after-the-user-logs-in-with-internet-identity-display-their-principal-id-prominently-on-screen-e-g-in-the-header-or-a-banner-at-the-top-of-the-page-so-the-owner-can-easily-copy-it-the-display-should-show-the-full-principal-string-in-a-copyable-format-e-g-a-text-field-or-a-copy-to-clipboard-button-label-it-clearly-as-your-internet-identity-principal",
+      "title": "After the user logs in with Internet Identity, display their principal ID prominently on screen (e.g., in the header or a banner at the top of the page) so the owner can easily copy it. The display should show the full principal string in a copyable format (e.g., a text field or a copy-to-clipboard button). Label it clearly as 'Your Internet Identity Principal'.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Portfolio section for showcasing artwork (photos & videos)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Merchandise store with product listings, prices, and descriptions",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Stripe payment integration for direct on-site checkout",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Venmo payment option displayed at checkout as an alternative",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Blog section for posts and updates",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Polls section for audience engagement",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "Admin panel hardcoded to owner's Internet Identity principal",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-8",
+      "summary": "Temporary 'show my principal' display after login to help owner find their Internet Identity principal",
+      "reqIds": [],
+      "status": "pending"
+    }
+  ],
+  "gameProjectType": "none",
+  "projectName": "Art Portfolio & Merchandise Store",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

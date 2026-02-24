@@ -1,0 +1,30 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Add temporary principal display to help owner find their Internet Identity principal",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "summary": "Display the user's Internet Identity principal prominently after login with a copy-to-clipboard feature",
+      "acceptanceCriteria": [
+        "When logged in with Internet Identity, the user's principal ID is visible on screen",
+        "The principal is displayed as a readable string that can be selected and copied",
+        "A copy-to-clipboard button is available next to the principal string",
+        "The display is clearly labeled 'Your Internet Identity Principal'",
+        "The principal display only appears when the user is logged in (not shown to anonymous visitors)"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/PrincipalDisplay.tsx",
+          "operation": "create",
+          "description": "Create a new component that displays the user's Internet Identity principal in a prominent banner format. The component should: (1) use the useInternetIdentity hook to access the authenticated identity and extract the principal string, (2) render the principal in a clearly labeled format with the text 'Your Internet Identity Principal', (3) include a copy-to-clipboard button using shadcn/ui Button and an icon, (4) provide visual feedback (toast notification) when the principal is copied, (5) make the principal text selectable for manual copying, and (6) only render when identity is present (authenticated state). Use Tailwind CSS for styling with appropriate spacing and colors to make it visually prominent."
+        },
+        {
+          "path": "frontend/src/components/Header.tsx",
+          "operation": "modify",
+          "description": "Import and integrate the new PrincipalDisplay component into the Header component. Add the PrincipalDisplay component immediately after the site navigation links and before the cart/notification/login controls, so it appears prominently in the header when the user is logged in. Ensure the component is conditionally rendered based on authentication state using the useInternetIdentity hook's identity value."
+        }
+      ]
+    }
+  ]
+}
