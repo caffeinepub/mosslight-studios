@@ -2,11 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-after-the-user-logs-in-with-internet-identity-display-their-principal-id-prominently-on-screen-e-g-in-the-header-or-a-banner-at-the-top-of-the-page-so-the-owner-can-easily-copy-it-the-display-should-show-the-full-principal-string-in-a-copyable-format-e-g-a-text-field-or-a-copy-to-clipboard-button-label-it-clearly-as-your-internet-identity-principal",
-      "featureTitle": "After the user logs in with Internet Identity, display their principal ID prominently on screen (e.g., in the header or a banner at the top of the page) so the owner can easily copy it. The display should show the full principal string in a copyable format (e.g., a text field or a copy-to-clipboard button). Label it clearly as 'Your Internet Identity Principal'.",
+      "featureId": "feature-add-a-visible-functional-sku-input-field-to-the-add-product-form-in-adminproductspage-the-sku-field-should-appear-in-the-productform-component-be-required-accept-alphanumeric-input-and-its-value-must-be-submitted-along-with-the-other-product-fields-when-the-form-is-saved",
+      "featureTitle": "Add a visible, functional SKU input field to the Add Product form in AdminProductsPage. The SKU field should appear in the ProductForm component, be required, accept alphanumeric input, and its value must be submitted along with the other product fields when the form is saved.",
       "files": [
-        "frontend/src/components/Header.tsx",
-        "frontend/src/components/PrincipalDisplay.tsx"
+        "frontend/src/components/ProductForm.tsx"
       ],
       "components": [
         "authorization@4.0.0",

@@ -5,7 +5,6 @@ import Nat "mo:core/Nat";
 import Array "mo:core/Array";
 import List "mo:core/List";
 import Principal "mo:core/Principal";
-import Iter "mo:core/Iter";
 import Runtime "mo:core/Runtime";
 import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
@@ -15,10 +14,11 @@ import AccessControl "authorization/access-control";
 
 
 actor {
-  // Initialize the access control system
+  let HARD_CODED_ADMIN_PRINCIPAL = Principal.fromText("axgif-6oipb-lnqzh-ddzf3-hsjsz-2nw65-g34cg-npb6b-jxnhn-jnnch-6qe");
+
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
-  
+
   include MixinStorage();
 
   public type ProductVariant = {
@@ -39,6 +39,10 @@ actor {
     inventory : Nat;
     variants : ?[ProductVariant];
     hasVariants : Bool;
+    sku : Text;
+    categories : [Text];
+    colors : [Text];
+    sizes : [Text];
   };
 
   public type Customer = Principal;
@@ -90,6 +94,10 @@ actor {
     inventory : Nat;
     hasVariants : Bool;
     variants : ?[ProductVariant];
+    sku : Text;
+    categories : [Text];
+    colors : [Text];
+    sizes : [Text];
   };
 
   public type ExternalProduct = {
@@ -182,55 +190,38 @@ actor {
   let productReviews = Map.empty<Text, List.List<Review>>();
 
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+    if (not (isHardCodedAdmin(caller) or AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can view profiles");
     };
     userProfiles.get(caller);
   };
 
   public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
-    if (caller != user and not AccessControl.isAdmin(accessControlState, caller)) {
+    if (caller != user and not (isHardCodedAdmin(caller) or AccessControl.isAdmin(accessControlState, caller))) {
       Runtime.trap("Unauthorized: Can only view your own profile");
     };
     userProfiles.get(user);
   };
 
   public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+    if (not (isHardCodedAdmin(caller) or AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can save profiles");
     };
     userProfiles.add(caller, profile);
   };
 
-  func validateVarientDataStructure(product : CreateProductData) {
-    let variantData = product.variants;
-    switch (variantData) {
-      case (null) {
-        let sizeArray = [1.89, 2.11, 2.67, 3.09];
-        let _resizedArray = Array.tabulate(4, func(i) { sizeArray[i] });
-        Runtime.trap("It's required to provide data for each of the 4 available variants: 2X2, 3X3, 4X4, 6X6. Please try again.");
-      };
-      case (?variants) {
-        let sizeArray = [1.89, 2.11, 2.67, 3.09];
-        let _resizedArray = Array.tabulate(variants.size(), func(i) { sizeArray[i] });
+  func isHardCodedAdmin(caller : Principal) : Bool {
+    caller == HARD_CODED_ADMIN_PRINCIPAL;
+  };
 
-        let hasAllVariants = (
-          variants.any(func(v) { v.size == "2X2" }) and variants.any(func(v) { v.size == "3X3" }) and variants.any(func(v) { v.size == "4X4" }) and variants.any(func(v) { v.size == "6X6" })
-        );
-
-        if (not hasAllVariants) {
-          Runtime.trap("You must provide data for all 4 available variants: 2X2, 3X3, 4X4, 6X6.");
-        };
-      };
+  func requireAdmin(caller : Principal) {
+    if (not isHardCodedAdmin(caller) and not AccessControl.hasPermission(accessControlState, caller, #admin)) {
+      Runtime.trap("Unauthorized: Admin access required");
     };
   };
 
   public shared ({ caller }) func addProduct(product : CreateProductData, images : [Storage.ExternalBlob]) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can add products");
-    };
-
-    validateVarientDataStructure(product);
+    requireAdmin(caller);
 
     let variantsToCheck = switch (product.variants) {
       case (null) { [] };
@@ -269,16 +260,17 @@ actor {
       inventory = product.inventory;
       variants = product.variants;
       hasVariants = product.hasVariants;
+      sku = product.sku;
+      categories = product.categories;
+      colors = product.colors;
+      sizes = product.sizes;
     };
     products.add(id, productWithId);
     sendLowInventoryNotifications(id);
   };
 
   public shared ({ caller }) func updateProduct(productId : Text, productData : CreateProductData, images : [Storage.ExternalBlob]) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can update products");
-    };
-
+    requireAdmin(caller);
     switch (products.get(productId)) {
       case null {
         Runtime.trap("Product not found");
@@ -293,6 +285,10 @@ actor {
           inventory = productData.inventory;
           hasVariants = productData.hasVariants;
           variants = productData.variants;
+          sku = productData.sku;
+          categories = productData.categories;
+          colors = productData.colors;
+          sizes = productData.sizes;
         };
         products.add(productId, updated);
         sendLowInventoryNotifications(productId);
@@ -301,16 +297,12 @@ actor {
   };
 
   public shared ({ caller }) func deleteProduct(productId : Text) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can delete products");
-    };
+    requireAdmin(caller);
     products.remove(productId);
   };
 
   public shared ({ caller }) func updateOrderStatus(orderId : Text, status : OrderStatus) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can update order status");
-    };
+    requireAdmin(caller);
 
     switch (orders.get(orderId)) {
       case null {
@@ -331,7 +323,7 @@ actor {
   };
 
   public shared ({ caller }) func sendMessage(content : Text, recipient : ?Customer) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+    if (not (isHardCodedAdmin(caller) or AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can send messages");
     };
 
@@ -347,9 +339,7 @@ actor {
   };
 
   public shared ({ caller }) func sendAdminBroadcastAlert(message : Text) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can send broadcast alerts");
-    };
+    requireAdmin(caller);
 
     for ((principal, _) in userProfiles.entries()) {
       messageIdCounter += 1;
@@ -368,7 +358,7 @@ actor {
   };
 
   public shared ({ caller }) func createDiscussionPost(question : Text) : async Text {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+    if (not (isHardCodedAdmin(caller) or AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can create discussion posts");
     };
 
@@ -389,7 +379,7 @@ actor {
   };
 
   public shared ({ caller }) func addReply(postId : Text, content : Text) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+    if (not (isHardCodedAdmin(caller) or AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can add replies");
     };
 
@@ -430,14 +420,12 @@ actor {
   };
 
   public query ({ caller }) func getOrders() : async [Order] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can view all orders");
-    };
+    requireAdmin(caller);
     orders.values().toArray();
   };
 
   public query ({ caller }) func getMyOrders() : async [Order] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+    if (not (isHardCodedAdmin(caller) or AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can view orders");
     };
     orders.values().filter(func(order : Order) : Bool {
@@ -446,7 +434,7 @@ actor {
   };
 
   public query ({ caller }) func getMyOrder(orderId : Text) : async ?Order {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+    if (not (isHardCodedAdmin(caller) or AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can view orders");
     };
 
@@ -463,14 +451,12 @@ actor {
   };
 
   public query ({ caller }) func getMessages() : async [Message] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can view all messages");
-    };
+    requireAdmin(caller);
     messages.values().toArray();
   };
 
   public query ({ caller }) func getMyMessages() : async [Message] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+    if (not (isHardCodedAdmin(caller) or AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can view messages");
     };
     messages.values().filter(func(msg : Message) : Bool {
@@ -486,7 +472,7 @@ actor {
   };
 
   public shared ({ caller }) func addToCart(items : [OrderItem]) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+    if (not (isHardCodedAdmin(caller) or AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can add to cart");
     };
 
@@ -536,7 +522,7 @@ actor {
   };
 
   public shared ({ caller }) func addItemToCart(item : OrderItem) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+    if (not (isHardCodedAdmin(caller) or AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can add items to cart");
     };
 
@@ -583,7 +569,7 @@ actor {
   };
 
   public query ({ caller }) func viewCart() : async [OrderItem] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+    if (not (isHardCodedAdmin(caller) or AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can view cart");
     };
 
@@ -594,14 +580,14 @@ actor {
   };
 
   public shared ({ caller }) func clearCart() : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+    if (not (isHardCodedAdmin(caller) or AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can clear cart");
     };
     shoppingCarts.remove(caller);
   };
 
   public shared ({ caller }) func checkout() : async Text {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+    if (not (isHardCodedAdmin(caller) or AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can checkout");
     };
 
@@ -667,7 +653,7 @@ actor {
                     let updatedVariants = variants.map(
                       func(v) {
                         if (v.id == variantId) {
-                          { v with inventory = v.inventory - item.quantity };
+                          { v with inventory = if (v.inventory >= item.quantity) { v.inventory - item.quantity } else { v.inventory } };
                         } else {
                           v;
                         };
@@ -685,7 +671,7 @@ actor {
           } else {
             let updatedProduct = {
               product with
-              inventory = product.inventory - item.quantity;
+              inventory = if (product.inventory >= item.quantity) { product.inventory - item.quantity } else { product.inventory };
             };
             products.add(product.id, updatedProduct);
 
@@ -731,7 +717,7 @@ actor {
   };
 
   public query ({ caller }) func getUnreadNotifications() : async [Notification] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+    if (not (isHardCodedAdmin(caller) or AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can view notifications");
     };
 
@@ -744,7 +730,7 @@ actor {
   };
 
   public shared ({ caller }) func markNotificationAsRead(notificationId : Text) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+    if (not (isHardCodedAdmin(caller) or AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can mark notifications as read");
     };
 
@@ -806,7 +792,7 @@ actor {
   };
 
   public shared ({ caller }) func submitReview(productId : Text, rating : Nat, reviewText : Text, variantId : ?Text) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+    if (not (isHardCodedAdmin(caller) or AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can submit reviews");
     };
 
@@ -885,9 +871,7 @@ actor {
     orderCount : Nat;
     lowInventoryProducts : [Product];
   } {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can view analytics data");
-    };
+    requireAdmin(caller);
 
     let productClicks = Map.empty<Text, Nat>();
     for (event in analytics.values()) {

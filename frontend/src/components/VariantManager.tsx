@@ -32,15 +32,15 @@ export default function VariantManager({ variants, onChange, productId }: Varian
 
   const validateFields = () => {
     const errors: typeof fieldErrors = {};
-    
+
     if (!size.trim()) {
       errors.size = 'Size is required';
     }
-    
+
     if (!color.trim()) {
       errors.color = 'Color is required';
     }
-    
+
     if (!price) {
       errors.price = 'Price is required';
     } else {
@@ -49,7 +49,7 @@ export default function VariantManager({ variants, onChange, productId }: Varian
         errors.price = 'Price must be a positive number';
       }
     }
-    
+
     if (!inventory) {
       errors.inventory = 'Inventory is required';
     } else {
@@ -58,7 +58,7 @@ export default function VariantManager({ variants, onChange, productId }: Varian
         errors.inventory = 'Inventory must be 0 or greater';
       }
     }
-    
+
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -104,7 +104,7 @@ export default function VariantManager({ variants, onChange, productId }: Varian
   const handleSaveEdit = (variantId: string) => {
     const priceNum = parseFloat(editPrice);
     const inventoryNum = parseInt(editInventory);
-    
+
     if (isNaN(priceNum) || priceNum <= 0) {
       toast.error('Price must be a positive number');
       return;
@@ -118,10 +118,10 @@ export default function VariantManager({ variants, onChange, productId }: Varian
     onChange(
       variants.map(v =>
         v.id === variantId
-          ? { 
-              ...v, 
+          ? {
+              ...v,
               price: BigInt(Math.round(priceNum * 100)),
-              inventory: BigInt(inventoryNum) 
+              inventory: BigInt(inventoryNum),
             }
           : v
       )
@@ -138,9 +138,9 @@ export default function VariantManager({ variants, onChange, productId }: Varian
     setEditInventory('');
   };
 
-  // Check if all variants have complete data
-  const hasIncompleteVariants = variants.some(v => 
-    !v.size || !v.color || !v.price || v.inventory === undefined
+  // Only warn about incomplete data for variants that already exist (not about missing variants)
+  const hasIncompleteVariants = variants.some(
+    v => !v.size || !v.color || !v.price || v.inventory === undefined
   );
 
   return (
@@ -234,7 +234,7 @@ export default function VariantManager({ variants, onChange, productId }: Varian
           </Button>
         </div>
 
-        {/* Warning for incomplete variants */}
+        {/* Warning only for variants that have incomplete data (not for zero variants) */}
         {hasIncompleteVariants && (
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
@@ -335,7 +335,7 @@ export default function VariantManager({ variants, onChange, productId }: Varian
           </div>
         ) : (
           <p className="text-sm text-muted-foreground text-center py-4">
-            No variants added yet. Add your first variant above.
+            No variants added yet. You can add variants above, or save the product without any variants.
           </p>
         )}
       </CardContent>

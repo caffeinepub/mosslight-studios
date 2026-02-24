@@ -33,11 +33,15 @@ export const ProductVariant = IDL.Record({
   'price' : IDL.Nat,
 });
 export const CreateProductData = IDL.Record({
+  'sku' : IDL.Text,
+  'categories' : IDL.Vec(IDL.Text),
   'hasVariants' : IDL.Bool,
   'inventory' : IDL.Nat,
   'name' : IDL.Text,
   'description' : IDL.Text,
   'variants' : IDL.Opt(IDL.Vec(ProductVariant)),
+  'sizes' : IDL.Vec(IDL.Text),
+  'colors' : IDL.Vec(IDL.Text),
   'price' : IDL.Nat,
 });
 export const ExternalBlob = IDL.Vec(IDL.Nat8);
@@ -66,11 +70,15 @@ export const DiscussionPost = IDL.Record({
 });
 export const Product = IDL.Record({
   'id' : IDL.Text,
+  'sku' : IDL.Text,
+  'categories' : IDL.Vec(IDL.Text),
   'hasVariants' : IDL.Bool,
   'inventory' : IDL.Nat,
   'name' : IDL.Text,
   'description' : IDL.Text,
   'variants' : IDL.Opt(IDL.Vec(ProductVariant)),
+  'sizes' : IDL.Vec(IDL.Text),
+  'colors' : IDL.Vec(IDL.Text),
   'price' : IDL.Nat,
   'images' : IDL.Vec(ExternalBlob),
 });
@@ -267,11 +275,15 @@ export const idlFactory = ({ IDL }) => {
     'price' : IDL.Nat,
   });
   const CreateProductData = IDL.Record({
+    'sku' : IDL.Text,
+    'categories' : IDL.Vec(IDL.Text),
     'hasVariants' : IDL.Bool,
     'inventory' : IDL.Nat,
     'name' : IDL.Text,
     'description' : IDL.Text,
     'variants' : IDL.Opt(IDL.Vec(ProductVariant)),
+    'sizes' : IDL.Vec(IDL.Text),
+    'colors' : IDL.Vec(IDL.Text),
     'price' : IDL.Nat,
   });
   const ExternalBlob = IDL.Vec(IDL.Nat8);
@@ -297,11 +309,15 @@ export const idlFactory = ({ IDL }) => {
   });
   const Product = IDL.Record({
     'id' : IDL.Text,
+    'sku' : IDL.Text,
+    'categories' : IDL.Vec(IDL.Text),
     'hasVariants' : IDL.Bool,
     'inventory' : IDL.Nat,
     'name' : IDL.Text,
     'description' : IDL.Text,
     'variants' : IDL.Opt(IDL.Vec(ProductVariant)),
+    'sizes' : IDL.Vec(IDL.Text),
+    'colors' : IDL.Vec(IDL.Text),
     'price' : IDL.Nat,
     'images' : IDL.Vec(ExternalBlob),
   });

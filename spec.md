@@ -1,11 +1,13 @@
 # Specification
 
 ## Summary
-**Goal:** Display the logged-in user's Internet Identity principal ID prominently on screen so the owner can easily copy it.
+**Goal:** Add a SKU input field to the Add Product form in the AdminProductsPage.
 
 **Planned changes:**
-- After login, show a banner or header element labeled "Your Internet Identity Principal" displaying the full principal string
-- Include a copy-to-clipboard button next to the principal string
-- Only show the principal display when the user is authenticated (hidden for anonymous visitors)
+- Add a labeled "SKU" text input field to the ProductForm component
+- Make the SKU field required with validation (shows error if left empty on submission)
+- Accept alphanumeric input for the SKU field
+- Include the SKU value in the product data submitted when the form is saved
+- Pre-populate the SKU field when editing an existing product that has a SKU value
 
-**User-visible outcome:** After logging in with Internet Identity, the user sees their full principal ID on screen with a copy button, making it easy to copy and share.
+**User-visible outcome:** Admins can enter and save a SKU when adding or editing a product, with validation ensuring the field is not left empty.

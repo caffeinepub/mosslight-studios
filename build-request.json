@@ -1,38 +1,38 @@
 {
   "kind": "build_request",
-  "title": "Add temporary principal display to help owner find their Internet Identity principal",
+  "title": "Add SKU field to Add Product page",
+  "projectName": "Mosslight Studios",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "After the user logs in with Internet Identity, display their principal ID prominently on screen (e.g., in the header or a banner at the top of the page) so the owner can easily copy it. The display should show the full principal string in a copyable format (e.g., a text field or a copy-to-clipboard button). Label it clearly as 'Your Internet Identity Principal'.",
+      "text": "Add a visible, functional SKU input field to the Add Product form in AdminProductsPage. The SKU field should appear in the ProductForm component, be required, accept alphanumeric input, and its value must be submitted along with the other product fields when the form is saved.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-recent"
+          "msg-latest"
         ],
         "quotes": [
-          "yes please",
-          "I can update the app to display your principal on screen after you log in, so you can easily copy and paste it back to me"
+          "lets build the sku feild in the add product page first"
         ]
       },
       "acceptanceCriteria": [
-        "When logged in with Internet Identity, the user's principal ID is visible on screen",
-        "The principal is displayed as a readable string that can be selected and copied",
-        "A copy-to-clipboard button is available next to the principal string",
-        "The display is clearly labeled 'Your Internet Identity Principal'",
-        "The principal display only appears when the user is logged in (not shown to anonymous visitors)"
+        "A labeled 'SKU' text input field is visible in the Add Product form on the AdminProductsPage.",
+        "The SKU field accepts alphanumeric characters.",
+        "The SKU value is included in the product data submitted when the form is saved.",
+        "The SKU field shows a validation error if left empty on form submission.",
+        "The SKU field is pre-populated when editing an existing product that has a SKU value."
       ]
     }
   ],
   "constraints": [
-    "Do not modify any files listed in frontend.immutablePaths",
-    "Do not change the backend schema or admin authorization logic"
+    "Do not modify any files listed in frontend.immutablePaths.",
+    "Only add the SKU field to the frontend ProductForm — do not change backend schema or data model unless the field is already supported by the backend."
   ],
   "nonGoals": [
-    "Hardcoding the admin principal (this will be done after the owner shares their principal)",
-    "Any changes to the merchandise store, blog, polls, or gallery features",
-    "Stripe or Venmo payment changes"
+    "Fixing the admin permission denied error (separate task).",
+    "Adding SKU to the product listing or product detail pages.",
+    "Any backend schema migration related to SKU."
   ],
   "imageRequirements": {
     "required": [],

@@ -91,11 +91,15 @@ export class ExternalBlob {
 }
 export interface Product {
     id: string;
+    sku: string;
+    categories: Array<string>;
     hasVariants: boolean;
     inventory: bigint;
     name: string;
     description: string;
     variants?: Array<ProductVariant>;
+    sizes: Array<string>;
+    colors: Array<string>;
     price: bigint;
     images: Array<ExternalBlob>;
 }
@@ -153,11 +157,15 @@ export interface Order {
 }
 export type Customer = Principal;
 export interface CreateProductData {
+    sku: string;
+    categories: Array<string>;
     hasVariants: boolean;
     inventory: bigint;
     name: string;
     description: string;
     variants?: Array<ProductVariant>;
+    sizes: Array<string>;
+    colors: Array<string>;
     price: bigint;
 }
 export type NotificationType = {
@@ -997,30 +1005,42 @@ async function from_candid_record_n22(_uploadFile: (file: ExternalBlob) => Promi
 }
 async function from_candid_record_n25(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     id: string;
+    sku: string;
+    categories: Array<string>;
     hasVariants: boolean;
     inventory: bigint;
     name: string;
     description: string;
     variants: [] | [Array<_ProductVariant>];
+    sizes: Array<string>;
+    colors: Array<string>;
     price: bigint;
     images: Array<_ExternalBlob>;
 }): Promise<{
     id: string;
+    sku: string;
+    categories: Array<string>;
     hasVariants: boolean;
     inventory: bigint;
     name: string;
     description: string;
     variants?: Array<ProductVariant>;
+    sizes: Array<string>;
+    colors: Array<string>;
     price: bigint;
     images: Array<ExternalBlob>;
 }> {
     return {
         id: value.id,
+        sku: value.sku,
+        categories: value.categories,
         hasVariants: value.hasVariants,
         inventory: value.inventory,
         name: value.name,
         description: value.description,
         variants: record_opt_to_undefined(from_candid_opt_n26(_uploadFile, _downloadFile, value.variants)),
+        sizes: value.sizes,
+        colors: value.colors,
         price: value.price,
         images: await from_candid_vec_n27(_uploadFile, _downloadFile, value.images)
     };
@@ -1270,26 +1290,38 @@ function to_candid_opt_n60(_uploadFile: (file: ExternalBlob) => Promise<Uint8Arr
     return value === null ? candid_none() : candid_some(value);
 }
 function to_candid_record_n11(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    sku: string;
+    categories: Array<string>;
     hasVariants: boolean;
     inventory: bigint;
     name: string;
     description: string;
     variants?: Array<ProductVariant>;
+    sizes: Array<string>;
+    colors: Array<string>;
     price: bigint;
 }): {
+    sku: string;
+    categories: Array<string>;
     hasVariants: boolean;
     inventory: bigint;
     name: string;
     description: string;
     variants: [] | [Array<_ProductVariant>];
+    sizes: Array<string>;
+    colors: Array<string>;
     price: bigint;
 } {
     return {
+        sku: value.sku,
+        categories: value.categories,
         hasVariants: value.hasVariants,
         inventory: value.inventory,
         name: value.name,
         description: value.description,
         variants: value.variants ? candid_some(value.variants) : candid_none(),
+        sizes: value.sizes,
+        colors: value.colors,
         price: value.price
     };
 }

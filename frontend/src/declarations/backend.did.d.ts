@@ -11,11 +11,15 @@ import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
 export interface CreateProductData {
+  'sku' : string,
+  'categories' : Array<string>,
   'hasVariants' : boolean,
   'inventory' : bigint,
   'name' : string,
   'description' : string,
   'variants' : [] | [Array<ProductVariant>],
+  'sizes' : Array<string>,
+  'colors' : Array<string>,
   'price' : bigint,
 }
 export type Customer = Principal;
@@ -65,11 +69,15 @@ export type PostStatus = { 'open' : null } |
   { 'answered' : null };
 export interface Product {
   'id' : string,
+  'sku' : string,
+  'categories' : Array<string>,
   'hasVariants' : boolean,
   'inventory' : bigint,
   'name' : string,
   'description' : string,
   'variants' : [] | [Array<ProductVariant>],
+  'sizes' : Array<string>,
+  'colors' : Array<string>,
   'price' : bigint,
   'images' : Array<ExternalBlob>,
 }

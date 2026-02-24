@@ -12,10 +12,10 @@ export default function HomePage() {
       >
         <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/40 to-background" />
         <div className="relative z-10 container text-center space-y-6 px-4">
-          <h1 className="font-serif text-5xl md:text-7xl font-bold text-foreground">
+          <h1 className="font-serif text-5xl md:text-7xl font-bold" style={{ color: '#F5F0E8' }}>
             Mosslight Studios
           </h1>
-          <p className="text-xl md:text-2xl text-foreground/80 max-w-2xl mx-auto">
+          <p className="text-xl md:text-2xl max-w-2xl mx-auto" style={{ color: '#F5F0E8' }}>
             Handcrafted treasures inspired by nature's elegance
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
@@ -97,4 +97,3 @@ export default function HomePage() {
     </div>
   );
 }
-

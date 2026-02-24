@@ -5,7 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Loader2, AlertCircle, WifiOff, ShieldAlert, CheckCircle2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Loader2, AlertCircle, WifiOff, ShieldAlert, CheckCircle2, Plus, X } from 'lucide-react';
 import { useAddProduct, useUpdateProduct } from '../hooks/useProducts';
 import { useActor } from '../hooks/useActor';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
@@ -22,12 +23,92 @@ interface ProductFormProps {
   onClose?: () => void;
 }
 
+/** Reusable multi-value tag input for categories, colors, sizes */
+function TagInput({
+  label,
+  values,
+  onChange,
+  placeholder,
+  disabled,
+}: {
+  label: string;
+  values: string[];
+  onChange: (values: string[]) => void;
+  placeholder?: string;
+  disabled?: boolean;
+}) {
+  const [inputValue, setInputValue] = useState('');
+
+  const addValue = () => {
+    const trimmed = inputValue.trim();
+    if (trimmed && !values.includes(trimmed)) {
+      onChange([...values, trimmed]);
+    }
+    setInputValue('');
+  };
+
+  const removeValue = (val: string) => {
+    onChange(values.filter((v) => v !== val));
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addValue();
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      <Label>{label}</Label>
+      <div className="flex gap-2">
+        <Input
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder={placeholder || `Add ${label.toLowerCase()}...`}
+          disabled={disabled}
+          className="flex-1"
+        />
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          onClick={addValue}
+          disabled={disabled || !inputValue.trim()}
+        >
+          <Plus className="h-4 w-4" />
+        </Button>
+      </div>
+      {values.length > 0 && (
+        <div className="flex flex-wrap gap-2 pt-1">
+          {values.map((val) => (
+            <Badge key={val} variant="secondary" className="gap-1 pr-1">
+              {val}
+              <button
+                type="button"
+                onClick={() => removeValue(val)}
+                disabled={disabled}
+                className="ml-1 rounded-full hover:bg-muted-foreground/20 p-0.5 transition-colors"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </Badge>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function ProductForm({ product, onSuccess, onCancel, onClose }: ProductFormProps) {
   const { actor, isFetching: actorFetching } = useActor();
   const { identity } = useInternetIdentity();
   const { isAdminAuthenticated, isInitializingAdmin } = useAdminAuth();
 
   const [name, setName] = useState(product?.name || '');
+  const [sku, setSku] = useState(product?.sku || '');
+  const [skuError, setSkuError] = useState('');
   const [description, setDescription] = useState(product?.description || '');
   const [price, setPrice] = useState(product ? Number(product.price) / 100 : 0);
   const [inventory, setInventory] = useState(product ? Number(product.inventory) : 0);
@@ -36,6 +117,11 @@ export default function ProductForm({ product, onSuccess, onCancel, onClose }: P
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [existingImages] = useState<ExternalBlob[]>(product?.images || []);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
+
+  // Attribute fields
+  const [categories, setCategories] = useState<string[]>(product?.categories || []);
+  const [colors, setColors] = useState<string[]>(product?.colors || []);
+  const [sizes, setSizes] = useState<string[]>(product?.sizes || []);
 
   const addProduct = useAddProduct();
   const updateProduct = useUpdateProduct();
@@ -47,15 +133,11 @@ export default function ProductForm({ product, onSuccess, onCancel, onClose }: P
   const handleCancel = onCancel || onClose;
 
   // Determine connection status
-  const isActorReady = !!actor && !actorFetching && !isInitializingAdmin;
-  const isIdentityReady = !!identity;
-  const isAdminReady = isAdminAuthenticated;
-
   const getConnectionStatus = () => {
     if (actorFetching || isInitializingAdmin) return 'initializing';
     if (!actor) return 'no_actor';
-    if (!isIdentityReady) return 'no_identity';
-    if (!isAdminReady) return 'no_admin';
+    if (!identity) return 'no_identity';
+    if (!isAdminAuthenticated) return 'no_admin';
     return 'ready';
   };
 
@@ -64,6 +146,13 @@ export default function ProductForm({ product, onSuccess, onCancel, onClose }: P
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       setImageFiles(Array.from(e.target.files));
+    }
+  };
+
+  const handleSkuChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSku(e.target.value);
+    if (e.target.value.trim()) {
+      setSkuError('');
     }
   };
 
@@ -99,6 +188,12 @@ export default function ProductForm({ product, onSuccess, onCancel, onClose }: P
       return;
     }
 
+    if (!sku.trim()) {
+      setSkuError('SKU is required');
+      toast.error('SKU is required');
+      return;
+    }
+
     // Build images array
     let images: ExternalBlob[] = [...existingImages];
     if (imageFiles.length > 0) {
@@ -111,13 +206,18 @@ export default function ProductForm({ product, onSuccess, onCancel, onClose }: P
       }
     }
 
+    // Variants are optional — send them only if hasVariants is true AND variants exist
     const productData: CreateProductData = {
       name: name.trim(),
       description: description.trim(),
       price: BigInt(Math.round(price * 100)),
       inventory: BigInt(inventory),
       hasVariants,
-      variants: hasVariants ? variants : undefined,
+      variants: hasVariants && variants.length > 0 ? variants : undefined,
+      sku: sku.trim(),
+      categories,
+      colors,
+      sizes,
     };
 
     const handleError = (err: unknown) => {
@@ -173,12 +273,17 @@ export default function ProductForm({ product, onSuccess, onCancel, onClose }: P
             toast.success('Product added successfully');
             setUploadProgress(0);
             setName('');
+            setSku('');
+            setSkuError('');
             setDescription('');
             setPrice(0);
             setInventory(0);
             setHasVariants(false);
             setVariants([]);
             setImageFiles([]);
+            setCategories([]);
+            setColors([]);
+            setSizes([]);
             onSuccess?.();
           },
           onError: handleError,
@@ -188,7 +293,16 @@ export default function ProductForm({ product, onSuccess, onCancel, onClose }: P
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl">
+      <div className="space-y-1">
+        <h2 className="font-serif text-2xl font-bold">
+          {isEditing ? 'Edit Product' : 'Add New Product'}
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          {isEditing ? 'Update the product details below.' : 'Fill in the details to add a new product to your catalog.'}
+        </p>
+      </div>
+
       {/* Connection Status Alerts */}
       {connectionStatus === 'initializing' && (
         <Alert className="border-amber-500/50 bg-amber-500/10">
@@ -243,115 +357,203 @@ export default function ProductForm({ product, onSuccess, onCancel, onClose }: P
         </Alert>
       )}
 
-      {/* Form Fields */}
-      <div className="space-y-2">
-        <Label htmlFor="name">Product Name *</Label>
-        <Input
-          id="name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Enter product name"
-          required
-          disabled={isLoading}
-        />
-      </div>
+      {/* ── Basic Info ── */}
+      <div className="border border-border rounded-lg p-4 space-y-4 bg-muted/10">
+        <p className="text-sm font-semibold text-foreground">Basic Information</p>
 
-      <div className="space-y-2">
-        <Label htmlFor="description">Description</Label>
-        <Textarea
-          id="description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="Enter product description"
-          rows={4}
-          disabled={isLoading}
-        />
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
+        {/* Product Name */}
         <div className="space-y-2">
-          <Label htmlFor="price">Price (USD) *</Label>
+          <Label htmlFor="name">
+            Product Name <span className="text-destructive">*</span>
+          </Label>
           <Input
-            id="price"
-            type="number"
-            min="0"
-            step="0.01"
-            value={price}
-            onChange={(e) => setPrice(parseFloat(e.target.value) || 0)}
-            placeholder="0.00"
-            disabled={isLoading || hasVariants}
+            id="name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Enter product name"
+            required
+            disabled={isLoading}
           />
-          {hasVariants && (
-            <p className="text-xs text-muted-foreground">Price is set per variant</p>
+        </div>
+
+        {/* SKU — placed directly under name for visibility */}
+        <div className="space-y-2">
+          <Label htmlFor="sku">
+            SKU (Stock Keeping Unit) <span className="text-destructive">*</span>
+          </Label>
+          <Input
+            id="sku"
+            value={sku}
+            onChange={handleSkuChange}
+            placeholder="e.g. MSL-001, RING-GOLD-SM"
+            disabled={isLoading}
+            className={skuError ? 'border-destructive focus-visible:ring-destructive' : ''}
+          />
+          {skuError ? (
+            <p className="text-xs text-destructive">{skuError}</p>
+          ) : (
+            <p className="text-xs text-muted-foreground">
+              A unique identifier for this product (alphanumeric, hyphens allowed).
+            </p>
           )}
         </div>
 
+        {/* Description */}
         <div className="space-y-2">
-          <Label htmlFor="inventory">Inventory *</Label>
-          <Input
-            id="inventory"
-            type="number"
-            min="0"
-            value={inventory}
-            onChange={(e) => setInventory(parseInt(e.target.value) || 0)}
-            placeholder="0"
-            disabled={isLoading || hasVariants}
+          <Label htmlFor="description">Description</Label>
+          <Textarea
+            id="description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Enter product description"
+            rows={4}
+            disabled={isLoading}
           />
-          {hasVariants && (
-            <p className="text-xs text-muted-foreground">Inventory is set per variant</p>
+        </div>
+      </div>
+
+      {/* ── Pricing & Inventory ── */}
+      <div className="border border-border rounded-lg p-4 space-y-4 bg-muted/10">
+        <p className="text-sm font-semibold text-foreground">Pricing &amp; Inventory</p>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="price">
+              Price (USD) <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="price"
+              type="number"
+              min="0"
+              step="0.01"
+              value={price}
+              onChange={(e) => setPrice(parseFloat(e.target.value) || 0)}
+              placeholder="0.00"
+              disabled={isLoading || hasVariants}
+            />
+            {hasVariants && (
+              <p className="text-xs text-muted-foreground">Price is set per variant</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="inventory">
+              Inventory <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="inventory"
+              type="number"
+              min="0"
+              value={inventory}
+              onChange={(e) => setInventory(parseInt(e.target.value) || 0)}
+              placeholder="0"
+              disabled={isLoading || hasVariants}
+            />
+            {hasVariants && (
+              <p className="text-xs text-muted-foreground">Inventory is set per variant</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Images ── */}
+      <div className="border border-border rounded-lg p-4 space-y-4 bg-muted/10">
+        <p className="text-sm font-semibold text-foreground">Product Images</p>
+        <div className="space-y-2">
+          <Label htmlFor="images">Upload Images</Label>
+          <Input
+            id="images"
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={handleImageChange}
+            disabled={isLoading}
+          />
+          {existingImages.length > 0 && (
+            <p className="text-xs text-muted-foreground">
+              {existingImages.length} existing image(s). Upload new files to replace them.
+            </p>
+          )}
+          {uploadProgress > 0 && uploadProgress < 100 && (
+            <div className="w-full bg-muted rounded-full h-2">
+              <div
+                className="bg-primary h-2 rounded-full transition-all"
+                style={{ width: `${uploadProgress}%` }}
+              />
+            </div>
           )}
         </div>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="images">Product Images</Label>
-        <Input
-          id="images"
-          type="file"
-          accept="image/*"
-          multiple
-          onChange={handleImageChange}
+      {/* ── Product Attributes ── */}
+      <div className="border border-border rounded-lg p-4 space-y-4 bg-muted/10">
+        <p className="text-sm font-semibold text-foreground">
+          Product Attributes{' '}
+          <span className="text-muted-foreground font-normal">(for customer filtering)</span>
+        </p>
+
+        <TagInput
+          label="Categories"
+          values={categories}
+          onChange={setCategories}
+          placeholder="e.g. Jewellery, Candles..."
           disabled={isLoading}
         />
-        {existingImages.length > 0 && (
-          <p className="text-xs text-muted-foreground">
-            {existingImages.length} existing image(s). Upload new files to replace them.
-          </p>
-        )}
-        {uploadProgress > 0 && uploadProgress < 100 && (
-          <div className="w-full bg-muted rounded-full h-2">
-            <div
-              className="bg-primary h-2 rounded-full transition-all"
-              style={{ width: `${uploadProgress}%` }}
+
+        <TagInput
+          label="Colors"
+          values={colors}
+          onChange={setColors}
+          placeholder="e.g. Gold, Silver, Black..."
+          disabled={isLoading}
+        />
+
+        <TagInput
+          label="Sizes"
+          values={sizes}
+          onChange={setSizes}
+          placeholder="e.g. Small, Medium, Large, XL..."
+          disabled={isLoading}
+        />
+      </div>
+
+      {/* ── Variants ── */}
+      <div className="border border-border rounded-lg p-4 space-y-4 bg-muted/10">
+        <p className="text-sm font-semibold text-foreground">Variants</p>
+
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <input
+              id="hasVariants"
+              type="checkbox"
+              checked={hasVariants}
+              onChange={(e) => setHasVariants(e.target.checked)}
+              disabled={isLoading}
+              className="rounded border-border"
+            />
+            <Label htmlFor="hasVariants">This product has variants (size / color)</Label>
+          </div>
+          {hasVariants && (
+            <p className="text-xs text-muted-foreground pl-6">
+              Variants are optional — you can save the product without adding any variants.
+            </p>
+          )}
+        </div>
+
+        {hasVariants && (
+          <div className="space-y-2">
+            <Label>
+              Variants{' '}
+              <span className="text-muted-foreground font-normal text-xs">(optional)</span>
+            </Label>
+            <VariantManager
+              variants={variants}
+              onChange={setVariants}
+              productId={product?.id ?? ''}
             />
           </div>
         )}
       </div>
-
-      <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <input
-            id="hasVariants"
-            type="checkbox"
-            checked={hasVariants}
-            onChange={(e) => setHasVariants(e.target.checked)}
-            disabled={isLoading}
-            className="rounded border-border"
-          />
-          <Label htmlFor="hasVariants">This product has variants (size/color)</Label>
-        </div>
-      </div>
-
-      {hasVariants && (
-        <div className="space-y-2">
-          <Label>Variants</Label>
-          <VariantManager
-            variants={variants}
-            onChange={setVariants}
-            productId={product?.id ?? ''}
-          />
-        </div>
-      )}
 
       {/* Error display from mutation */}
       {(addProduct.isError || updateProduct.isError) && (
@@ -381,22 +583,11 @@ export default function ProductForm({ product, onSuccess, onCancel, onClose }: P
         </Alert>
       )}
 
+      {/* Action Buttons */}
       <div className="flex gap-3 pt-2">
-        <Button
-          type="submit"
-          disabled={isLoading || !isActorReady || !isIdentityReady || !isAdminReady}
-          className="flex-1"
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              {isEditing ? 'Updating...' : 'Adding...'}
-            </>
-          ) : isEditing ? (
-            'Update Product'
-          ) : (
-            'Add Product'
-          )}
+        <Button type="submit" disabled={isLoading} className="gap-2">
+          {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+          {isEditing ? 'Update Product' : 'Add Product'}
         </Button>
         {handleCancel && (
           <Button

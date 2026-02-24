@@ -1,19 +1,19 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Personal art portfolio and merchandise store for a solo artist/admin. Features include photo/video portfolio, merchandise store with Stripe payments and Venmo option, blog, and polls. Admin is hardcoded to the owner's Internet Identity principal. Currently adding a temporary 'show my principal' display to help the owner find their principal ID.",
+  "summary": "E-commerce or product management app with admin authentication and product management features. Currently working on adding SKU field to the add product page and fixing admin permission denied error.",
   "architectural_notes": [
-    "Single hardcoded admin via Internet Identity principal on ICP blockchain",
-    "Stripe integration for payments; Venmo shown as alternative at checkout"
+    "Uses Internet Identity for authentication with admin role checking",
+    "Backend has admin registration/permission logic that needs first-user auto-admin setup"
   ],
   "known_issues": [
-    "Admin principal not yet hardcoded — owner's Internet Identity principal still unknown; temporary principal display added to resolve this"
+    "Admin permission denied error: current Internet Identity principal not registered as admin"
   ],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-after-the-user-logs-in-with-internet-identity-display-their-principal-id-prominently-on-screen-e-g-in-the-header-or-a-banner-at-the-top-of-the-page-so-the-owner-can-easily-copy-it-the-display-should-show-the-full-principal-string-in-a-copyable-format-e-g-a-text-field-or-a-copy-to-clipboard-button-label-it-clearly-as-your-internet-identity-principal",
-      "title": "After the user logs in with Internet Identity, display their principal ID prominently on screen (e.g., in the header or a banner at the top of the page) so the owner can easily copy it. The display should show the full principal string in a copyable format (e.g., a text field or a copy-to-clipboard button). Label it clearly as 'Your Internet Identity Principal'.",
+      "id": "feature-add-a-visible-functional-sku-input-field-to-the-add-product-form-in-adminproductspage-the-sku-field-should-appear-in-the-productform-component-be-required-accept-alphanumeric-input-and-its-value-must-be-submitted-along-with-the-other-product-fields-when-the-form-is-saved",
+      "title": "Add a visible, functional SKU input field to the Add Product form in AdminProductsPage. The SKU field should appear in the ProductForm component, be required, accept alphanumeric input, and its value must be submitted along with the other product fields when the form is saved.",
       "reqIds": [
         "REQ-1"
       ],
@@ -23,55 +23,19 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Portfolio section for showcasing artwork (photos & videos)",
+      "summary": "Add SKU field to the add product page",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-2",
-      "summary": "Merchandise store with product listings, prices, and descriptions",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-3",
-      "summary": "Stripe payment integration for direct on-site checkout",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-4",
-      "summary": "Venmo payment option displayed at checkout as an alternative",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-5",
-      "summary": "Blog section for posts and updates",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-6",
-      "summary": "Polls section for audience engagement",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-7",
-      "summary": "Admin panel hardcoded to owner's Internet Identity principal",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-8",
-      "summary": "Temporary 'show my principal' display after login to help owner find their Internet Identity principal",
+      "summary": "Fix admin permission denied error - first logged-in user becomes admin",
       "reqIds": [],
       "status": "pending"
     }
   ],
   "gameProjectType": "none",
-  "projectName": "Art Portfolio & Merchandise Store",
+  "projectName": "Mosslight Studios",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }
