@@ -10,9 +10,7 @@ import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
-import Migration "migration";
 
-(with migration = Migration.run)
 actor {
   public type ProductVariant = {
     id : Text;
@@ -262,28 +260,32 @@ actor {
       if (variant.id == "") {
         Runtime.trap("Id must be provided for each variant");
       };
-      if (variant.parentProductId == "") {
-        Runtime.trap("parentProductId must be provided for each variant");
-      };
     };
 
     productIdCounter += 1;
     let id = "product_" # productIdCounter.toText();
-    let productWithId = {
+
+    let productWithVariantsSet = {
       id;
       name = product.name;
       description = product.description;
       price = product.price;
       images;
       inventory = product.inventory;
-      variants = product.variants;
       hasVariants = product.hasVariants;
       sku = product.sku;
       categories = product.categories;
       colors = product.colors;
       sizes = product.sizes;
+      variants = switch (product.variants) {
+        case (null) { null };
+        case (?variants) {
+          ?variants.map(func(variant) { { variant with parentProductId = id } });
+        };
+      };
     };
-    products.add(id, productWithId);
+
+    products.add(id, productWithVariantsSet);
     sendLowInventoryNotifications(id);
   };
 
@@ -294,21 +296,26 @@ actor {
         Runtime.trap("Product not found");
       };
       case (?existing) {
-        let updated : Product = {
-          id = productId;
+        let updatedProduct : Product = {
+          existing with
           name = productData.name;
           description = productData.description;
           price = productData.price;
           images;
           inventory = productData.inventory;
           hasVariants = productData.hasVariants;
-          variants = productData.variants;
           sku = productData.sku;
           categories = productData.categories;
           colors = productData.colors;
           sizes = productData.sizes;
+          variants = switch (productData.variants) {
+            case (null) { null };
+            case (?variants) {
+              ?variants.map(func(variant) { { variant with parentProductId = productId } });
+            };
+          };
         };
-        products.add(productId, updated);
+        products.add(productId, updatedProduct);
         sendLowInventoryNotifications(productId);
       };
     };
@@ -948,4 +955,3 @@ actor {
     };
   };
 };
-

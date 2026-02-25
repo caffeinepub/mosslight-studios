@@ -1,13 +1,10 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { ProductVariant } from '../backend';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Trash2, Edit2, Check, X, AlertCircle } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { toast } from 'sonner';
-import type { ProductVariant } from '../backend';
+import { Card, CardContent } from '@/components/ui/card';
+import { Plus, Trash2 } from 'lucide-react';
 
 interface VariantManagerProps {
   variants: ProductVariant[];
@@ -15,330 +12,215 @@ interface VariantManagerProps {
   productId: string;
 }
 
+interface VariantFormState {
+  id: string;
+  size: string;
+  color: string;
+  price: string;
+  inventory: string;
+}
+
+const emptyVariantForm = (): VariantFormState => ({
+  id: `variant_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+  size: '',
+  color: '',
+  price: '',
+  inventory: '',
+});
+
 export default function VariantManager({ variants, onChange, productId }: VariantManagerProps) {
-  const [size, setSize] = useState('');
-  const [color, setColor] = useState('');
-  const [price, setPrice] = useState('');
-  const [inventory, setInventory] = useState('');
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editPrice, setEditPrice] = useState('');
-  const [editInventory, setEditInventory] = useState('');
-  const [fieldErrors, setFieldErrors] = useState<{
-    size?: string;
-    color?: string;
-    price?: string;
-    inventory?: string;
-  }>({});
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [form, setForm] = useState<VariantFormState>(emptyVariantForm());
+  const [formErrors, setFormErrors] = useState<Partial<VariantFormState>>({});
+  const [showAddForm, setShowAddForm] = useState(false);
 
-  const validateFields = () => {
-    const errors: typeof fieldErrors = {};
-
-    if (!size.trim()) {
-      errors.size = 'Size is required';
-    }
-
-    if (!color.trim()) {
-      errors.color = 'Color is required';
-    }
-
-    if (!price) {
-      errors.price = 'Price is required';
-    } else {
-      const priceNum = parseFloat(price);
-      if (isNaN(priceNum) || priceNum <= 0) {
-        errors.price = 'Price must be a positive number';
-      }
-    }
-
-    if (!inventory) {
-      errors.inventory = 'Inventory is required';
-    } else {
-      const inventoryNum = parseInt(inventory);
-      if (isNaN(inventoryNum) || inventoryNum < 0) {
-        errors.inventory = 'Inventory must be 0 or greater';
-      }
-    }
-
-    setFieldErrors(errors);
+  const validateForm = (): boolean => {
+    const errors: Partial<VariantFormState> = {};
+    if (!form.size.trim()) errors.size = 'Size is required';
+    if (!form.color.trim()) errors.color = 'Color is required';
+    if (!form.price || Number(form.price) <= 0) errors.price = 'Price must be greater than 0';
+    if (form.inventory === '' || Number(form.inventory) < 0) errors.inventory = 'Inventory must be 0 or more';
+    setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
-  const handleAddVariant = () => {
-    if (!validateFields()) {
-      toast.error('Please fix the errors in the variant fields');
-      return;
-    }
+  const handleSave = () => {
+    if (!validateForm()) return;
 
-    const priceNum = parseFloat(price);
-    const inventoryNum = parseInt(inventory);
-
+    // parentProductId: use productId if available (editing existing product),
+    // or a placeholder for new products — the backend will auto-set the correct value
     const newVariant: ProductVariant = {
-      id: crypto.randomUUID(),
-      size: size.trim(),
-      color: color.trim(),
-      price: BigInt(Math.round(priceNum * 100)),
-      inventory: BigInt(inventoryNum),
-      parentProductId: productId,
+      id: form.id,
+      size: form.size.trim(),
+      color: form.color.trim(),
+      price: BigInt(Math.round(Number(form.price))),
+      inventory: BigInt(Math.round(Number(form.inventory))),
+      parentProductId: productId || 'pending', // backend overwrites this for new products
     };
 
-    onChange([...variants, newVariant]);
-    setSize('');
-    setColor('');
-    setPrice('');
-    setInventory('');
-    setFieldErrors({});
-    toast.success('Variant added');
-  };
-
-  const handleRemoveVariant = (variantId: string) => {
-    onChange(variants.filter(v => v.id !== variantId));
-    toast.success('Variant removed');
-  };
-
-  const handleStartEdit = (variant: ProductVariant) => {
-    setEditingId(variant.id);
-    setEditPrice((Number(variant.price) / 100).toFixed(2));
-    setEditInventory(Number(variant.inventory).toString());
-  };
-
-  const handleSaveEdit = (variantId: string) => {
-    const priceNum = parseFloat(editPrice);
-    const inventoryNum = parseInt(editInventory);
-
-    if (isNaN(priceNum) || priceNum <= 0) {
-      toast.error('Price must be a positive number');
-      return;
+    if (editingIndex !== null) {
+      const updated = [...variants];
+      updated[editingIndex] = newVariant;
+      onChange(updated);
+      setEditingIndex(null);
+    } else {
+      onChange([...variants, newVariant]);
     }
 
-    if (isNaN(inventoryNum) || inventoryNum < 0) {
-      toast.error('Inventory must be 0 or greater');
-      return;
+    setForm(emptyVariantForm());
+    setFormErrors({});
+    setShowAddForm(false);
+  };
+
+  const handleEdit = (index: number) => {
+    const v = variants[index];
+    setForm({
+      id: v.id,
+      size: v.size,
+      color: v.color,
+      price: String(Number(v.price)),
+      inventory: String(Number(v.inventory)),
+    });
+    setFormErrors({});
+    setEditingIndex(index);
+    setShowAddForm(true);
+  };
+
+  const handleDelete = (index: number) => {
+    onChange(variants.filter((_, i) => i !== index));
+    if (editingIndex === index) {
+      setEditingIndex(null);
+      setForm(emptyVariantForm());
+      setFormErrors({});
+      setShowAddForm(false);
     }
-
-    onChange(
-      variants.map(v =>
-        v.id === variantId
-          ? {
-              ...v,
-              price: BigInt(Math.round(priceNum * 100)),
-              inventory: BigInt(inventoryNum),
-            }
-          : v
-      )
-    );
-    setEditingId(null);
-    setEditPrice('');
-    setEditInventory('');
-    toast.success('Variant updated');
   };
 
-  const handleCancelEdit = () => {
-    setEditingId(null);
-    setEditPrice('');
-    setEditInventory('');
+  const handleCancel = () => {
+    setEditingIndex(null);
+    setForm(emptyVariantForm());
+    setFormErrors({});
+    setShowAddForm(false);
   };
-
-  // Only warn about incomplete data for variants that already exist (not about missing variants)
-  const hasIncompleteVariants = variants.some(
-    v => !v.size || !v.color || !v.price || v.inventory === undefined
-  );
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg">Product Variants</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Add Variant Form */}
-        <div className="grid grid-cols-5 gap-3 items-end">
-          <div className="space-y-2">
-            <Label htmlFor="variant-size">Size *</Label>
-            <Input
-              id="variant-size"
-              value={size}
-              onChange={(e) => {
-                setSize(e.target.value);
-                if (fieldErrors.size) {
-                  setFieldErrors({ ...fieldErrors, size: undefined });
-                }
-              }}
-              placeholder="e.g., Small, M, XL"
-              className={fieldErrors.size ? 'border-destructive' : ''}
-            />
-            {fieldErrors.size && (
-              <p className="text-xs text-destructive">{fieldErrors.size}</p>
-            )}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="variant-color">Color *</Label>
-            <Input
-              id="variant-color"
-              value={color}
-              onChange={(e) => {
-                setColor(e.target.value);
-                if (fieldErrors.color) {
-                  setFieldErrors({ ...fieldErrors, color: undefined });
-                }
-              }}
-              placeholder="e.g., Red, Blue"
-              className={fieldErrors.color ? 'border-destructive' : ''}
-            />
-            {fieldErrors.color && (
-              <p className="text-xs text-destructive">{fieldErrors.color}</p>
-            )}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="variant-price">Price ($) *</Label>
-            <Input
-              id="variant-price"
-              type="number"
-              min="0.01"
-              step="0.01"
-              value={price}
-              onChange={(e) => {
-                setPrice(e.target.value);
-                if (fieldErrors.price) {
-                  setFieldErrors({ ...fieldErrors, price: undefined });
-                }
-              }}
-              placeholder="0.00"
-              className={fieldErrors.price ? 'border-destructive' : ''}
-            />
-            {fieldErrors.price && (
-              <p className="text-xs text-destructive">{fieldErrors.price}</p>
-            )}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="variant-inventory">Inventory *</Label>
-            <Input
-              id="variant-inventory"
-              type="number"
-              min="0"
-              value={inventory}
-              onChange={(e) => {
-                setInventory(e.target.value);
-                if (fieldErrors.inventory) {
-                  setFieldErrors({ ...fieldErrors, inventory: undefined });
-                }
-              }}
-              placeholder="0"
-              className={fieldErrors.inventory ? 'border-destructive' : ''}
-            />
-            {fieldErrors.inventory && (
-              <p className="text-xs text-destructive">{fieldErrors.inventory}</p>
-            )}
-          </div>
-          <Button onClick={handleAddVariant} className="gap-2">
-            <Plus className="h-4 w-4" />
-            Add Variant
-          </Button>
+    <div className="space-y-4">
+      {/* Existing Variants List */}
+      {variants.length > 0 ? (
+        <div className="space-y-2">
+          {variants.map((variant, index) => (
+            <div
+              key={variant.id}
+              className="flex items-center justify-between p-3 border rounded-lg bg-muted/30"
+            >
+              <div className="flex items-center gap-4 text-sm">
+                <span className="font-medium">{variant.size} / {variant.color}</span>
+                <span className="text-muted-foreground">₱{Number(variant.price).toLocaleString()}</span>
+                <span className="text-muted-foreground">Stock: {Number(variant.inventory)}</span>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleEdit(index)}
+                >
+                  Edit
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleDelete(index)}
+                  className="text-destructive hover:text-destructive"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          ))}
         </div>
+      ) : (
+        <p className="text-sm text-muted-foreground italic">
+          No variants added yet. You can save the product without variants, or add variants below.
+        </p>
+      )}
 
-        {/* Warning only for variants that have incomplete data (not for zero variants) */}
-        {hasIncompleteVariants && (
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              Some variants are missing required fields. Please ensure all variants have size, color, price, and inventory values.
-            </AlertDescription>
-          </Alert>
-        )}
-
-        {/* Variants List */}
-        {variants.length > 0 ? (
-          <div className="border rounded-lg">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Size</TableHead>
-                  <TableHead>Color</TableHead>
-                  <TableHead>Price</TableHead>
-                  <TableHead>Inventory</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {variants.map((variant) => (
-                  <TableRow key={variant.id}>
-                    <TableCell className="font-medium">{variant.size}</TableCell>
-                    <TableCell>{variant.color}</TableCell>
-                    <TableCell>
-                      {editingId === variant.id ? (
-                        <Input
-                          type="number"
-                          min="0.01"
-                          step="0.01"
-                          value={editPrice}
-                          onChange={(e) => setEditPrice(e.target.value)}
-                          className="w-24"
-                        />
-                      ) : (
-                        `$${(Number(variant.price) / 100).toFixed(2)}`
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {editingId === variant.id ? (
-                        <Input
-                          type="number"
-                          min="0"
-                          value={editInventory}
-                          onChange={(e) => setEditInventory(e.target.value)}
-                          className="w-24"
-                        />
-                      ) : (
-                        Number(variant.inventory)
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        {editingId === variant.id ? (
-                          <>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              onClick={() => handleSaveEdit(variant.id)}
-                            >
-                              <Check className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              onClick={handleCancelEdit}
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </>
-                        ) : (
-                          <>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              onClick={() => handleStartEdit(variant)}
-                            >
-                              <Edit2 className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              onClick={() => handleRemoveVariant(variant.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        ) : (
-          <p className="text-sm text-muted-foreground text-center py-4">
-            No variants added yet. You can add variants above, or save the product without any variants.
-          </p>
-        )}
-      </CardContent>
-    </Card>
+      {/* Add/Edit Form */}
+      {showAddForm ? (
+        <Card className="border-dashed">
+          <CardContent className="pt-4 space-y-3">
+            <p className="text-sm font-medium">
+              {editingIndex !== null ? 'Edit Variant' : 'New Variant'}
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label className="text-xs">Size *</Label>
+                <Input
+                  value={form.size}
+                  onChange={e => setForm(f => ({ ...f, size: e.target.value }))}
+                  placeholder="e.g. Small, M, 10cm"
+                  className={formErrors.size ? 'border-destructive' : ''}
+                />
+                {formErrors.size && <p className="text-xs text-destructive">{formErrors.size}</p>}
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Color *</Label>
+                <Input
+                  value={form.color}
+                  onChange={e => setForm(f => ({ ...f, color: e.target.value }))}
+                  placeholder="e.g. Green, Natural"
+                  className={formErrors.color ? 'border-destructive' : ''}
+                />
+                {formErrors.color && <p className="text-xs text-destructive">{formErrors.color}</p>}
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Price (₱) *</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  value={form.price}
+                  onChange={e => setForm(f => ({ ...f, price: e.target.value }))}
+                  placeholder="0"
+                  className={formErrors.price ? 'border-destructive' : ''}
+                />
+                {formErrors.price && <p className="text-xs text-destructive">{formErrors.price}</p>}
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Inventory *</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  value={form.inventory}
+                  onChange={e => setForm(f => ({ ...f, inventory: e.target.value }))}
+                  placeholder="0"
+                  className={formErrors.inventory ? 'border-destructive' : ''}
+                />
+                {formErrors.inventory && <p className="text-xs text-destructive">{formErrors.inventory}</p>}
+              </div>
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button type="button" variant="outline" size="sm" onClick={handleCancel}>
+                Cancel
+              </Button>
+              <Button type="button" size="sm" onClick={handleSave}>
+                {editingIndex !== null ? 'Update Variant' : 'Add Variant'}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => { setForm(emptyVariantForm()); setShowAddForm(true); }}
+          className="w-full"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Add Variant
+        </Button>
+      )}
+    </div>
   );
 }

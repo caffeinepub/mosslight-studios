@@ -1,11 +1,10 @@
 # Specification
 
 ## Summary
-**Goal:** Auto-register the first Internet Identity user who logs in as the admin principal, eliminating the need for manual admin setup.
+**Goal:** Restore all currency displays throughout the frontend from British Pounds (£) back to US Dollars ($).
 
 **Planned changes:**
-- Update the backend so that if no admin principal is stored, the first authenticated caller's principal is automatically saved as admin; subsequent logins do not overwrite it.
-- Update the frontend admin authentication flow so that on first login, instead of showing a "Permission Denied" error, the app automatically registers that user as admin and grants admin access seamlessly.
-- Ensure that if an admin is already registered and a different principal logs in, the permission denied message is still shown appropriately.
+- Replace all `£` symbols and GBP formatting with `$` (USD) across the frontend
+- Update currency formatting to use `en-US` locale (e.g., `$1,234.56`) on product prices, cart totals, checkout summaries, order totals, and admin analytics revenue figures
 
-**User-visible outcome:** The first user to log in via Internet Identity is automatically granted admin access without any manual registration step or permission denied errors. Subsequent users who are not the registered admin still see the appropriate permission denied message.
+**User-visible outcome:** Every monetary value shown in the app — product prices, cart, checkout, orders, and analytics — displays in USD (`$`) with no `£` symbols remaining.

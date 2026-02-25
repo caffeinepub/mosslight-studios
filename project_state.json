@@ -1,26 +1,17 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "App with Internet Identity login and admin functionality. Auto-registers the first user who logs in as admin principal.",
+  "summary": "E-commerce project with product variants support. User requested currency display be changed back to USD from GBP.",
   "architectural_notes": [
-    "First user to log in via Internet Identity is auto-registered as admin principal in the backend."
+    "Currency display should be USD ($) throughout the app"
   ],
   "known_issues": [],
   "isFixRequest": true,
-  "existing_features": [
-    {
-      "id": "feature-update-the-frontend-admin-authentication-flow-so-that-when-a-user-logs-in-via-internet-identity-and-no-admin-is-yet-registered-the-app-automatically-registers-that-user-as-admin-and-grants-admin-access-without-showing-a-permission-denied-error",
-      "title": "Update the frontend admin authentication flow so that when a user logs in via Internet Identity and no admin is yet registered, the app automatically registers that user as admin and grants admin access without showing a 'Permission Denied' error.",
-      "reqIds": [
-        "REQ-2"
-      ],
-      "version": 1
-    }
-  ],
+  "existing_features": [],
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Update the backend to auto-register the first Internet Identity principal that calls a registration or login endpoint as the admin principal. If an admin principal is already set, subsequent logins should not overwrite it.",
+      "summary": "Replace all British Pound (£) currency symbols and GBP formatting with US Dollar ($) formatting throughout the frontend. Every place that displays a monetary value — product prices, cart totals, order totals, checkout summaries, analytics revenue figures, and any other price display — must use the USD locale format (e.g., '$12.99') consistently.",
       "reqIds": [
         "REQ-1"
       ],
@@ -28,7 +19,7 @@
     }
   ],
   "gameProjectType": "none",
-  "projectName": "Auto-register first login user as admin",
+  "projectName": "Restore currency display to USD ($) throughout the app",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

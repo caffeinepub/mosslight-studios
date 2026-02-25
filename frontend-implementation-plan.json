@@ -1,31 +1,70 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Auto-register first login user as admin",
+  "title": "Restore currency display to USD ($) throughout the app",
   "requirements": [
     {
-      "id": "REQ-2",
-      "summary": "Update the frontend admin authentication flow to automatically register the first Internet Identity user as admin without showing permission errors",
+      "id": "REQ-1",
+      "summary": "Replace all British Pound (£) currency symbols and GBP formatting with US Dollar ($) formatting throughout the frontend",
       "acceptanceCriteria": [
-        "On first login, no 'Permission Denied' error is shown.",
-        "The first logged-in user is seamlessly granted admin access.",
-        "If an admin is already registered and a different principal logs in, the permission denied message is still shown appropriately."
+        "All product prices on the ProductsPage, ProductCard, and ProductDetailPage display with '$' prefix.",
+        "Cart page totals and line-item prices display in USD ($).",
+        "Checkout page order summary shows USD ($) amounts.",
+        "Admin analytics revenue figures display in USD ($).",
+        "Order cards (MyOrderCard, OrderList) show per-line and total amounts in USD ($).",
+        "No '£' symbol appears anywhere in the application.",
+        "Currency formatting uses en-US locale (e.g., $1,234.56)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useAdminAuth.tsx",
+          "path": "frontend/src/components/ProductCard.tsx",
           "operation": "modify",
-          "description": "Update the AdminAuthProvider to call the registerOrLogin backend method immediately after Internet Identity authentication completes. This ensures that if no admin is registered yet, the current principal is automatically registered as admin. The existing passcode-based auth flow remains unchanged. Use the authorization component's guidance to verify the component's usage instructions before implementing."
+          "description": "Replace any £ or GBP currency formatting with USD ($) formatting using en-US locale (e.g., Intl.NumberFormat or manual formatting). Ensure product price displays with $ prefix."
         },
         {
-          "path": "frontend/src/components/AdminGuard.tsx",
+          "path": "frontend/src/pages/ProductDetailPage.tsx",
           "operation": "modify",
-          "description": "Update the AdminGuard component to check both the passcode-based authentication state and the backend admin role before showing the AccessDeniedScreen. When a user logs in via Internet Identity, query the backend to verify their admin status. If they are admin (either newly registered or previously registered), grant access without showing the permission error. Maintain the existing guard behavior for non-admin principals."
+          "description": "Replace any £ or GBP currency formatting with USD ($) formatting using en-US locale. Ensure product price and any variant prices display with $ prefix."
         },
         {
-          "path": "frontend/src/components/Header.tsx",
+          "path": "frontend/src/pages/ProductsPage.tsx",
           "operation": "modify",
-          "description": "Update the admin access flow in the Header component. After Internet Identity login, attempt to call registerOrLogin to ensure first-time users are registered as admin. Then verify admin status before showing the AdminLoginModal. If the user is already admin, skip the passcode modal and grant direct access to admin routes. This prevents the 'Permission Denied' message for the first logged-in user."
+          "description": "Replace any £ or GBP currency formatting with USD ($) formatting using en-US locale for any price displays on the products listing page."
+        },
+        {
+          "path": "frontend/src/pages/CartPage.tsx",
+          "operation": "modify",
+          "description": "Replace any £ or GBP currency formatting with USD ($) formatting using en-US locale. Ensure line-item prices and cart total display with $ prefix."
+        },
+        {
+          "path": "frontend/src/pages/CheckoutPage.tsx",
+          "operation": "modify",
+          "description": "Replace any £ or GBP currency formatting with USD ($) formatting using en-US locale. Ensure order summary totals display with $ prefix."
+        },
+        {
+          "path": "frontend/src/components/MyOrderCard.tsx",
+          "operation": "modify",
+          "description": "Replace any £ or GBP currency formatting with USD ($) formatting using en-US locale. Ensure per-line and order total amounts display with $ prefix."
+        },
+        {
+          "path": "frontend/src/components/OrderList.tsx",
+          "operation": "modify",
+          "description": "Replace any £ or GBP currency formatting with USD ($) formatting using en-US locale for any order totals or line-item prices displayed in the admin order list."
+        },
+        {
+          "path": "frontend/src/pages/AdminAnalyticsPage.tsx",
+          "operation": "modify",
+          "description": "Replace any £ or GBP currency formatting with USD ($) formatting using en-US locale. Ensure total revenue and any other monetary figures display with $ prefix."
+        },
+        {
+          "path": "frontend/src/components/AddToCartButton.tsx",
+          "operation": "modify",
+          "description": "Replace any £ or GBP currency formatting with USD ($) formatting using en-US locale for any price displays in the add-to-cart component."
+        },
+        {
+          "path": "frontend/src/components/ProductForm.tsx",
+          "operation": "modify",
+          "description": "Replace any £ or GBP currency formatting with USD ($) formatting using en-US locale for price input labels or preview displays in the admin product form."
         }
       ]
     }

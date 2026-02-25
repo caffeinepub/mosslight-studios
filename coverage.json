@@ -1,53 +1,39 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-24T23:29:40.211Z",
+  "generatedAt": "2026-02-25T00:10:16.158Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 2,
-    "implemented": 1,
+    "total": 1,
+    "implemented": 0,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Update the backend to auto-register the first Internet Identity principal that calls a registration or login endpoint as the admin principal. If an admin principal is already set, subsequent logins should not overwrite it.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-2",
-        "summary": "Update the frontend admin authentication flow so that when a user logs in via Internet Identity and no admin is yet registered, the app automatically registers that user as admin and grants admin access without showing a 'Permission Denied' error.",
-        "status": "implemented",
+        "summary": "Replace all British Pound (£) currency symbols and GBP formatting with US Dollar ($) formatting throughout the frontend. Every place that displays a monetary value — product prices, cart totals, order totals, checkout summaries, analytics revenue figures, and any other price display — must use the USD locale format (e.g., '$12.99') consistently.",
+        "status": "missing",
         "plannedFiles": [
-          "frontend/src/hooks/useAdminAuth.tsx",
-          "frontend/src/components/AdminGuard.tsx",
-          "frontend/src/components/Header.tsx"
+          "frontend/src/components/ProductCard.tsx",
+          "frontend/src/pages/ProductDetailPage.tsx",
+          "frontend/src/pages/ProductsPage.tsx",
+          "frontend/src/pages/CartPage.tsx",
+          "frontend/src/pages/CheckoutPage.tsx",
+          "frontend/src/components/MyOrderCard.tsx",
+          "frontend/src/components/OrderList.tsx",
+          "frontend/src/pages/AdminAnalyticsPage.tsx",
+          "frontend/src/components/AddToCartButton.tsx",
+          "frontend/src/components/ProductForm.tsx"
         ],
-        "matchedFiles": [
-          "frontend/src/hooks/useAdminAuth.tsx",
-          "frontend/src/components/AdminGuard.tsx",
-          "frontend/src/components/Header.tsx"
-        ]
+        "matchedFiles": []
       }
     ]
   },
   "changedFiles": [
-    "backend/main.mo",
-    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
-    "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/backend.d.ts",
-    "frontend/src/backend.ts",
-    "frontend/src/components/AdminGuard.tsx",
-    "frontend/src/components/Header.tsx",
-    "frontend/src/declarations/backend.did.d.ts",
-    "frontend/src/declarations/backend.did.js",
-    "frontend/src/hooks/useAdminAuth.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

@@ -1,27 +1,4 @@
 {
   "kind": "feature_evidence_report",
-  "features": [
-    {
-      "featureId": "feature-update-the-frontend-admin-authentication-flow-so-that-when-a-user-logs-in-via-internet-identity-and-no-admin-is-yet-registered-the-app-automatically-registers-that-user-as-admin-and-grants-admin-access-without-showing-a-permission-denied-error",
-      "featureTitle": "Update the frontend admin authentication flow so that when a user logs in via Internet Identity and no admin is yet registered, the app automatically registers that user as admin and grants admin access without showing a 'Permission Denied' error.",
-      "files": [
-        "frontend/src/components/AdminGuard.tsx",
-        "frontend/src/components/Header.tsx",
-        "frontend/src/hooks/useAdminAuth.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-2"
-      ],
-      "confidence": "high"
-    }
-  ]
+  "features": []
 }

@@ -1,53 +1,39 @@
 {
   "kind": "build_request",
-  "title": "Auto-register first login user as admin",
+  "title": "Restore currency display to USD ($) throughout the app",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Update the backend to auto-register the first Internet Identity principal that calls a registration or login endpoint as the admin principal. If an admin principal is already set, subsequent logins should not overwrite it.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-recent"
-        ],
-        "quotes": [
-          "Auto-register the first user who logs in as admin on first login, your Internet Identity principal will automatically be stored as the admin principal"
-        ]
-      },
-      "acceptanceCriteria": [
-        "If no admin principal is stored, the first authenticated caller's principal is saved as admin.",
-        "Subsequent logins do not overwrite the stored admin principal.",
-        "The existing admin authorization checks use the stored principal correctly."
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "text": "Update the frontend admin authentication flow so that when a user logs in via Internet Identity and no admin is yet registered, the app automatically registers that user as admin and grants admin access without showing a 'Permission Denied' error.",
+      "text": "Replace all British Pound (£) currency symbols and GBP formatting with US Dollar ($) formatting throughout the frontend. Every place that displays a monetary value — product prices, cart totals, order totals, checkout summaries, analytics revenue figures, and any other price display — must use the USD locale format (e.g., '$12.99') consistently.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-recent"
+          "msg-user-1"
         ],
         "quotes": [
-          "Permission Denied: Your Internet Identity principal is not registered as an admin. Please log out and log back in as admin."
+          "the dollar amount has chaged from usd to pound i need it back on usd please"
         ]
       },
       "acceptanceCriteria": [
-        "On first login, no 'Permission Denied' error is shown.",
-        "The first logged-in user is seamlessly granted admin access.",
-        "If an admin is already registered and a different principal logs in, the permission denied message is still shown appropriately."
+        "All product prices on the ProductsPage, ProductCard, and ProductDetailPage display with '$' prefix.",
+        "Cart page totals and line-item prices display in USD ($).",
+        "Checkout page order summary shows USD ($) amounts.",
+        "Admin analytics revenue figures display in USD ($).",
+        "Order cards (MyOrderCard, OrderList) show per-line and total amounts in USD ($).",
+        "No '£' symbol appears anywhere in the application.",
+        "Currency formatting uses en-US locale (e.g., $1,234.56)."
       ]
     }
   ],
   "constraints": [
-    "Do not change any existing admin feature logic beyond the first-login auto-registration flow.",
-    "The immutable frontend paths (useInternetIdentity, useActor, main.tsx, components/ui) must not be modified."
+    "Do not change any backend data or pricing logic — this is a display-only fix.",
+    "Do not modify any files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui."
   ],
   "nonGoals": [
-    "Multi-admin support or admin role management.",
-    "Manual admin principal update UI.",
-    "Changing the passcode-based admin auth flow beyond what is needed for first-login registration."
+    "Adding multi-currency support or currency switching.",
+    "Changing any backend price storage or calculation logic.",
+    "Modifying any feature unrelated to currency display."
   ],
   "imageRequirements": {
     "required": [],
