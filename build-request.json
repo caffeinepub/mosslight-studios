@@ -1,39 +1,79 @@
 {
   "kind": "build_request",
-  "title": "Restore currency display to USD ($) throughout the app",
+  "title": "Fix currency handling to always use USD during product upload",
+  "projectName": "Mosslight Studios",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Replace all British Pound (£) currency symbols and GBP formatting with US Dollar ($) formatting throughout the frontend. Every place that displays a monetary value — product prices, cart totals, order totals, checkout summaries, analytics revenue figures, and any other price display — must use the USD locale format (e.g., '$12.99') consistently.",
+      "text": "When creating or editing a product via the ProductForm, ensure the price field is always stored and transmitted as USD dollars with no currency conversion applied. Remove or disable any logic that converts the price to pounds, pence, or cents.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-1"
+          "msg-3",
+          "msg-4"
         ],
         "quotes": [
-          "the dollar amount has chaged from usd to pound i need it back on usd please"
+          "when im uploading a new product it should always be usd",
+          "the currency should always be set to USD (dollars) and should never be converted to pounds or cents"
         ]
       },
       "acceptanceCriteria": [
-        "All product prices on the ProductsPage, ProductCard, and ProductDetailPage display with '$' prefix.",
-        "Cart page totals and line-item prices display in USD ($).",
-        "Checkout page order summary shows USD ($) amounts.",
-        "Admin analytics revenue figures display in USD ($).",
-        "Order cards (MyOrderCard, OrderList) show per-line and total amounts in USD ($).",
-        "No '£' symbol appears anywhere in the application.",
-        "Currency formatting uses en-US locale (e.g., $1,234.56)."
+        "When a product is created with a price of $25.00, the stored price is 25.00 (USD dollars), not 2500 cents or a pounds equivalent.",
+        "No currency conversion function is applied to the price value in ProductForm before submitting to the backend.",
+        "The price displayed after product creation matches the exact dollar amount entered by the admin."
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Ensure item totals throughout the cart, checkout, and order views are calculated as price (USD dollars) × quantity with no currency conversion. If any utility or helper function is performing a dollars-to-cents or USD-to-GBP conversion on item prices, remove or bypass it.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1",
+          "msg-3"
+        ],
+        "quotes": [
+          "it still is converting my total for an item into pounds and changing it from dollars to cents",
+          "The item total should simply be the price in USD multiplied by quantity, with no currency conversion applied anywhere."
+        ]
+      },
+      "acceptanceCriteria": [
+        "A cart item with a unit price of $25.00 and quantity 2 displays a line total of $50.00.",
+        "No pound (£) symbol or pence values appear anywhere in cart, checkout, or order summary.",
+        "Totals are never multiplied by 100 (cents conversion) or divided/multiplied by an exchange rate."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Audit the backend product creation and pricing logic in backend/main.mo to confirm prices are stored as-is in USD dollars (not converted to cents or another currency). If any conversion is present, remove it so prices are stored exactly as submitted.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-1",
+          "msg-3"
+        ],
+        "quotes": [
+          "it still is converting my total for an item into pounds and changing it from dollars to cents",
+          "when im uploading a new product it should always be usd"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Product prices written to the backend state map are the same numeric value submitted by the frontend (e.g., 25.0 stored as 25.0).",
+        "No multiplication by 100 or currency conversion factor exists in product creation or update handlers.",
+        "Order total calculations in the backend use the stored price value directly without any unit conversion."
       ]
     }
   ],
   "constraints": [
-    "Do not change any backend data or pricing logic — this is a display-only fix.",
-    "Do not modify any files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui."
+    "Do not change any immutable frontend paths (hooks/useActor.ts, hooks/useInternetIdentity.ts, main.tsx, src/components/ui).",
+    "Do not introduce any external currency library or exchange-rate API.",
+    "All prices must remain in USD dollars throughout the entire stack."
   ],
   "nonGoals": [
-    "Adding multi-currency support or currency switching.",
-    "Changing any backend price storage or calculation logic.",
-    "Modifying any feature unrelated to currency display."
+    "Adding multi-currency support or currency selection.",
+    "Changing the visual design or layout of ProductForm, CartPage, or CheckoutPage.",
+    "Modifying the variant pricing display logic introduced in the previous build."
   ],
   "imageRequirements": {
     "required": [],

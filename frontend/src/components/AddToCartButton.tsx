@@ -59,11 +59,15 @@ export default function AddToCartButton({
       return;
     }
 
+    // Use variant price if a variant is selected, otherwise use the product base price
+    const itemPrice = selectedVariant ? selectedVariant.price : product.price;
+
     try {
       await addToCart.mutateAsync({
         productId: product.id,
         quantity: BigInt(quantity),
         variantId: selectedVariant?.id || undefined,
+        price: itemPrice,
       });
       toast.success('Added to cart!');
       setQuantity(1);

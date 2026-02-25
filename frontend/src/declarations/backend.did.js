@@ -23,6 +23,7 @@ export const OrderItem = IDL.Record({
   'productId' : IDL.Text,
   'variantId' : IDL.Opt(IDL.Text),
   'quantity' : IDL.Nat,
+  'price' : IDL.Nat,
 });
 export const ProductVariant = IDL.Record({
   'id' : IDL.Text,
@@ -102,6 +103,7 @@ export const OrderStatus = IDL.Variant({
 export const Order = IDL.Record({
   'id' : IDL.Text,
   'status' : OrderStatus,
+  'total' : IDL.Nat,
   'customer' : Customer,
   'date' : Time,
   'items' : IDL.Vec(OrderItem),
@@ -266,6 +268,7 @@ export const idlFactory = ({ IDL }) => {
     'productId' : IDL.Text,
     'variantId' : IDL.Opt(IDL.Text),
     'quantity' : IDL.Nat,
+    'price' : IDL.Nat,
   });
   const ProductVariant = IDL.Record({
     'id' : IDL.Text,
@@ -342,6 +345,7 @@ export const idlFactory = ({ IDL }) => {
   const Order = IDL.Record({
     'id' : IDL.Text,
     'status' : OrderStatus,
+    'total' : IDL.Nat,
     'customer' : Customer,
     'date' : Time,
     'items' : IDL.Vec(OrderItem),

@@ -127,6 +127,7 @@ export interface OrderItem {
     productId: string;
     variantId?: string;
     quantity: bigint;
+    price: bigint;
 }
 export interface _CaffeineStorageCreateCertificateResult {
     method: string;
@@ -151,6 +152,7 @@ export interface ProductVariant {
 export interface Order {
     id: string;
     status: OrderStatus;
+    total: bigint;
     customer: Customer;
     date: Time;
     items: Array<OrderItem>;
@@ -1081,12 +1083,14 @@ function from_candid_record_n34(_uploadFile: (file: ExternalBlob) => Promise<Uin
 function from_candid_record_n38(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     id: string;
     status: _OrderStatus;
+    total: bigint;
     customer: _Customer;
     date: _Time;
     items: Array<_OrderItem>;
 }): {
     id: string;
     status: OrderStatus;
+    total: bigint;
     customer: Customer;
     date: Time;
     items: Array<OrderItem>;
@@ -1094,6 +1098,7 @@ function from_candid_record_n38(_uploadFile: (file: ExternalBlob) => Promise<Uin
     return {
         id: value.id,
         status: from_candid_OrderStatus_n39(_uploadFile, _downloadFile, value.status),
+        total: value.total,
         customer: value.customer,
         date: value.date,
         items: from_candid_vec_n41(_uploadFile, _downloadFile, value.items)
@@ -1103,15 +1108,18 @@ function from_candid_record_n43(_uploadFile: (file: ExternalBlob) => Promise<Uin
     productId: string;
     variantId: [] | [string];
     quantity: bigint;
+    price: bigint;
 }): {
     productId: string;
     variantId?: string;
     quantity: bigint;
+    price: bigint;
 } {
     return {
         productId: value.productId,
         variantId: record_opt_to_undefined(from_candid_opt_n44(_uploadFile, _downloadFile, value.variantId)),
-        quantity: value.quantity
+        quantity: value.quantity,
+        price: value.price
     };
 }
 function from_candid_record_n49(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
@@ -1353,15 +1361,18 @@ function to_candid_record_n9(_uploadFile: (file: ExternalBlob) => Promise<Uint8A
     productId: string;
     variantId?: string;
     quantity: bigint;
+    price: bigint;
 }): {
     productId: string;
     variantId: [] | [string];
     quantity: bigint;
+    price: bigint;
 } {
     return {
         productId: value.productId,
         variantId: value.variantId ? candid_some(value.variantId) : candid_none(),
-        quantity: value.quantity
+        quantity: value.quantity,
+        price: value.price
     };
 }
 function to_candid_variant_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): {

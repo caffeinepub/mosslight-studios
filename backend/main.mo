@@ -48,6 +48,7 @@ actor {
     id : Text;
     customer : Customer;
     items : [OrderItem];
+    total : Nat;
     status : OrderStatus;
     date : Time.Time;
   };
@@ -56,6 +57,7 @@ actor {
     productId : Text;
     variantId : ?Text;
     quantity : Nat;
+    price : Nat;
   };
 
   public type Message = {
@@ -79,7 +81,6 @@ actor {
   };
 
   var adminPrincipal : ?Principal = null;
-
   let HARD_CODED_ADMIN_PRINCIPAL = Principal.fromText("axgif-6oipb-lnqzh-ddzf3-hsjsz-2nw65-g34cg-npb6b-jxnhn-jnnch-6qe");
 
   let accessControlState = AccessControl.initState();
@@ -338,6 +339,7 @@ actor {
           id = order.id;
           customer = order.customer;
           items = order.items;
+          total = order.total;
           status;
           date = order.date;
         };
@@ -711,13 +713,8 @@ actor {
     orderIdCounter += 1;
     let orderId = "order_" # orderIdCounter.toText();
 
-    let order : Order = {
-      id = orderId;
-      customer = caller;
-      items;
-      status = #pending;
-      date = Time.now();
-    };
+    let order = createOrder(caller, items, orderId);
+
     orders.add(orderId, order);
 
     shoppingCarts.remove(caller);
@@ -732,6 +729,69 @@ actor {
     analytics.add(analyticsId, event);
 
     orderId;
+  };
+
+  func createOrder(customer : Customer, items : [OrderItem], orderId : Text) : Order {
+    let processedItems = items.map(
+      func(item) {
+        let price = getItemPrice(item.productId, item.variantId);
+        {
+          productId = item.productId;
+          variantId = item.variantId;
+          quantity = item.quantity;
+          price;
+        };
+      }
+    );
+
+    let total = processedItems.foldLeft(
+      0,
+      func(acc, item) { acc + (item.price * item.quantity) },
+    );
+
+    let order : Order = {
+      id = orderId;
+      customer;
+      items = processedItems;
+      total;
+      status = #pending;
+      date = Time.now();
+    };
+
+    order;
+  };
+
+  func getItemPrice(productId : Text, variantId : ?Text) : Nat {
+    switch (products.get(productId)) {
+      case (null) {
+        Runtime.trap("Product not found: " # productId);
+      };
+      case (?product) {
+        switch (variantId) {
+          case (null) {
+            product.price;
+          };
+          case (?variantId) {
+            switch (product.variants) {
+              case (null) {
+                Runtime.trap("No variants found for product: " # productId);
+              };
+              case (?variants) {
+                let variantOpt = variants.find(func(v) { v.id == variantId });
+                switch (variantOpt) {
+                  case (null) {
+                    Runtime.trap("Variant not found for product: " # productId);
+                  };
+                  case (?variant) {
+                    variant.price;
+                  };
+                };
+              };
+            };
+          };
+        };
+      };
+    };
   };
 
   public query ({ caller }) func getProductVariants(productId : Text) : async ?[ProductVariant] {
@@ -935,12 +995,7 @@ actor {
 
     for (order in orders.values()) {
       for (item in order.items.values()) {
-        switch (products.get(item.productId)) {
-          case (null) {};
-          case (?product) {
-            totalRevenue += product.price * item.quantity;
-          };
-        };
+        totalRevenue += item.price * item.quantity;
       };
     };
 

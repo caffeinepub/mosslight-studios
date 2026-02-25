@@ -53,6 +53,7 @@ export type NotificationType = { 'adminAlert' : null } |
 export interface Order {
   'id' : string,
   'status' : OrderStatus,
+  'total' : bigint,
   'customer' : Customer,
   'date' : Time,
   'items' : Array<OrderItem>,
@@ -61,6 +62,7 @@ export interface OrderItem {
   'productId' : string,
   'variantId' : [] | [string],
   'quantity' : bigint,
+  'price' : bigint,
 }
 export type OrderStatus = { 'shipped' : null } |
   { 'pending' : null } |

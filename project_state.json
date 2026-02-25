@@ -1,25 +1,44 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "E-commerce project with product variants support. User requested currency display be changed back to USD from GBP.",
+  "summary": "E-commerce project with product upload and variant pricing. Fixing currency handling bug where prices are being incorrectly converted from USD to pounds/cents during product upload.",
   "architectural_notes": [
-    "Currency display should be USD ($) throughout the app"
+    "Prices should always be stored and displayed in USD; no currency conversion should ever be applied during product upload or cart calculations."
   ],
-  "known_issues": [],
+  "known_issues": [
+    "Currency conversion bug: item totals are being converted from USD dollars to pounds/cents during product upload — should always remain in USD with total = price × quantity."
+  ],
   "isFixRequest": true,
-  "existing_features": [],
-  "new_feature_requests": [
+  "existing_features": [
     {
-      "id": "AR-1",
-      "summary": "Replace all British Pound (£) currency symbols and GBP formatting with US Dollar ($) formatting throughout the frontend. Every place that displays a monetary value — product prices, cart totals, order totals, checkout summaries, analytics revenue figures, and any other price display — must use the USD locale format (e.g., '$12.99') consistently.",
+      "id": "feature-when-creating-or-editing-a-product-via-the-productform-ensure-the-price-field-is-always-stored-and-transmitted-as-usd-dollars-with-no-currency-conversion-applied-remove-or-disable-any-logic-that-converts-the-price-to-pounds-pence-or-cents",
+      "title": "When creating or editing a product via the ProductForm, ensure the price field is always stored and transmitted as USD dollars with no currency conversion applied. Remove or disable any logic that converts the price to pounds, pence, or cents.",
       "reqIds": [
         "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-item-totals-throughout-the-cart-checkout-and-order-views-are-calculated-as-price-usd-dollars-quantity-with-no-currency-conversion-if-any-utility-or-helper-function-is-performing-a-dollars-to-cents-or-usd-to-gbp-conversion-on-item-prices-remove-or-bypass-it",
+      "title": "Ensure item totals throughout the cart, checkout, and order views are calculated as price (USD dollars) × quantity with no currency conversion. If any utility or helper function is performing a dollars-to-cents or USD-to-GBP conversion on item prices, remove or bypass it.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-3",
+      "summary": "Audit the backend product creation and pricing logic in backend/main.mo to confirm prices are stored as-is in USD dollars (not converted to cents or another currency). If any conversion is present, remove it so prices are stored exactly as submitted.",
+      "reqIds": [
+        "REQ-3"
       ],
       "status": "pending"
     }
   ],
   "gameProjectType": "none",
-  "projectName": "Restore currency display to USD ($) throughout the app",
+  "projectName": "Mosslight Studios",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

@@ -1,4 +1,48 @@
 {
   "kind": "feature_evidence_report",
-  "features": []
+  "features": [
+    {
+      "featureId": "feature-when-creating-or-editing-a-product-via-the-productform-ensure-the-price-field-is-always-stored-and-transmitted-as-usd-dollars-with-no-currency-conversion-applied-remove-or-disable-any-logic-that-converts-the-price-to-pounds-pence-or-cents",
+      "featureTitle": "When creating or editing a product via the ProductForm, ensure the price field is always stored and transmitted as USD dollars with no currency conversion applied. Remove or disable any logic that converts the price to pounds, pence, or cents.",
+      "files": [
+        "frontend/src/components/ProductForm.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-1"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-ensure-item-totals-throughout-the-cart-checkout-and-order-views-are-calculated-as-price-usd-dollars-quantity-with-no-currency-conversion-if-any-utility-or-helper-function-is-performing-a-dollars-to-cents-or-usd-to-gbp-conversion-on-item-prices-remove-or-bypass-it",
+      "featureTitle": "Ensure item totals throughout the cart, checkout, and order views are calculated as price (USD dollars) × quantity with no currency conversion. If any utility or helper function is performing a dollars-to-cents or USD-to-GBP conversion on item prices, remove or bypass it.",
+      "files": [
+        "frontend/src/components/MyOrderCard.tsx",
+        "frontend/src/components/ProductCard.tsx",
+        "frontend/src/pages/CartPage.tsx",
+        "frontend/src/pages/ProductDetailPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-2"
+      ],
+      "confidence": "high"
+    }
+  ]
 }

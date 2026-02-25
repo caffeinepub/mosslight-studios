@@ -1,70 +1,57 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Restore currency display to USD ($) throughout the app",
+  "title": "Fix currency handling to always use USD during product upload",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Replace all British Pound (£) currency symbols and GBP formatting with US Dollar ($) formatting throughout the frontend",
+      "summary": "Ensure ProductForm always stores and transmits prices in USD dollars without currency conversion",
       "acceptanceCriteria": [
-        "All product prices on the ProductsPage, ProductCard, and ProductDetailPage display with '$' prefix.",
-        "Cart page totals and line-item prices display in USD ($).",
-        "Checkout page order summary shows USD ($) amounts.",
-        "Admin analytics revenue figures display in USD ($).",
-        "Order cards (MyOrderCard, OrderList) show per-line and total amounts in USD ($).",
-        "No '£' symbol appears anywhere in the application.",
-        "Currency formatting uses en-US locale (e.g., $1,234.56)."
+        "When a product is created with a price of $25.00, the stored price is 25.00 (USD dollars), not 2500 cents or a pounds equivalent.",
+        "No currency conversion function is applied to the price value in ProductForm before submitting to the backend.",
+        "The price displayed after product creation matches the exact dollar amount entered by the admin."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/ProductCard.tsx",
+          "path": "frontend/src/components/ProductForm.tsx",
           "operation": "modify",
-          "description": "Replace any £ or GBP currency formatting with USD ($) formatting using en-US locale (e.g., Intl.NumberFormat or manual formatting). Ensure product price displays with $ prefix."
-        },
-        {
-          "path": "frontend/src/pages/ProductDetailPage.tsx",
-          "operation": "modify",
-          "description": "Replace any £ or GBP currency formatting with USD ($) formatting using en-US locale. Ensure product price and any variant prices display with $ prefix."
-        },
-        {
-          "path": "frontend/src/pages/ProductsPage.tsx",
-          "operation": "modify",
-          "description": "Replace any £ or GBP currency formatting with USD ($) formatting using en-US locale for any price displays on the products listing page."
-        },
+          "description": "Remove any currency conversion logic (e.g., multiplication by 100 or exchange rate conversion) applied to the price field before submitting to backend. Ensure the price value is transmitted as-is in USD dollars. Verify that both create and edit flows preserve the dollar amount exactly as entered by the admin."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Remove currency conversion from cart, checkout, and order item total calculations",
+      "acceptanceCriteria": [
+        "A cart item with a unit price of $25.00 and quantity 2 displays a line total of $50.00.",
+        "No pound (£) symbol or pence values appear anywhere in cart, checkout, or order summary.",
+        "Totals are never multiplied by 100 (cents conversion) or divided/multiplied by an exchange rate."
+      ],
+      "file_operations": [
         {
           "path": "frontend/src/pages/CartPage.tsx",
           "operation": "modify",
-          "description": "Replace any £ or GBP currency formatting with USD ($) formatting using en-US locale. Ensure line-item prices and cart total display with $ prefix."
+          "description": "Audit and remove any currency conversion logic applied to item prices or line totals. Ensure item totals are calculated as price (USD dollars) × quantity with no multiplication by 100 or exchange rate conversion. Display all prices with the $ symbol and in dollar format (e.g., $25.00)."
         },
         {
           "path": "frontend/src/pages/CheckoutPage.tsx",
           "operation": "modify",
-          "description": "Replace any £ or GBP currency formatting with USD ($) formatting using en-US locale. Ensure order summary totals display with $ prefix."
+          "description": "Remove any currency conversion or cents calculation from order total display. Ensure the order total is shown in USD dollars matching the backend total without conversion. Verify that no pounds or pence values appear in the checkout summary."
         },
         {
           "path": "frontend/src/components/MyOrderCard.tsx",
           "operation": "modify",
-          "description": "Replace any £ or GBP currency formatting with USD ($) formatting using en-US locale. Ensure per-line and order total amounts display with $ prefix."
+          "description": "Ensure item prices and totals displayed in order history are in USD dollars without conversion. Remove any logic that converts backend price values to cents or another currency. Display all monetary values with $ symbol."
         },
         {
-          "path": "frontend/src/components/OrderList.tsx",
+          "path": "frontend/src/pages/ProductDetailPage.tsx",
           "operation": "modify",
-          "description": "Replace any £ or GBP currency formatting with USD ($) formatting using en-US locale for any order totals or line-item prices displayed in the admin order list."
+          "description": "Verify that product prices (base and variant) are displayed in USD dollars without conversion. If any conversion logic exists for price display, remove it. Ensure variant-specific pricing shows the exact dollar amount from the backend."
         },
         {
-          "path": "frontend/src/pages/AdminAnalyticsPage.tsx",
+          "path": "frontend/src/components/ProductCard.tsx",
           "operation": "modify",
-          "description": "Replace any £ or GBP currency formatting with USD ($) formatting using en-US locale. Ensure total revenue and any other monetary figures display with $ prefix."
-        },
-        {
-          "path": "frontend/src/components/AddToCartButton.tsx",
-          "operation": "modify",
-          "description": "Replace any £ or GBP currency formatting with USD ($) formatting using en-US locale for any price displays in the add-to-cart component."
-        },
-        {
-          "path": "frontend/src/components/ProductForm.tsx",
-          "operation": "modify",
-          "description": "Replace any £ or GBP currency formatting with USD ($) formatting using en-US locale for price input labels or preview displays in the admin product form."
+          "description": "Ensure product prices shown on product cards are displayed in USD dollars without conversion. Remove any currency conversion applied to the price value before display."
         }
       ]
     }

@@ -152,6 +152,7 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
       // Prepare variants — parentProductId will be set/overwritten by the backend.
       // For new products: backend sets parentProductId = newly generated product ID.
       // For existing products: backend sets parentProductId = productId.
+      // Prices are stored as USD dollars (whole number, no cents conversion).
       const preparedVariants: ProductVariant[] = hasVariants && variants.length > 0
         ? variants.map(v => ({
             ...v,
@@ -164,6 +165,7 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
       const productData: CreateProductData = {
         name: name.trim(),
         description: description.trim(),
+        // Store price as-is in USD dollars — no multiplication by 100
         price: BigInt(Math.round(price)),
         inventory: BigInt(Math.round(inventory)),
         hasVariants,
@@ -177,7 +179,7 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
       if (isEditing && product) {
         await updateProductMutation.mutateAsync({
           productId: product.id,
-          product: productData,   // key must be "product", not "productData"
+          product: productData,
           images: imageBlobs,
         });
         toast.success('Product updated successfully!');
@@ -251,16 +253,18 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="price">Base Price (₱) *</Label>
+              <Label htmlFor="price">Base Price (USD $) *</Label>
               <Input
                 id="price"
                 type="number"
                 min="0"
+                step="0.01"
                 value={price}
                 onChange={e => setPrice(Number(e.target.value))}
-                placeholder="0"
+                placeholder="0.00"
                 required
               />
+              <p className="text-xs text-muted-foreground">Enter price in US dollars (e.g. 25.00)</p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="inventory">Inventory *</Label>

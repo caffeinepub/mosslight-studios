@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import OrderStatusBadge from './OrderStatusBadge';
 import { useGetProducts } from '../hooks/useProducts';
-import type { Order, ProductVariant } from '../backend';
+import type { Order } from '../backend';
 
 interface MyOrderCardProps {
   order: Order;
@@ -14,18 +14,15 @@ export default function MyOrderCard({ order }: MyOrderCardProps) {
 
   const orderItems = order.items.map(item => {
     const product = products.find(p => p.id === item.productId);
-    let variant: ProductVariant | undefined = undefined;
-    if (product?.hasVariants && item.variantId && product.variants) {
-      variant = product.variants.find(v => v.id === item.variantId);
-    }
+    // Find variant info for display purposes (size/color labels)
+    const variant = product?.hasVariants && item.variantId && product.variants
+      ? product.variants.find(v => v.id === item.variantId)
+      : undefined;
     return { ...item, product, variant };
   });
 
-  const total = orderItems.reduce((sum, item) => {
-    if (!item.product) return sum;
-    const itemPrice = item.variant ? Number(item.variant.price) : Number(item.product.price);
-    return sum + (itemPrice * Number(item.quantity));
-  }, 0);
+  // Use order.total from the backend (authoritative, stored in USD dollars)
+  const total = Number(order.total);
 
   return (
     <Card>
@@ -41,9 +38,10 @@ export default function MyOrderCard({ order }: MyOrderCardProps) {
       <CardContent className="space-y-4">
         <div className="space-y-2">
           {orderItems.map((item, index) => {
-            const itemPrice = item.variant ? Number(item.variant.price) : (item.product ? Number(item.product.price) : 0);
+            // Use item.price directly — stored in USD dollars at time of order
+            const itemPrice = Number(item.price);
             const lineTotal = itemPrice * Number(item.quantity);
-            
+
             return (
               <div key={index} className="space-y-1">
                 <div className="flex justify-between text-sm">
@@ -51,12 +49,12 @@ export default function MyOrderCard({ order }: MyOrderCardProps) {
                     {item.product?.name || 'Unknown Product'} × {Number(item.quantity)}
                   </span>
                   <span className="font-medium">
-                    ${(lineTotal / 100).toFixed(2)}
+                    ${lineTotal.toFixed(2)}
                   </span>
                 </div>
                 {item.variant && (
                   <div className="text-xs text-muted-foreground pl-2">
-                    Size: {item.variant.size} • Color: {item.variant.color} • ${(Number(item.variant.price) / 100).toFixed(2)} each
+                    Size: {item.variant.size} • Color: {item.variant.color} • ${itemPrice.toFixed(2)} each
                   </div>
                 )}
               </div>
@@ -65,7 +63,7 @@ export default function MyOrderCard({ order }: MyOrderCardProps) {
         </div>
         <div className="flex justify-between pt-2 border-t font-semibold">
           <span>Total</span>
-          <span className="text-primary">${(total / 100).toFixed(2)}</span>
+          <span className="text-primary">${total.toFixed(2)}</span>
         </div>
       </CardContent>
     </Card>

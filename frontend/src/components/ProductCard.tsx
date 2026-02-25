@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Star } from 'lucide-react';
 import { useGetProductReviews } from '../hooks/useReviews';
 import { useRecordAnalyticsEvent } from '../hooks/useAnalytics';
+import { useGetProductVariants } from '../hooks/useProductVariants';
 import type { Product } from '../backend';
 
 interface ProductCardProps {
@@ -15,9 +16,15 @@ export default function ProductCard({ product }: ProductCardProps) {
   const imageUrl = product.images[0]?.getDirectURL();
   const { data } = useGetProductReviews(product.id);
   const recordEvent = useRecordAnalyticsEvent();
+  const { data: variants = [] } = useGetProductVariants(product.id);
 
   const { averageRating = 0, reviews = [] } = data || {};
   const reviewCount = reviews.length;
+
+  // Compute lowest variant price for "From $X" display
+  const lowestVariantPrice = product.hasVariants && variants.length > 0
+    ? Math.min(...variants.map(v => Number(v.price)))
+    : null;
 
   const handleClick = () => {
     try {
@@ -68,11 +75,11 @@ export default function ProductCard({ product }: ProductCardProps) {
             <h3 className="font-serif text-lg font-semibold line-clamp-1">
               {product.name}
             </h3>
-            {isOutOfStock && (
+            {isOutOfStock && !product.hasVariants && (
               <Badge variant="destructive" className="shrink-0">Out of Stock</Badge>
             )}
           </div>
-          
+
           {reviewCount > 0 && (
             <div className="flex items-center gap-2">
               {renderStars(averageRating)}
@@ -81,13 +88,26 @@ export default function ProductCard({ product }: ProductCardProps) {
               </span>
             </div>
           )}
-          
+
           <p className="text-sm text-muted-foreground line-clamp-2">
             {product.description}
           </p>
-          <p className="text-xl font-semibold text-primary">
-            ${(Number(product.price) / 100).toFixed(2)}
-          </p>
+
+          {product.hasVariants ? (
+            lowestVariantPrice !== null ? (
+              <p className="text-xl font-semibold text-primary">
+                From ${lowestVariantPrice.toFixed(2)}
+              </p>
+            ) : (
+              <p className="text-sm text-muted-foreground italic">
+                Select options for pricing
+              </p>
+            )
+          ) : (
+            <p className="text-xl font-semibold text-primary">
+              ${Number(product.price).toFixed(2)}
+            </p>
+          )}
         </CardFooter>
       </Card>
     </Link>

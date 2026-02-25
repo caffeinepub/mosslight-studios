@@ -24,8 +24,10 @@ export default function CartPage() {
     return { ...item, product, variant };
   }).filter(item => item.product);
 
+  // Use item.price from OrderItem (set by backend at time of add-to-cart/checkout)
+  // Prices are stored in USD dollars — no cents conversion needed
   const total = cartWithDetails.reduce((sum, item) => {
-    const itemPrice = item.variant ? Number(item.variant.price) : Number(item.product!.price);
+    const itemPrice = Number(item.price);
     return sum + (itemPrice * Number(item.quantity));
   }, 0);
 
@@ -74,9 +76,9 @@ export default function CartPage() {
       <div className="max-w-4xl mx-auto space-y-8">
         <div className="flex items-center justify-between">
           <h1 className="font-serif text-4xl font-bold">Shopping Cart</h1>
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             onClick={handleClearCart}
             disabled={clearCart.isPending}
           >
@@ -88,9 +90,10 @@ export default function CartPage() {
         <div className="space-y-4">
           {cartWithDetails.map((item, index) => {
             const imageUrl = item.product!.images[0]?.getDirectURL();
-            const itemPrice = item.variant ? Number(item.variant.price) : Number(item.product!.price);
+            // Use item.price directly — stored in USD dollars by the backend
+            const itemPrice = Number(item.price);
             const lineTotal = itemPrice * Number(item.quantity);
-            
+
             return (
               <Card key={`${item.productId}-${item.variantId || index}`}>
                 <CardContent className="p-6">
@@ -119,11 +122,11 @@ export default function CartPage() {
                       </p>
                       <div className="flex items-baseline gap-2">
                         <p className="text-sm text-muted-foreground">
-                          ${(itemPrice / 100).toFixed(2)} each
+                          ${itemPrice.toFixed(2)} each
                         </p>
                       </div>
                       <p className="text-lg font-semibold text-primary">
-                        ${(lineTotal / 100).toFixed(2)}
+                        ${lineTotal.toFixed(2)}
                       </p>
                     </div>
                   </div>
@@ -140,15 +143,15 @@ export default function CartPage() {
           <CardContent className="space-y-2">
             <div className="flex justify-between text-lg">
               <span>Subtotal</span>
-              <span>${(total / 100).toFixed(2)}</span>
+              <span>${total.toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-2xl font-bold text-primary pt-2 border-t">
               <span>Total</span>
-              <span>${(total / 100).toFixed(2)}</span>
+              <span>${total.toFixed(2)}</span>
             </div>
           </CardContent>
           <CardFooter>
-            <Button 
+            <Button
               onClick={() => navigate({ to: '/checkout' })}
               size="lg"
               className="w-full"

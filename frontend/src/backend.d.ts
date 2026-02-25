@@ -49,6 +49,7 @@ export interface OrderItem {
     productId: string;
     variantId?: string;
     quantity: bigint;
+    price: bigint;
 }
 export interface DiscussionPost {
     id: string;
@@ -69,6 +70,7 @@ export interface ProductVariant {
 export interface Order {
     id: string;
     status: OrderStatus;
+    total: bigint;
     customer: Customer;
     date: Time;
     items: Array<OrderItem>;

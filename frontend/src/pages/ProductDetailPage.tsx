@@ -24,14 +24,12 @@ export default function ProductDetailPage() {
 
   const availableSizes = useMemo(() => {
     if (!product?.hasVariants || variants.length === 0) return [];
-    const sizes = [...new Set(variants.map(v => v.size))];
-    return sizes;
+    return [...new Set(variants.map(v => v.size))];
   }, [product, variants]);
 
   const availableColors = useMemo(() => {
     if (!product?.hasVariants || variants.length === 0) return [];
-    const colors = [...new Set(variants.map(v => v.color))];
-    return colors;
+    return [...new Set(variants.map(v => v.color))];
   }, [product, variants]);
 
   const selectedVariant = useMemo(() => {
@@ -39,12 +37,11 @@ export default function ProductDetailPage() {
     return variants.find(v => v.size === selectedSize && v.color === selectedColor) || null;
   }, [product, variants, selectedSize, selectedColor]);
 
-  const displayPrice = useMemo(() => {
-    if (product?.hasVariants && selectedVariant) {
-      return Number(selectedVariant.price);
-    }
-    return product ? Number(product.price) : 0;
-  }, [product, selectedVariant]);
+  // Lowest variant price for "From $X" display
+  const lowestVariantPrice = useMemo(() => {
+    if (!product?.hasVariants || variants.length === 0) return null;
+    return Math.min(...variants.map(v => Number(v.price)));
+  }, [product, variants]);
 
   if (isLoading) {
     return (
@@ -72,10 +69,44 @@ export default function ProductDetailPage() {
 
   const imageUrl = product.images[0]?.getDirectURL();
 
+  // Price display logic:
+  // - hasVariants + variant selected → show variant price
+  // - hasVariants + no variant selected → show "From $X" or prompt
+  // - no variants → show base price
+  // Prices are stored in USD dollars (no cents conversion needed)
+  const renderPrice = () => {
+    if (product.hasVariants) {
+      if (selectedVariant) {
+        return (
+          <p className="text-3xl font-semibold text-primary">
+            ${Number(selectedVariant.price).toFixed(2)}
+          </p>
+        );
+      }
+      if (lowestVariantPrice !== null) {
+        return (
+          <p className="text-3xl font-semibold text-primary">
+            From ${lowestVariantPrice.toFixed(2)}
+          </p>
+        );
+      }
+      return (
+        <p className="text-base text-muted-foreground italic">
+          Select options to see price
+        </p>
+      );
+    }
+    return (
+      <p className="text-3xl font-semibold text-primary">
+        ${Number(product.price).toFixed(2)}
+      </p>
+    );
+  };
+
   return (
     <div className="container py-12">
-      <Button 
-        variant="ghost" 
+      <Button
+        variant="ghost"
         onClick={() => navigate({ to: '/products' })}
         className="mb-6"
       >
@@ -102,106 +133,100 @@ export default function ProductDetailPage() {
           <div className="space-y-2">
             <h1 className="font-serif text-4xl font-bold">{product.name}</h1>
             <div className="flex items-center gap-3">
-              <p className="text-3xl font-semibold text-primary">
-                ${(displayPrice / 100).toFixed(2)}
-              </p>
-              {!product.hasVariants && (
-                <>
-                  {isOutOfStock ? (
-                    <Badge variant="destructive">Out of Stock</Badge>
-                  ) : (
-                    <Badge variant="secondary">
-                      {Number(product.inventory)} in stock
-                    </Badge>
-                  )}
-                </>
+              {renderPrice()}
+              {!product.hasVariants && isOutOfStock && (
+                <Badge variant="destructive">Out of Stock</Badge>
               )}
             </div>
           </div>
 
-          <div className="prose prose-sm max-w-none">
-            <p className="text-muted-foreground whitespace-pre-wrap">
-              {product.description}
-            </p>
-          </div>
+          <Separator />
 
-          {product.hasVariants && (
-            <div className="space-y-4 pt-4">
-              <div className="space-y-2">
-                <Label htmlFor="size-select">Select Size</Label>
-                <Select value={selectedSize || ''} onValueChange={setSelectedSize}>
-                  <SelectTrigger id="size-select">
-                    <SelectValue placeholder="Select size" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableSizes.map(size => (
-                      <SelectItem key={size} value={size}>
-                        {size}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+          <p className="text-muted-foreground leading-relaxed">{product.description}</p>
 
-              <div className="space-y-2">
-                <Label htmlFor="color-select">Select Color</Label>
-                <Select value={selectedColor || ''} onValueChange={setSelectedColor}>
-                  <SelectTrigger id="color-select">
-                    <SelectValue placeholder="Select color" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableColors.map(color => (
-                      <SelectItem key={color} value={color}>
-                        {color}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {selectedSize && selectedColor && selectedVariant && (
-                <div className="pt-2">
-                  {Number(selectedVariant.inventory) === 0 ? (
-                    <Badge variant="destructive">Out of Stock</Badge>
-                  ) : Number(selectedVariant.inventory) < 5 ? (
-                    <Badge variant="secondary" className="bg-amber-100 text-amber-900 dark:bg-amber-900 dark:text-amber-100">
-                      Only {Number(selectedVariant.inventory)} left in stock
-                    </Badge>
-                  ) : (
-                    <Badge variant="secondary">In Stock</Badge>
-                  )}
+          {product.hasVariants && variants.length > 0 && (
+            <div className="space-y-4">
+              {availableSizes.length > 0 && (
+                <div className="space-y-2">
+                  <Label>Size</Label>
+                  <Select onValueChange={setSelectedSize}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a size" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableSizes.map(size => (
+                        <SelectItem key={size} value={size}>{size}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
+              )}
+
+              {availableColors.length > 0 && (
+                <div className="space-y-2">
+                  <Label>Color</Label>
+                  <Select onValueChange={setSelectedColor}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a color" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableColors.map(color => (
+                        <SelectItem key={color} value={color}>{color}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {selectedSize && selectedColor && !selectedVariant && (
+                <p className="text-sm text-destructive">
+                  This combination is not available
+                </p>
               )}
             </div>
           )}
 
-          <div className="pt-4">
-            <AddToCartButton 
-              product={product} 
-              disabled={isOutOfStock}
+          <div className="space-y-3">
+            {!product.hasVariants && (
+              <p className="text-sm text-muted-foreground">
+                {Number(product.inventory) > 0
+                  ? `${Number(product.inventory)} in stock`
+                  : 'Out of stock'}
+              </p>
+            )}
+            {product.hasVariants && selectedVariant && (
+              <p className="text-sm text-muted-foreground">
+                {Number(selectedVariant.inventory) > 0
+                  ? `${Number(selectedVariant.inventory)} in stock`
+                  : 'Out of stock for this variant'}
+              </p>
+            )}
+
+            <AddToCartButton
+              product={product}
               hasVariants={product.hasVariants}
               selectedSize={selectedSize}
               selectedColor={selectedColor}
               variants={variants}
+              disabled={isOutOfStock || (product.hasVariants && !selectedVariant)}
             />
           </div>
+
+          {product.categories.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {product.categories.map(cat => (
+                <Badge key={cat} variant="secondary">{cat}</Badge>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
       <Separator className="my-12" />
 
-      <div className="max-w-4xl mx-auto space-y-12">
-        <div className="space-y-6">
-          <h2 className="font-serif text-3xl font-bold">Write a Review</h2>
-          <ReviewForm productId={id} />
-        </div>
-
-        <Separator />
-
-        <div className="space-y-6">
-          <h2 className="font-serif text-3xl font-bold">Customer Reviews</h2>
-          <ProductReviews productId={id} />
-        </div>
+      <div className="max-w-2xl space-y-8">
+        <ProductReviews productId={product.id} />
+        <ReviewForm productId={product.id} />
       </div>
     </div>
   );

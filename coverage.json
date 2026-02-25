@@ -1,39 +1,64 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-25T00:10:16.158Z",
+  "generatedAt": "2026-02-25T03:49:18.110Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 1,
-    "implemented": 0,
+    "total": 3,
+    "implemented": 2,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Replace all British Pound (£) currency symbols and GBP formatting with US Dollar ($) formatting throughout the frontend. Every place that displays a monetary value — product prices, cart totals, order totals, checkout summaries, analytics revenue figures, and any other price display — must use the USD locale format (e.g., '$12.99') consistently.",
-        "status": "missing",
+        "summary": "When creating or editing a product via the ProductForm, ensure the price field is always stored and transmitted as USD dollars with no currency conversion applied. Remove or disable any logic that converts the price to pounds, pence, or cents.",
+        "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/ProductCard.tsx",
-          "frontend/src/pages/ProductDetailPage.tsx",
-          "frontend/src/pages/ProductsPage.tsx",
+          "frontend/src/components/ProductForm.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/ProductForm.tsx"
+        ]
+      },
+      {
+        "id": "REQ-2",
+        "summary": "Ensure item totals throughout the cart, checkout, and order views are calculated as price (USD dollars) × quantity with no currency conversion. If any utility or helper function is performing a dollars-to-cents or USD-to-GBP conversion on item prices, remove or bypass it.",
+        "status": "implemented",
+        "plannedFiles": [
           "frontend/src/pages/CartPage.tsx",
           "frontend/src/pages/CheckoutPage.tsx",
           "frontend/src/components/MyOrderCard.tsx",
-          "frontend/src/components/OrderList.tsx",
-          "frontend/src/pages/AdminAnalyticsPage.tsx",
-          "frontend/src/components/AddToCartButton.tsx",
-          "frontend/src/components/ProductForm.tsx"
+          "frontend/src/pages/ProductDetailPage.tsx",
+          "frontend/src/components/ProductCard.tsx"
         ],
+        "matchedFiles": [
+          "frontend/src/pages/CartPage.tsx",
+          "frontend/src/components/MyOrderCard.tsx",
+          "frontend/src/pages/ProductDetailPage.tsx",
+          "frontend/src/components/ProductCard.tsx"
+        ]
+      },
+      {
+        "id": "REQ-3",
+        "summary": "Audit the backend product creation and pricing logic in backend/main.mo to confirm prices are stored as-is in USD dollars (not converted to cents or another currency). If any conversion is present, remove it so prices are stored exactly as submitted.",
+        "status": "unknown",
+        "plannedFiles": [],
         "matchedFiles": []
       }
     ]
   },
   "changedFiles": [
+    "backend/main.mo",
     "build-request.json",
     "feature_evidence.json",
+    "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
+    "frontend/src/components/MyOrderCard.tsx",
+    "frontend/src/components/ProductCard.tsx",
+    "frontend/src/components/ProductForm.tsx",
+    "frontend/src/pages/CartPage.tsx",
+    "frontend/src/pages/ProductDetailPage.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

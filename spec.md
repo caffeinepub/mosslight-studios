@@ -1,10 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Restore all currency displays throughout the frontend from British Pounds (£) back to US Dollars ($).
+**Goal:** Fix all currency handling across the stack so prices are always stored, transmitted, and displayed in USD dollars with no conversion to cents, pence, or GBP.
 
 **Planned changes:**
-- Replace all `£` symbols and GBP formatting with `$` (USD) across the frontend
-- Update currency formatting to use `en-US` locale (e.g., `$1,234.56`) on product prices, cart totals, checkout summaries, order totals, and admin analytics revenue figures
+- Remove any dollars-to-cents or USD-to-GBP conversion logic in the `ProductForm` so prices are submitted as-is in USD dollars.
+- Remove or bypass any currency conversion utility/helper functions used in cart, checkout, and order summary views so item totals are calculated as `price × quantity` in USD.
+- Audit and fix the backend product creation and update handlers to store prices exactly as submitted, removing any multiplication by 100 or exchange-rate conversion.
 
-**User-visible outcome:** Every monetary value shown in the app — product prices, cart, checkout, orders, and analytics — displays in USD (`$`) with no `£` symbols remaining.
+**User-visible outcome:** Products uploaded with a price of $25.00 are stored and displayed as $25.00 throughout the app. Cart line totals, checkout summaries, and order views all show correct USD dollar amounts with no pound symbols or cent values appearing anywhere.
