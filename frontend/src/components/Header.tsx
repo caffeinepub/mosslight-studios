@@ -60,52 +60,66 @@ export default function Header() {
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-8">
             <Link to="/" className="flex items-center gap-2">
-              <img 
+              <img
                 src="/assets/619647707_122115297897152953_3726434048431036262_n.jpg"
-                alt="Mosslight Studios" 
+                alt="Mosslight Studios"
                 className="h-11 w-11 object-contain rounded-full"
               />
             </Link>
 
             <nav className="hidden md:flex items-center gap-6">
-              <Link 
-                to="/products" 
+              <Link
+                to="/products"
                 className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
                 activeProps={{ className: 'text-primary' }}
               >
                 Shop
               </Link>
-              <Link 
-                to="/gallery" 
+              <Link
+                to="/portfolio"
+                className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
+                activeProps={{ className: 'text-primary' }}
+              >
+                Portfolio
+              </Link>
+              <Link
+                to="/gallery"
                 className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
                 activeProps={{ className: 'text-primary' }}
               >
                 Gallery
               </Link>
-              <Link 
-                to="/about" 
+              <Link
+                to="/blog"
+                className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
+                activeProps={{ className: 'text-primary' }}
+              >
+                Blog
+              </Link>
+              <Link
+                to="/about"
                 className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
                 activeProps={{ className: 'text-primary' }}
               >
                 About
               </Link>
-              <Link 
-                to="/faq" 
+              <Link
+                to="/faq"
                 className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
                 activeProps={{ className: 'text-primary' }}
               >
                 FAQ
               </Link>
-              <Link 
-                to="/forum" 
+              <Link
+                to="/forum"
                 className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
                 activeProps={{ className: 'text-primary' }}
               >
                 Forum
               </Link>
               {isAuthenticated && (
-                <Link 
-                  to="/my-orders" 
+                <Link
+                  to="/my-orders"
                   className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
                   activeProps={{ className: 'text-primary' }}
                 >
@@ -193,44 +207,58 @@ export default function Header() {
         {mobileMenuOpen && (
           <div className="md:hidden border-t bg-background">
             <nav className="container py-4 flex flex-col gap-4">
-              <Link 
-                to="/products" 
+              <Link
+                to="/products"
                 className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Shop
               </Link>
-              <Link 
-                to="/gallery" 
+              <Link
+                to="/portfolio"
+                className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Portfolio
+              </Link>
+              <Link
+                to="/gallery"
                 className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Gallery
               </Link>
-              <Link 
-                to="/about" 
+              <Link
+                to="/blog"
+                className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Blog
+              </Link>
+              <Link
+                to="/about"
                 className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 About
               </Link>
-              <Link 
-                to="/faq" 
+              <Link
+                to="/faq"
                 className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 FAQ
               </Link>
-              <Link 
-                to="/forum" 
+              <Link
+                to="/forum"
                 className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Forum
               </Link>
               {isAuthenticated && (
-                <Link 
-                  to="/my-orders" 
+                <Link
+                  to="/my-orders"
                   className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
                   onClick={() => setMobileMenuOpen(false)}
                 >
@@ -274,8 +302,8 @@ export default function Header() {
               <div className="pt-1 border-t">
                 {isAdminAuthenticated ? (
                   <>
-                    <Link 
-                      to="/admin-dashboard" 
+                    <Link
+                      to="/admin-dashboard"
                       className="text-sm font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-2 mb-3"
                       onClick={() => setMobileMenuOpen(false)}
                     >

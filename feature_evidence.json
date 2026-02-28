@@ -2,10 +2,13 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-when-creating-or-editing-a-product-via-the-productform-ensure-the-price-field-is-always-stored-and-transmitted-as-usd-dollars-with-no-currency-conversion-applied-remove-or-disable-any-logic-that-converts-the-price-to-pounds-pence-or-cents",
-      "featureTitle": "When creating or editing a product via the ProductForm, ensure the price field is always stored and transmitted as USD dollars with no currency conversion applied. Remove or disable any logic that converts the price to pounds, pence, or cents.",
+      "featureId": "feature-add-a-portfolio-section-to-the-site-that-displays-finished-artwork-pieces-each-portfolio-item-should-have-a-title-description-image-and-category-medium-tag-display-items-in-a-responsive-grid-layout",
+      "featureTitle": "Add a Portfolio section to the site that displays finished artwork pieces. Each portfolio item should have a title, description, image, and category/medium tag. Display items in a responsive grid layout.",
       "files": [
-        "frontend/src/components/ProductForm.tsx"
+        "frontend/src/App.tsx",
+        "frontend/src/components/PortfolioGrid.tsx",
+        "frontend/src/hooks/usePortfolio.ts",
+        "frontend/src/pages/PortfolioPage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -22,13 +25,15 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-ensure-item-totals-throughout-the-cart-checkout-and-order-views-are-calculated-as-price-usd-dollars-quantity-with-no-currency-conversion-if-any-utility-or-helper-function-is-performing-a-dollars-to-cents-or-usd-to-gbp-conversion-on-item-prices-remove-or-bypass-it",
-      "featureTitle": "Ensure item totals throughout the cart, checkout, and order views are calculated as price (USD dollars) × quantity with no currency conversion. If any utility or helper function is performing a dollars-to-cents or USD-to-GBP conversion on item prices, remove or bypass it.",
+      "featureId": "feature-add-a-gallery-section-for-photos-and-behind-the-scenes-content-each-gallery-item-has-a-title-description-and-image-visitors-can-leave-public-comments-name-comment-text-no-login-required-on-each-gallery-item",
+      "featureTitle": "Add a Gallery section for photos and behind-the-scenes content. Each gallery item has a title, description, and image. Visitors can leave public comments (name + comment text, no login required) on each gallery item.",
       "files": [
-        "frontend/src/components/MyOrderCard.tsx",
-        "frontend/src/components/ProductCard.tsx",
-        "frontend/src/pages/CartPage.tsx",
-        "frontend/src/pages/ProductDetailPage.tsx"
+        "frontend/src/components/CommentForm.tsx",
+        "frontend/src/components/CommentList.tsx",
+        "frontend/src/components/GalleryGrid.tsx",
+        "frontend/src/hooks/useComments.ts",
+        "frontend/src/hooks/useGallery.ts",
+        "frontend/src/pages/GalleryPage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -41,6 +46,77 @@
       ],
       "testIds": [
         "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-a-blog-section-where-the-admin-can-publish-posts-containing-text-and-an-optional-image-visitors-can-leave-public-comments-name-comment-text-no-login-required-on-each-blog-post",
+      "featureTitle": "Add a Blog section where the admin can publish posts containing text and an optional image. Visitors can leave public comments (name + comment text, no login required) on each blog post.",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/components/BlogCard.tsx",
+        "frontend/src/hooks/useBlog.ts",
+        "frontend/src/pages/BlogDetailPage.tsx",
+        "frontend/src/pages/BlogPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-an-admin-panel-section-protected-by-internet-identity-via-adminguard-for-managing-portfolio-gallery-and-blog-content-the-panel-should-allow-the-admin-to-add-edit-and-delete-portfolio-items-gallery-items-and-blog-posts-including-uploading-images-stored-as-blobs",
+      "featureTitle": "Add an Admin Panel section (protected by Internet Identity via AdminGuard) for managing Portfolio, Gallery, and Blog content. The panel should allow the admin to add, edit, and delete portfolio items, gallery items, and blog posts, including uploading images stored as blobs.",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/components/BlogForm.tsx",
+        "frontend/src/components/GalleryItemForm.tsx",
+        "frontend/src/components/PortfolioForm.tsx",
+        "frontend/src/pages/AdminBlogPage.tsx",
+        "frontend/src/pages/AdminDashboardPage.tsx",
+        "frontend/src/pages/AdminGalleryManagementPage.tsx",
+        "frontend/src/pages/AdminPortfolioPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-5"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-portfolio-and-blog-navigation-links-to-the-site-header-so-visitors-can-easily-reach-the-new-sections",
+      "featureTitle": "Add Portfolio and Blog navigation links to the site Header so visitors can easily reach the new sections.",
+      "files": [
+        "frontend/src/components/Header.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-6"
       ],
       "confidence": "high"
     }

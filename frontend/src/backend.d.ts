@@ -18,6 +18,7 @@ export interface Product {
     id: string;
     sku: string;
     categories: Array<string>;
+    shippingPrice: number;
     hasVariants: boolean;
     inventory: bigint;
     name: string;
@@ -26,6 +27,7 @@ export interface Product {
     sizes: Array<string>;
     colors: Array<string>;
     price: bigint;
+    taxRate: number;
     images: Array<ExternalBlob>;
 }
 export interface UserProfile {
@@ -50,6 +52,14 @@ export interface OrderItem {
     variantId?: string;
     quantity: bigint;
     price: bigint;
+}
+export interface Comment {
+    id: string;
+    name: string;
+    text: string;
+    timestamp: Time;
+    parentId: string;
+    parentType: CommentParentType;
 }
 export interface DiscussionPost {
     id: string;
@@ -79,6 +89,7 @@ export type Customer = Principal;
 export interface CreateProductData {
     sku: string;
     categories: Array<string>;
+    shippingPrice: number;
     hasVariants: boolean;
     inventory: bigint;
     name: string;
@@ -87,6 +98,7 @@ export interface CreateProductData {
     sizes: Array<string>;
     colors: Array<string>;
     price: bigint;
+    taxRate: number;
 }
 export type NotificationType = {
     __kind__: "adminAlert";
@@ -98,6 +110,14 @@ export type NotificationType = {
     __kind__: "lowInventory";
     lowInventory: string;
 };
+export interface PortfolioItem {
+    id: string;
+    title: string;
+    createdAt: Time;
+    description: string;
+    category: string;
+    image: ExternalBlob;
+}
 export interface Notification {
     id: string;
     notifType: NotificationType;
@@ -113,6 +133,20 @@ export interface Message {
     recipient?: Customer;
     timestamp: Time;
 }
+export interface BlogPost {
+    id: string;
+    title: string;
+    createdAt: Time;
+    image?: ExternalBlob;
+    bodyText: string;
+}
+export interface GalleryItem {
+    id: string;
+    title: string;
+    createdAt: Time;
+    description: string;
+    image: ExternalBlob;
+}
 export interface Review {
     reviewText: string;
     productId: string;
@@ -121,6 +155,10 @@ export interface Review {
     rating: bigint;
     reviewer: Principal;
     verifiedPurchase: boolean;
+}
+export enum CommentParentType {
+    blogPost = "blogPost",
+    galleryItem = "galleryItem"
 }
 export enum OrderStatus {
     shipped = "shipped",
@@ -137,7 +175,11 @@ export enum UserRole {
     guest = "guest"
 }
 export interface backendInterface {
+    addBlogPost(title: string, bodyText: string, image: ExternalBlob | null): Promise<string>;
+    addComment(parentId: string, parentType: CommentParentType, name: string, text: string): Promise<string>;
+    addGalleryItem(title: string, description: string, image: ExternalBlob): Promise<string>;
     addItemToCart(item: OrderItem): Promise<void>;
+    addPortfolioItem(title: string, description: string, image: ExternalBlob, category: string): Promise<string>;
     addProduct(product: CreateProductData, images: Array<ExternalBlob>): Promise<void>;
     addReply(postId: string, content: string): Promise<void>;
     addToCart(items: Array<OrderItem>): Promise<void>;
@@ -154,13 +196,17 @@ export interface backendInterface {
         totalRevenue: bigint;
         lowInventoryProducts: Array<Product>;
     }>;
+    getBlogPosts(): Promise<Array<BlogPost>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
+    getCommentsByParent(parentId: string, parentType: CommentParentType): Promise<Array<Comment>>;
+    getGalleryItems(): Promise<Array<GalleryItem>>;
     getMessages(): Promise<Array<Message>>;
     getMyMessages(): Promise<Array<Message>>;
     getMyOrder(orderId: string): Promise<Order | null>;
     getMyOrders(): Promise<Array<Order>>;
     getOrders(): Promise<Array<Order>>;
+    getPortfolioItems(): Promise<Array<PortfolioItem>>;
     getProduct(productId: string): Promise<Product | null>;
     getProductReviews(productId: string): Promise<[Array<Review>, number]>;
     getProductVariants(productId: string): Promise<Array<ProductVariant> | null>;

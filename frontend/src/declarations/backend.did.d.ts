@@ -10,9 +10,27 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
+export interface BlogPost {
+  'id' : string,
+  'title' : string,
+  'createdAt' : Time,
+  'image' : [] | [ExternalBlob],
+  'bodyText' : string,
+}
+export interface Comment {
+  'id' : string,
+  'name' : string,
+  'text' : string,
+  'timestamp' : Time,
+  'parentId' : string,
+  'parentType' : CommentParentType,
+}
+export type CommentParentType = { 'blogPost' : null } |
+  { 'galleryItem' : null };
 export interface CreateProductData {
   'sku' : string,
   'categories' : Array<string>,
+  'shippingPrice' : number,
   'hasVariants' : boolean,
   'inventory' : bigint,
   'name' : string,
@@ -21,6 +39,7 @@ export interface CreateProductData {
   'sizes' : Array<string>,
   'colors' : Array<string>,
   'price' : bigint,
+  'taxRate' : number,
 }
 export type Customer = Principal;
 export interface DiscussionPost {
@@ -32,6 +51,13 @@ export interface DiscussionPost {
   'replies' : Array<Reply>,
 }
 export type ExternalBlob = Uint8Array;
+export interface GalleryItem {
+  'id' : string,
+  'title' : string,
+  'createdAt' : Time,
+  'description' : string,
+  'image' : ExternalBlob,
+}
 export interface Message {
   'id' : string,
   'content' : string,
@@ -67,12 +93,21 @@ export interface OrderItem {
 export type OrderStatus = { 'shipped' : null } |
   { 'pending' : null } |
   { 'delivered' : null };
+export interface PortfolioItem {
+  'id' : string,
+  'title' : string,
+  'createdAt' : Time,
+  'description' : string,
+  'category' : string,
+  'image' : ExternalBlob,
+}
 export type PostStatus = { 'open' : null } |
   { 'answered' : null };
 export interface Product {
   'id' : string,
   'sku' : string,
   'categories' : Array<string>,
+  'shippingPrice' : number,
   'hasVariants' : boolean,
   'inventory' : bigint,
   'name' : string,
@@ -81,6 +116,7 @@ export interface Product {
   'sizes' : Array<string>,
   'colors' : Array<string>,
   'price' : bigint,
+  'taxRate' : number,
   'images' : Array<ExternalBlob>,
 }
 export interface ProductVariant {
@@ -148,7 +184,17 @@ export interface _SERVICE {
   >,
   '_caffeineStorageUpdateGatewayPrincipals' : ActorMethod<[], undefined>,
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
+  'addBlogPost' : ActorMethod<[string, string, [] | [ExternalBlob]], string>,
+  'addComment' : ActorMethod<
+    [string, CommentParentType, string, string],
+    string
+  >,
+  'addGalleryItem' : ActorMethod<[string, string, ExternalBlob], string>,
   'addItemToCart' : ActorMethod<[OrderItem], undefined>,
+  'addPortfolioItem' : ActorMethod<
+    [string, string, ExternalBlob, string],
+    string
+  >,
   'addProduct' : ActorMethod<
     [CreateProductData, Array<ExternalBlob>],
     undefined
@@ -171,13 +217,20 @@ export interface _SERVICE {
       'lowInventoryProducts' : Array<Product>,
     }
   >,
+  'getBlogPosts' : ActorMethod<[], Array<BlogPost>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
+  'getCommentsByParent' : ActorMethod<
+    [string, CommentParentType],
+    Array<Comment>
+  >,
+  'getGalleryItems' : ActorMethod<[], Array<GalleryItem>>,
   'getMessages' : ActorMethod<[], Array<Message>>,
   'getMyMessages' : ActorMethod<[], Array<Message>>,
   'getMyOrder' : ActorMethod<[string], [] | [Order]>,
   'getMyOrders' : ActorMethod<[], Array<Order>>,
   'getOrders' : ActorMethod<[], Array<Order>>,
+  'getPortfolioItems' : ActorMethod<[], Array<PortfolioItem>>,
   'getProduct' : ActorMethod<[string], [] | [Product]>,
   'getProductReviews' : ActorMethod<[string], [Array<Review>, number]>,
   'getProductVariants' : ActorMethod<[string], [] | [Array<ProductVariant>]>,

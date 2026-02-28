@@ -1,64 +1,152 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-25T03:49:18.110Z",
+  "generatedAt": "2026-02-28T13:55:38.602Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 3,
-    "implemented": 2,
+    "total": 6,
+    "implemented": 5,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "When creating or editing a product via the ProductForm, ensure the price field is always stored and transmitted as USD dollars with no currency conversion applied. Remove or disable any logic that converts the price to pounds, pence, or cents.",
+        "summary": "Add a Portfolio section to the site that displays finished artwork pieces. Each portfolio item should have a title, description, image, and category/medium tag. Display items in a responsive grid layout.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/ProductForm.tsx"
+          "frontend/src/hooks/usePortfolio.ts",
+          "frontend/src/components/PortfolioGrid.tsx",
+          "frontend/src/pages/PortfolioPage.tsx",
+          "frontend/src/App.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/ProductForm.tsx"
+          "frontend/src/hooks/usePortfolio.ts",
+          "frontend/src/components/PortfolioGrid.tsx",
+          "frontend/src/pages/PortfolioPage.tsx",
+          "frontend/src/App.tsx"
         ]
       },
       {
         "id": "REQ-2",
-        "summary": "Ensure item totals throughout the cart, checkout, and order views are calculated as price (USD dollars) × quantity with no currency conversion. If any utility or helper function is performing a dollars-to-cents or USD-to-GBP conversion on item prices, remove or bypass it.",
+        "summary": "Add a Gallery section for photos and behind-the-scenes content. Each gallery item has a title, description, and image. Visitors can leave public comments (name + comment text, no login required) on each gallery item.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/CartPage.tsx",
-          "frontend/src/pages/CheckoutPage.tsx",
-          "frontend/src/components/MyOrderCard.tsx",
-          "frontend/src/pages/ProductDetailPage.tsx",
-          "frontend/src/components/ProductCard.tsx"
+          "frontend/src/hooks/useGallery.ts",
+          "frontend/src/hooks/useComments.ts",
+          "frontend/src/components/CommentForm.tsx",
+          "frontend/src/components/CommentList.tsx",
+          "frontend/src/components/GalleryGrid.tsx",
+          "frontend/src/pages/GalleryPage.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/pages/CartPage.tsx",
-          "frontend/src/components/MyOrderCard.tsx",
-          "frontend/src/pages/ProductDetailPage.tsx",
-          "frontend/src/components/ProductCard.tsx"
+          "frontend/src/hooks/useGallery.ts",
+          "frontend/src/hooks/useComments.ts",
+          "frontend/src/components/CommentForm.tsx",
+          "frontend/src/components/CommentList.tsx",
+          "frontend/src/components/GalleryGrid.tsx",
+          "frontend/src/pages/GalleryPage.tsx"
         ]
       },
       {
         "id": "REQ-3",
-        "summary": "Audit the backend product creation and pricing logic in backend/main.mo to confirm prices are stored as-is in USD dollars (not converted to cents or another currency). If any conversion is present, remove it so prices are stored exactly as submitted.",
+        "summary": "Add a Blog section where the admin can publish posts containing text and an optional image. Visitors can leave public comments (name + comment text, no login required) on each blog post.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useBlog.ts",
+          "frontend/src/components/BlogCard.tsx",
+          "frontend/src/pages/BlogPage.tsx",
+          "frontend/src/pages/BlogDetailPage.tsx",
+          "frontend/src/App.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useBlog.ts",
+          "frontend/src/components/BlogCard.tsx",
+          "frontend/src/pages/BlogPage.tsx",
+          "frontend/src/pages/BlogDetailPage.tsx",
+          "frontend/src/App.tsx"
+        ]
+      },
+      {
+        "id": "REQ-4",
+        "summary": "Extend the backend to store portfolio items, gallery items, blog posts, and public comments. Portfolio and gallery items include title, description, imageBlob, and category (portfolio only). Blog posts include title, body text, and an optional imageBlob. Comments include the parent item id, parent type (gallery or blog), commenter name, comment text, and timestamp.",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
+      },
+      {
+        "id": "REQ-5",
+        "summary": "Add an Admin Panel section (protected by Internet Identity via AdminGuard) for managing Portfolio, Gallery, and Blog content. The panel should allow the admin to add, edit, and delete portfolio items, gallery items, and blog posts, including uploading images stored as blobs.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/PortfolioForm.tsx",
+          "frontend/src/components/GalleryItemForm.tsx",
+          "frontend/src/components/BlogForm.tsx",
+          "frontend/src/pages/AdminPortfolioPage.tsx",
+          "frontend/src/pages/AdminGalleryManagementPage.tsx",
+          "frontend/src/pages/AdminBlogPage.tsx",
+          "frontend/src/pages/AdminDashboardPage.tsx",
+          "frontend/src/App.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/PortfolioForm.tsx",
+          "frontend/src/components/GalleryItemForm.tsx",
+          "frontend/src/components/BlogForm.tsx",
+          "frontend/src/pages/AdminPortfolioPage.tsx",
+          "frontend/src/pages/AdminGalleryManagementPage.tsx",
+          "frontend/src/pages/AdminBlogPage.tsx",
+          "frontend/src/pages/AdminDashboardPage.tsx",
+          "frontend/src/App.tsx"
+        ]
+      },
+      {
+        "id": "REQ-6",
+        "summary": "Add Portfolio and Blog navigation links to the site Header so visitors can easily reach the new sections.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/Header.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/Header.tsx"
+        ]
       }
     ]
   },
   "changedFiles": [
     "backend/main.mo",
+    "backend/migration.mo",
     "build-request.json",
+    "build-template/README.md",
+    "caffeine.lock.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/MyOrderCard.tsx",
-    "frontend/src/components/ProductCard.tsx",
-    "frontend/src/components/ProductForm.tsx",
-    "frontend/src/pages/CartPage.tsx",
-    "frontend/src/pages/ProductDetailPage.tsx",
+    "frontend/src/App.tsx",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
+    "frontend/src/components/BlogCard.tsx",
+    "frontend/src/components/BlogForm.tsx",
+    "frontend/src/components/CommentForm.tsx",
+    "frontend/src/components/CommentList.tsx",
+    "frontend/src/components/GalleryGrid.tsx",
+    "frontend/src/components/GalleryItemForm.tsx",
+    "frontend/src/components/Header.tsx",
+    "frontend/src/components/PortfolioForm.tsx",
+    "frontend/src/components/PortfolioGrid.tsx",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
+    "frontend/src/hooks/useBlog.ts",
+    "frontend/src/hooks/useComments.ts",
+    "frontend/src/hooks/useGallery.ts",
+    "frontend/src/hooks/usePortfolio.ts",
+    "frontend/src/pages/AdminBlogPage.tsx",
+    "frontend/src/pages/AdminDashboardPage.tsx",
+    "frontend/src/pages/AdminGalleryManagementPage.tsx",
+    "frontend/src/pages/AdminPortfolioPage.tsx",
+    "frontend/src/pages/BlogDetailPage.tsx",
+    "frontend/src/pages/BlogPage.tsx",
+    "frontend/src/pages/GalleryPage.tsx",
+    "frontend/src/pages/PortfolioPage.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

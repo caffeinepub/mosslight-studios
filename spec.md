@@ -1,11 +1,14 @@
 # Specification
 
 ## Summary
-**Goal:** Fix all currency handling across the stack so prices are always stored, transmitted, and displayed in USD dollars with no conversion to cents, pence, or GBP.
+**Goal:** Add Portfolio, Gallery, Blog, and Admin Panel sections to the Mosslight Studios site, along with public commenting on Gallery items and Blog posts.
 
 **Planned changes:**
-- Remove any dollars-to-cents or USD-to-GBP conversion logic in the `ProductForm` so prices are submitted as-is in USD dollars.
-- Remove or bypass any currency conversion utility/helper functions used in cart, checkout, and order summary views so item totals are calculated as `price × quantity` in USD.
-- Audit and fix the backend product creation and update handlers to store prices exactly as submitted, removing any multiplication by 100 or exchange-rate conversion.
+- Add a `/portfolio` page displaying finished artwork in a responsive grid with title, image, description, and category/medium tag
+- Add a `/gallery` page displaying photos and behind-the-scenes content in a responsive grid, with a public comments section (name + comment text, no login required) on each item
+- Add a `/blog` page listing published blog posts as cards, and individual `/blog/:id` pages showing full post content with a public comments section (name + comment text, no login required)
+- Extend the backend with data types and CRUD functions for PortfolioItem, GalleryItem, BlogPost, and PublicComment; admin write operations are authenticated, comment submission is public
+- Add an Admin Panel with protected pages at `/admin/portfolio`, `/admin/gallery`, and `/admin/blog` for creating, editing, and deleting content including image blob uploads
+- Add Portfolio and Blog navigation links to the site Header alongside the existing Gallery link
 
-**User-visible outcome:** Products uploaded with a price of $25.00 are stored and displayed as $25.00 throughout the app. Cart line totals, checkout summaries, and order views all show correct USD dollar amounts with no pound symbols or cent values appearing anywhere.
+**User-visible outcome:** Visitors can browse portfolio artwork, explore the gallery and leave comments, read blog posts and comment on them. The admin can log in to manage all portfolio, gallery, and blog content through a protected admin panel.

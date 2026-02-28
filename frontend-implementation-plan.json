@@ -1,57 +1,186 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix currency handling to always use USD during product upload",
+  "title": "Add Portfolio, Gallery, Blog, Admin Panel, and Public Comments",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Ensure ProductForm always stores and transmits prices in USD dollars without currency conversion",
+      "summary": "Add Portfolio section displaying finished artwork pieces in a responsive grid layout",
       "acceptanceCriteria": [
-        "When a product is created with a price of $25.00, the stored price is 25.00 (USD dollars), not 2500 cents or a pounds equivalent.",
-        "No currency conversion function is applied to the price value in ProductForm before submitting to the backend.",
-        "The price displayed after product creation matches the exact dollar amount entered by the admin."
+        "A /portfolio route exists and renders the Portfolio page",
+        "Portfolio items display in a responsive grid with title, image, and category",
+        "Admin can add, edit, and delete portfolio items via the admin panel"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/ProductForm.tsx",
+          "path": "frontend/src/hooks/usePortfolio.ts",
+          "operation": "create",
+          "description": "Create React Query hooks for fetching all portfolio items (useGetPortfolioItems), adding a portfolio item (useAddPortfolioItem), and deleting a portfolio item (useDeletePortfolioItem). Use the authorization component's admin guards for write operations. Verify the blob-storage component's usage instructions before implementing image upload handling with ExternalBlob."
+        },
+        {
+          "path": "frontend/src/components/PortfolioGrid.tsx",
+          "operation": "create",
+          "description": "Create a responsive grid component that displays portfolio items as cards. Each card shows the portfolio item's image using ExternalBlob.getDirectURL(), title, category badge, and description. Use Tailwind grid classes for responsive layout (grid-cols-1 md:grid-cols-2 lg:grid-cols-3). Verify the blob-storage component's usage instructions before implementing image rendering."
+        },
+        {
+          "path": "frontend/src/pages/PortfolioPage.tsx",
+          "operation": "create",
+          "description": "Create a public Portfolio page that fetches and displays all portfolio items using useGetPortfolioItems and PortfolioGrid. Include a page header with title 'Portfolio' and a brief description of the artwork showcase. Show loading skeleton while data is fetching."
+        },
+        {
+          "path": "frontend/src/App.tsx",
           "operation": "modify",
-          "description": "Remove any currency conversion logic (e.g., multiplication by 100 or exchange rate conversion) applied to the price field before submitting to backend. Ensure the price value is transmitted as-is in USD dollars. Verify that both create and edit flows preserve the dollar amount exactly as entered by the admin."
+          "description": "Register the /portfolio route in the router configuration, mapping it to PortfolioPage within the Layout component. Place the route alongside existing public pages like /products and /gallery."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Remove currency conversion from cart, checkout, and order item total calculations",
+      "summary": "Add Gallery section for photos and behind-the-scenes content with public commenting",
       "acceptanceCriteria": [
-        "A cart item with a unit price of $25.00 and quantity 2 displays a line total of $50.00.",
-        "No pound (£) symbol or pence values appear anywhere in cart, checkout, or order summary.",
-        "Totals are never multiplied by 100 (cents conversion) or divided/multiplied by an exchange rate."
+        "A /gallery route exists and renders the Gallery page",
+        "Gallery items display in a responsive grid",
+        "Each gallery item has a comments section visible below it",
+        "Any visitor can submit a comment with their name and comment text (no login required)",
+        "Admin can add, edit, and delete gallery items via the admin panel"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/CartPage.tsx",
+          "path": "frontend/src/hooks/useGallery.ts",
           "operation": "modify",
-          "description": "Audit and remove any currency conversion logic applied to item prices or line totals. Ensure item totals are calculated as price (USD dollars) × quantity with no multiplication by 100 or exchange rate conversion. Display all prices with the $ symbol and in dollar format (e.g., $25.00)."
+          "description": "Extend the existing useGallery hook to add mutations for adding (useAddGalleryItem) and deleting (useDeleteGalleryItem) gallery items. Use the authorization component's admin guards for write operations. Verify the blob-storage component's usage instructions before implementing image upload handling with ExternalBlob."
         },
         {
-          "path": "frontend/src/pages/CheckoutPage.tsx",
-          "operation": "modify",
-          "description": "Remove any currency conversion or cents calculation from order total display. Ensure the order total is shown in USD dollars matching the backend total without conversion. Verify that no pounds or pence values appear in the checkout summary."
+          "path": "frontend/src/hooks/useComments.ts",
+          "operation": "create",
+          "description": "Create React Query hooks for fetching comments by parent (useGetCommentsByParent) and adding a public comment (useAddComment). The addComment mutation accepts parentId, parentType (CommentParentType.galleryItem or CommentParentType.blogPost), name, and text. No authentication is required for adding comments."
         },
         {
-          "path": "frontend/src/components/MyOrderCard.tsx",
-          "operation": "modify",
-          "description": "Ensure item prices and totals displayed in order history are in USD dollars without conversion. Remove any logic that converts backend price values to cents or another currency. Display all monetary values with $ symbol."
+          "path": "frontend/src/components/CommentForm.tsx",
+          "operation": "create",
+          "description": "Create a public comment submission form component that accepts name and comment text inputs. On submit, call useAddComment with the parent ID and parent type. Show success toast on submission. This form does not require authentication."
         },
         {
-          "path": "frontend/src/pages/ProductDetailPage.tsx",
-          "operation": "modify",
-          "description": "Verify that product prices (base and variant) are displayed in USD dollars without conversion. If any conversion logic exists for price display, remove it. Ensure variant-specific pricing shows the exact dollar amount from the backend."
+          "path": "frontend/src/components/CommentList.tsx",
+          "operation": "create",
+          "description": "Create a component that displays a list of comments for a given parent item. Each comment shows the commenter name, comment text, and timestamp. Use useGetCommentsByParent hook to fetch comments. Show an empty state message if no comments exist."
         },
         {
-          "path": "frontend/src/components/ProductCard.tsx",
+          "path": "frontend/src/components/GalleryGrid.tsx",
+          "operation": "create",
+          "description": "Create a responsive grid component for gallery items. Each gallery item card displays the image using ExternalBlob.getDirectURL(), title, description, and timestamp. Below each card, render CommentList and CommentForm components for that gallery item, passing CommentParentType.galleryItem. Use Tailwind grid classes for responsive layout. Verify the blob-storage component's usage instructions before implementing image rendering."
+        },
+        {
+          "path": "frontend/src/pages/GalleryPage.tsx",
           "operation": "modify",
-          "description": "Ensure product prices shown on product cards are displayed in USD dollars without conversion. Remove any currency conversion applied to the price value before display."
+          "description": "Modify the existing GalleryPage to use the new GalleryGrid component instead of the current GalleryItem mapping. Fetch gallery items using useGetGalleryItems. Ensure the page displays the gallery grid with integrated commenting functionality."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Add Blog section with text and optional image posts, supporting public commenting",
+      "acceptanceCriteria": [
+        "A /blog route exists listing all published blog posts as cards with title, excerpt, image thumbnail, and date",
+        "A /blog/:id route exists showing the full blog post with title, body text, optional image, and comments section",
+        "Any visitor can submit a comment with their name and comment text on any blog post (no login required)",
+        "Admin can create, edit, and delete blog posts via the admin panel"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useBlog.ts",
+          "operation": "create",
+          "description": "Create React Query hooks for fetching all blog posts (useGetBlogPosts), adding a blog post (useAddBlogPost), and a placeholder for deleting blog posts (useDeleteBlogPost, to be implemented when backend adds the delete method). Use the authorization component's admin guards for write operations. Verify the blob-storage component's usage instructions before implementing optional image upload handling with ExternalBlob."
+        },
+        {
+          "path": "frontend/src/components/BlogCard.tsx",
+          "operation": "create",
+          "description": "Create a blog post card component for the listing page. Display the blog post title, an excerpt (first 150 characters of bodyText), optional thumbnail image using ExternalBlob.getDirectURL(), and createdAt timestamp. Card is clickable and navigates to /blog/:id. Use shadcn Card component. Verify the blob-storage component's usage instructions before implementing image rendering."
+        },
+        {
+          "path": "frontend/src/pages/BlogPage.tsx",
+          "operation": "create",
+          "description": "Create a public Blog listing page that fetches all blog posts using useGetBlogPosts and displays them in a responsive grid of BlogCard components. Include a page header with title 'Blog' and a brief description. Show loading skeleton while data is fetching."
+        },
+        {
+          "path": "frontend/src/pages/BlogDetailPage.tsx",
+          "operation": "create",
+          "description": "Create a Blog detail page that displays a single blog post by ID from the route parameter. Show the full blog post title, createdAt timestamp, optional image using ExternalBlob.getDirectURL(), and full bodyText. Below the post content, render CommentList and CommentForm components for the blog post, passing CommentParentType.blogPost. Include a back-to-blog-list link. Verify the blob-storage component's usage instructions before implementing image rendering."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Register the /blog route (BlogPage) and /blog/:id route (BlogDetailPage) in the router configuration within the Layout component. Place these routes alongside other public pages."
+        }
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "summary": "Add Admin Panel pages for managing Portfolio, Gallery, and Blog content with image uploads",
+      "acceptanceCriteria": [
+        "Admin Portfolio management page at /admin/portfolio allows creating, editing, and deleting portfolio items",
+        "Admin Gallery management page at /admin/gallery allows creating, editing, and deleting gallery items",
+        "Admin Blog management page at /admin/blog allows creating, editing, and deleting blog posts",
+        "All admin content pages are wrapped in AdminGuard and only accessible when authenticated",
+        "Image upload input accepts image files and stores them as blobs via the backend",
+        "Admin dashboard navigation cards link to the new Portfolio, Gallery, and Blog admin pages"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/PortfolioForm.tsx",
+          "operation": "create",
+          "description": "Create a form component for adding/editing portfolio items. Include inputs for title, description, category, and image upload (using file input that converts to ExternalBlob). Use useAddPortfolioItem mutation on submit. Show upload progress using ExternalBlob.withUploadProgress(). Use shadcn Form components. Verify the blob-storage component's usage instructions before implementing image upload handling."
+        },
+        {
+          "path": "frontend/src/components/GalleryItemForm.tsx",
+          "operation": "create",
+          "description": "Create a form component for adding/editing gallery items. Include inputs for title, description, and image upload (using file input that converts to ExternalBlob). Use useAddGalleryItem mutation on submit. Show upload progress using ExternalBlob.withUploadProgress(). Use shadcn Form components. Verify the blob-storage component's usage instructions before implementing image upload handling."
+        },
+        {
+          "path": "frontend/src/components/BlogForm.tsx",
+          "operation": "create",
+          "description": "Create a form component for adding/editing blog posts. Include inputs for title, body text (use textarea), and optional image upload (using file input that converts to ExternalBlob or null). Use useAddBlogPost mutation on submit. Show upload progress when an image is included using ExternalBlob.withUploadProgress(). Use shadcn Form components. Verify the blob-storage component's usage instructions before implementing optional image upload handling."
+        },
+        {
+          "path": "frontend/src/pages/AdminPortfolioPage.tsx",
+          "operation": "create",
+          "description": "Create an admin page for managing portfolio items, wrapped in AdminGuard. Display a grid of existing portfolio items with delete buttons. Include a toggle to show/hide PortfolioForm for adding new items. Use useGetPortfolioItems and useDeletePortfolioItem hooks. Show confirmation dialog before deleting."
+        },
+        {
+          "path": "frontend/src/pages/AdminGalleryManagementPage.tsx",
+          "operation": "create",
+          "description": "Create an admin page for managing gallery items, wrapped in AdminGuard. Display a grid of existing gallery items with delete buttons. Include a toggle to show/hide GalleryItemForm for adding new items. Use useGetGalleryItems and useDeleteGalleryItem hooks. Show confirmation dialog before deleting. Note: This page is distinct from the existing AdminGalleryPage which uses GalleryUploadForm for social media content."
+        },
+        {
+          "path": "frontend/src/pages/AdminBlogPage.tsx",
+          "operation": "create",
+          "description": "Create an admin page for managing blog posts, wrapped in AdminGuard. Display a list of existing blog posts with delete buttons (delete functionality placeholder until backend adds the method). Include a toggle to show/hide BlogForm for adding new posts. Use useGetBlogPosts hook. Show confirmation dialog before attempting delete."
+        },
+        {
+          "path": "frontend/src/pages/AdminDashboardPage.tsx",
+          "operation": "modify",
+          "description": "Add three new navigation cards to the admin dashboard grid: 'Portfolio Management' linking to /admin/portfolio, 'Gallery Content' linking to /admin/gallery-content, and 'Blog Management' linking to /admin/blog. Use consistent styling with existing dashboard cards (Palette, Package, and MessageSquare icons as examples). Place the new cards in the grid alongside existing admin section cards."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Register three new admin routes in the router configuration: /admin/portfolio (AdminPortfolioPage), /admin/gallery-content (AdminGalleryManagementPage), and /admin/blog (AdminBlogPage). Place these routes alongside other /admin/* routes. Each page is already wrapped in AdminGuard internally."
+        }
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "summary": "Add Portfolio and Blog navigation links to the site Header",
+      "acceptanceCriteria": [
+        "Header contains navigation links for Portfolio (/portfolio) and Blog (/blog)",
+        "The existing Gallery link in the header is preserved and points to /gallery",
+        "Active route is visually highlighted in the navigation"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/Header.tsx",
+          "operation": "modify",
+          "description": "Add two new navigation links to the header nav element: 'Portfolio' linking to /portfolio and 'Blog' linking to /blog. Preserve the existing 'Gallery' link (pointing to /gallery). Use the same Link component styling as existing nav links and ensure active route highlighting is applied using router state. Position the new links logically in the navigation order (e.g., Products, Portfolio, Gallery, Blog, About)."
         }
       ]
     }

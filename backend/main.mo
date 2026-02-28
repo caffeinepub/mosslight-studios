@@ -4,13 +4,17 @@ import Time "mo:core/Time";
 import Nat "mo:core/Nat";
 import Array "mo:core/Array";
 import List "mo:core/List";
+import Float "mo:core/Float";
 import Principal "mo:core/Principal";
 import Runtime "mo:core/Runtime";
 import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
+import Iter "mo:core/Iter";
+import Migration "migration";
 
+(with migration = Migration.run)
 actor {
   public type ProductVariant = {
     id : Text;
@@ -34,6 +38,8 @@ actor {
     categories : [Text];
     colors : [Text];
     sizes : [Text];
+    taxRate : Float;
+    shippingPrice : Float;
   };
 
   public type Customer = Principal;
@@ -99,6 +105,8 @@ actor {
     categories : [Text];
     colors : [Text];
     sizes : [Text];
+    taxRate : Float;
+    shippingPrice : Float;
   };
 
   public type ExternalProduct = {
@@ -189,6 +197,55 @@ actor {
   let reviews = Map.empty<Text, Review>();
   let analytics = Map.empty<Text, AnalyticsEvent>();
   let productReviews = Map.empty<Text, List.List<Review>>();
+
+  public type PortfolioItem = {
+    id : Text;
+    title : Text;
+    description : Text;
+    image : Storage.ExternalBlob;
+    category : Text;
+    createdAt : Time.Time;
+  };
+
+  public type GalleryItem = {
+    id : Text;
+    title : Text;
+    description : Text;
+    image : Storage.ExternalBlob;
+    createdAt : Time.Time;
+  };
+
+  public type BlogPost = {
+    id : Text;
+    title : Text;
+    bodyText : Text;
+    image : ?Storage.ExternalBlob;
+    createdAt : Time.Time;
+  };
+
+  public type CommentParentType = {
+    #galleryItem;
+    #blogPost;
+  };
+
+  public type Comment = {
+    id : Text;
+    parentId : Text;
+    parentType : CommentParentType;
+    name : Text;
+    text : Text;
+    timestamp : Time.Time;
+  };
+
+  let portfolioItems = Map.empty<Text, PortfolioItem>();
+  let galleryItems = Map.empty<Text, GalleryItem>();
+  let blogPosts = Map.empty<Text, BlogPost>();
+  let comments = Map.empty<Text, Comment>();
+
+  var portfolioIdCounter = 0;
+  var galleryIdCounter = 0;
+  var blogIdCounter = 0;
+  var commentIdCounter = 0;
 
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
     if (not isAdmin(caller) and not AccessControl.hasPermission(accessControlState, caller, #user)) {
@@ -284,6 +341,8 @@ actor {
           ?variants.map(func(variant) { { variant with parentProductId = id } });
         };
       };
+      taxRate = 8.5;
+      shippingPrice = product.shippingPrice;
     };
 
     products.add(id, productWithVariantsSet);
@@ -315,6 +374,8 @@ actor {
               ?variants.map(func(variant) { { variant with parentProductId = productId } });
             };
           };
+          taxRate = 8.5;
+          shippingPrice = productData.shippingPrice;
         };
         products.add(productId, updatedProduct);
         sendLowInventoryNotifications(productId);
@@ -1008,5 +1069,104 @@ actor {
       orderCount;
       lowInventoryProducts = lowInventory;
     };
+  };
+
+  // Portfolio, Gallery, Blog & Comments
+
+  public shared ({ caller }) func addPortfolioItem(title : Text, description : Text, image : Storage.ExternalBlob, category : Text) : async Text {
+    requireAdmin(caller);
+    portfolioIdCounter += 1;
+    let id = "portfolio_" # portfolioIdCounter.toText();
+    let item : PortfolioItem = {
+      id;
+      title;
+      description;
+      image;
+      category;
+      createdAt = Time.now();
+    };
+    portfolioItems.add(id, item);
+    id;
+  };
+
+  public shared ({ caller }) func addGalleryItem(title : Text, description : Text, image : Storage.ExternalBlob) : async Text {
+    requireAdmin(caller);
+    galleryIdCounter += 1;
+    let id = "gallery_" # galleryIdCounter.toText();
+    let item : GalleryItem = {
+      id;
+      title;
+      description;
+      image;
+      createdAt = Time.now();
+    };
+    galleryItems.add(id, item);
+    id;
+  };
+
+  public shared ({ caller }) func addBlogPost(title : Text, bodyText : Text, image : ?Storage.ExternalBlob) : async Text {
+    requireAdmin(caller);
+    blogIdCounter += 1;
+    let id = "blog_" # blogIdCounter.toText();
+    let post : BlogPost = {
+      id;
+      title;
+      bodyText;
+      image;
+      createdAt = Time.now();
+    };
+    blogPosts.add(id, post);
+    id;
+  };
+
+  public shared ({ caller }) func addComment(parentId : Text, parentType : CommentParentType, name : Text, text : Text) : async Text {
+    if (name.size() == 0 or text.size() == 0) {
+      Runtime.trap("Name and comment cannot be empty");
+    };
+
+    switch (parentType) {
+      case (#galleryItem) {
+        if (galleryItems.get(parentId) == null) {
+          Runtime.trap("Gallery item not found");
+        };
+      };
+      case (#blogPost) {
+        if (blogPosts.get(parentId) == null) {
+          Runtime.trap("Blog post not found");
+        };
+      };
+    };
+
+    commentIdCounter += 1;
+    let id = "comment_" # commentIdCounter.toText();
+    let comment : Comment = {
+      id;
+      parentId;
+      parentType;
+      name;
+      text;
+      timestamp = Time.now();
+    };
+    comments.add(id, comment);
+    id;
+  };
+
+  public query ({ caller }) func getPortfolioItems() : async [PortfolioItem] {
+    portfolioItems.values().toArray();
+  };
+
+  public query ({ caller }) func getGalleryItems() : async [GalleryItem] {
+    galleryItems.values().toArray();
+  };
+
+  public query ({ caller }) func getBlogPosts() : async [BlogPost] {
+    blogPosts.values().toArray();
+  };
+
+  public query ({ caller }) func getCommentsByParent(parentId : Text, parentType : CommentParentType) : async [Comment] {
+    let filtered = comments.values().filter(
+      func(c) { c.parentId == parentId and c.parentType == parentType }
+    );
+    filtered.toArray();
   };
 };

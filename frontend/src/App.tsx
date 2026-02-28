@@ -11,6 +11,9 @@ import CheckoutPage from './pages/CheckoutPage';
 import OrderSuccessPage from './pages/OrderSuccessPage';
 import MyOrdersPage from './pages/MyOrdersPage';
 import GalleryPage from './pages/GalleryPage';
+import PortfolioPage from './pages/PortfolioPage';
+import BlogPage from './pages/BlogPage';
+import BlogDetailPage from './pages/BlogDetailPage';
 import ForumPage from './pages/ForumPage';
 import ForumThreadPage from './pages/ForumThreadPage';
 import AboutPage from './pages/AboutPage';
@@ -21,6 +24,9 @@ import AdminOrdersPage from './pages/AdminOrdersPage';
 import AdminMessagesPage from './pages/AdminMessagesPage';
 import AdminGalleryPage from './pages/AdminGalleryPage';
 import AdminAnalyticsPage from './pages/AdminAnalyticsPage';
+import AdminPortfolioPage from './pages/AdminPortfolioPage';
+import AdminGalleryManagementPage from './pages/AdminGalleryManagementPage';
+import AdminBlogPage from './pages/AdminBlogPage';
 
 const rootRoute = createRootRoute({
   component: Layout,
@@ -72,6 +78,24 @@ const galleryRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/gallery',
   component: GalleryPage,
+});
+
+const portfolioRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/portfolio',
+  component: PortfolioPage,
+});
+
+const blogRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/blog',
+  component: BlogPage,
+});
+
+const blogDetailRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/blog/$id',
+  component: BlogDetailPage,
 });
 
 const forumRoute = createRoute({
@@ -134,6 +158,24 @@ const adminAnalyticsRoute = createRoute({
   component: AdminAnalyticsPage,
 });
 
+const adminPortfolioRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/admin/portfolio',
+  component: AdminPortfolioPage,
+});
+
+const adminGalleryContentRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/admin/gallery-content',
+  component: AdminGalleryManagementPage,
+});
+
+const adminBlogRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/admin/blog',
+  component: AdminBlogPage,
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   productsRoute,
@@ -143,6 +185,9 @@ const routeTree = rootRoute.addChildren([
   orderSuccessRoute,
   myOrdersRoute,
   galleryRoute,
+  portfolioRoute,
+  blogRoute,
+  blogDetailRoute,
   forumRoute,
   forumThreadRoute,
   aboutRoute,
@@ -153,6 +198,9 @@ const routeTree = rootRoute.addChildren([
   adminMessagesRoute,
   adminGalleryRoute,
   adminAnalyticsRoute,
+  adminPortfolioRoute,
+  adminGalleryContentRoute,
+  adminBlogRoute,
 ]);
 
 const router = createRouter({ routeTree });

@@ -7,8 +7,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
+import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Loader2, Upload, X, Plus } from 'lucide-react';
+import { Loader2, Upload, X, Plus, Info } from 'lucide-react';
 import VariantManager from './VariantManager';
 import type { CreateProductData } from '../backend';
 
@@ -39,6 +40,9 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
   const [skuError, setSkuError] = useState('');
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [isUploading, setIsUploading] = useState(false);
+  const [shippingPrice, setShippingPrice] = useState<number>(
+    product?.shippingPrice !== undefined ? product.shippingPrice : 0
+  );
 
   const addProductMutation = useAddProduct();
   const updateProductMutation = useUpdateProduct();
@@ -59,6 +63,7 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
       setCategories(product.categories || []);
       setColors(product.colors || []);
       setSizes(product.sizes || []);
+      setShippingPrice(product.shippingPrice !== undefined ? product.shippingPrice : 0);
     }
   }, [product]);
 
@@ -101,7 +106,6 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
     }
     setSkuError('');
 
-    // Validate variants (but NOT parentProductId — the backend sets it automatically)
     if (hasVariants && variants.length > 0) {
       for (const variant of variants) {
         if (!variant.id) {
@@ -130,7 +134,6 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
     try {
       setIsUploading(true);
 
-      // Build image blobs
       let imageBlobs: ExternalBlob[] = [...existingImages];
 
       if (imageFiles.length > 0) {
@@ -149,10 +152,6 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
       setIsUploading(false);
       setUploadProgress(0);
 
-      // Prepare variants — parentProductId will be set/overwritten by the backend.
-      // For new products: backend sets parentProductId = newly generated product ID.
-      // For existing products: backend sets parentProductId = productId.
-      // Prices are stored as USD dollars (whole number, no cents conversion).
       const preparedVariants: ProductVariant[] = hasVariants && variants.length > 0
         ? variants.map(v => ({
             ...v,
@@ -165,7 +164,6 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
       const productData: CreateProductData = {
         name: name.trim(),
         description: description.trim(),
-        // Store price as-is in USD dollars — no multiplication by 100
         price: BigInt(Math.round(price)),
         inventory: BigInt(Math.round(inventory)),
         hasVariants,
@@ -174,6 +172,8 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
         categories,
         colors,
         sizes,
+        taxRate: 8.5,
+        shippingPrice: shippingPrice,
       };
 
       if (isEditing && product) {
@@ -277,6 +277,40 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
                 placeholder="0"
                 required
               />
+            </div>
+          </div>
+
+          {/* Tax & Shipping */}
+          <div className="grid grid-cols-2 gap-4 pt-2 border-t">
+            <div className="space-y-2">
+              <Label htmlFor="taxRate" className="flex items-center gap-1.5">
+                Tax Rate
+                <Info className="w-3.5 h-3.5 text-muted-foreground" />
+              </Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  id="taxRate"
+                  type="text"
+                  value="8.5%"
+                  disabled
+                  className="bg-muted text-muted-foreground cursor-not-allowed"
+                />
+                <Badge variant="secondary" className="whitespace-nowrap text-xs">Fixed</Badge>
+              </div>
+              <p className="text-xs text-muted-foreground">Applied automatically at checkout</p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="shippingPrice">Shipping Price (USD $)</Label>
+              <Input
+                id="shippingPrice"
+                type="number"
+                min="0"
+                step="0.01"
+                value={shippingPrice}
+                onChange={e => setShippingPrice(Number(e.target.value))}
+                placeholder="0.00"
+              />
+              <p className="text-xs text-muted-foreground">Flat shipping fee for this item</p>
             </div>
           </div>
         </CardContent>
@@ -494,7 +528,6 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
             <VariantManager
               variants={variants}
               onChange={setVariants}
-              // Pass the existing product ID for edits; for new products the backend auto-sets parentProductId
               productId={product?.id || ''}
             />
           )}
@@ -512,7 +545,7 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
           {isLoading ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              {isUploading ? `Uploading... ${uploadProgress}%` : isEditing ? 'Updating...' : 'Adding...'}
+              {isUploading ? `Uploading... ${uploadProgress}%` : 'Saving...'}
             </>
           ) : (
             isEditing ? 'Update Product' : 'Add Product'

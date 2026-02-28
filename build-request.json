@@ -1,79 +1,143 @@
 {
   "kind": "build_request",
-  "title": "Fix currency handling to always use USD during product upload",
+  "title": "Add Portfolio, Gallery, Blog, Admin Panel, and Public Comments",
   "projectName": "Mosslight Studios",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "When creating or editing a product via the ProductForm, ensure the price field is always stored and transmitted as USD dollars with no currency conversion applied. Remove or disable any logic that converts the price to pounds, pence, or cents.",
-      "target": "frontend",
+      "text": "Add a Portfolio section to the site that displays finished artwork pieces. Each portfolio item should have a title, description, image, and category/medium tag. Display items in a responsive grid layout.",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-3",
-          "msg-4"
+          "msg-12"
         ],
         "quotes": [
-          "when im uploading a new product it should always be usd",
-          "the currency should always be set to USD (dollars) and should never be converted to pounds or cents"
+          "2 different sections for portfolio & gallery"
         ]
       },
       "acceptanceCriteria": [
-        "When a product is created with a price of $25.00, the stored price is 25.00 (USD dollars), not 2500 cents or a pounds equivalent.",
-        "No currency conversion function is applied to the price value in ProductForm before submitting to the backend.",
-        "The price displayed after product creation matches the exact dollar amount entered by the admin."
+        "A /portfolio route exists and renders the Portfolio page",
+        "Portfolio items are stored in the backend with fields: id, title, description, imageBlob, category, createdAt",
+        "Portfolio items display in a responsive grid with title, image, and category",
+        "Admin can add, edit, and delete portfolio items via the admin panel"
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Ensure item totals throughout the cart, checkout, and order views are calculated as price (USD dollars) × quantity with no currency conversion. If any utility or helper function is performing a dollars-to-cents or USD-to-GBP conversion on item prices, remove or bypass it.",
-      "target": "frontend",
+      "text": "Add a Gallery section for photos and behind-the-scenes content. Each gallery item has a title, description, and image. Visitors can leave public comments (name + comment text, no login required) on each gallery item.",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-1",
-          "msg-3"
+          "msg-12"
         ],
         "quotes": [
-          "it still is converting my total for an item into pounds and changing it from dollars to cents",
-          "The item total should simply be the price in USD multiplied by quantity, with no currency conversion applied anywhere."
+          "2 different sections for portfolio & gallery",
+          "people can comment on the images / blog posts"
         ]
       },
       "acceptanceCriteria": [
-        "A cart item with a unit price of $25.00 and quantity 2 displays a line total of $50.00.",
-        "No pound (£) symbol or pence values appear anywhere in cart, checkout, or order summary.",
-        "Totals are never multiplied by 100 (cents conversion) or divided/multiplied by an exchange rate."
+        "A /gallery route exists and renders the Gallery page",
+        "Gallery items are stored in the backend with fields: id, title, description, imageBlob, createdAt",
+        "Gallery items display in a responsive grid",
+        "Each gallery item has a comments section visible below it",
+        "Any visitor can submit a comment with their name and comment text (no login required)",
+        "Comments are stored in the backend linked to the gallery item id",
+        "Admin can add, edit, and delete gallery items via the admin panel"
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Audit the backend product creation and pricing logic in backend/main.mo to confirm prices are stored as-is in USD dollars (not converted to cents or another currency). If any conversion is present, remove it so prices are stored exactly as submitted.",
-      "target": "backend",
+      "text": "Add a Blog section where the admin can publish posts containing text and an optional image. Visitors can leave public comments (name + comment text, no login required) on each blog post.",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-1",
-          "msg-3"
+          "msg-12"
         ],
         "quotes": [
-          "it still is converting my total for an item into pounds and changing it from dollars to cents",
-          "when im uploading a new product it should always be usd"
+          "blog can be text and image no videos",
+          "people can comment on the images / blog posts"
         ]
       },
       "acceptanceCriteria": [
-        "Product prices written to the backend state map are the same numeric value submitted by the frontend (e.g., 25.0 stored as 25.0).",
-        "No multiplication by 100 or currency conversion factor exists in product creation or update handlers.",
-        "Order total calculations in the backend use the stored price value directly without any unit conversion."
+        "A /blog route exists listing all published blog posts as cards with title, excerpt, image thumbnail, and date",
+        "A /blog/:id route exists showing the full blog post with title, body text, optional image, and comments section",
+        "Blog posts are stored in the backend with fields: id, title, body, imageBlob (optional), createdAt",
+        "Any visitor can submit a comment with their name and comment text on any blog post (no login required)",
+        "Comments are stored in the backend linked to the blog post id",
+        "Admin can create, edit, and delete blog posts via the admin panel"
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Extend the backend to store portfolio items, gallery items, blog posts, and public comments. Portfolio and gallery items include title, description, imageBlob, and category (portfolio only). Blog posts include title, body text, and an optional imageBlob. Comments include the parent item id, parent type (gallery or blog), commenter name, comment text, and timestamp.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-12"
+        ]
+      },
+      "acceptanceCriteria": [
+        "PortfolioItem type defined with id, title, description, imageBlob, category, createdAt",
+        "GalleryItem type defined with id, title, description, imageBlob, createdAt",
+        "BlogPost type defined with id, title, body, imageBlob (optional), createdAt",
+        "PublicComment type defined with id, parentId, parentType (#gallery or #blog), name, text, createdAt",
+        "CRUD functions exposed for portfolio items (admin only for write operations)",
+        "CRUD functions exposed for gallery items (admin only for write operations)",
+        "CRUD functions exposed for blog posts (admin only for write operations)",
+        "addComment function is public (no auth required) accepting parentId, parentType, name, text",
+        "getCommentsByParent function returns all comments for a given parentId and parentType"
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "text": "Add an Admin Panel section (protected by Internet Identity via AdminGuard) for managing Portfolio, Gallery, and Blog content. The panel should allow the admin to add, edit, and delete portfolio items, gallery items, and blog posts, including uploading images stored as blobs.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-12"
+        ],
+        "quotes": [
+          "a simple admin management would be great"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Admin Portfolio management page at /admin/portfolio allows creating, editing, and deleting portfolio items",
+        "Admin Gallery management page at /admin/gallery allows creating, editing, and deleting gallery items",
+        "Admin Blog management page at /admin/blog allows creating, editing, and deleting blog posts",
+        "All admin content pages are wrapped in AdminGuard and only accessible when authenticated",
+        "Image upload input accepts image files and stores them as blobs via the backend",
+        "Admin dashboard navigation cards link to the new Portfolio, Gallery, and Blog admin pages"
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "text": "Add Portfolio and Blog navigation links to the site Header so visitors can easily reach the new sections.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-12"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Header contains navigation links for Portfolio (/portfolio) and Blog (/blog)",
+        "The existing Gallery link in the header is preserved and points to /gallery",
+        "Active route is visually highlighted in the navigation"
       ]
     }
   ],
   "constraints": [
-    "Do not change any immutable frontend paths (hooks/useActor.ts, hooks/useInternetIdentity.ts, main.tsx, src/components/ui).",
-    "Do not introduce any external currency library or exchange-rate API.",
-    "All prices must remain in USD dollars throughout the entire stack."
+    "Public comments must not require any login or authentication",
+    "Admin write operations (create, edit, delete portfolio/gallery/blog items) must be protected and only available to authenticated admin users",
+    "All backend logic must remain in the single main actor (backend/main.mo)",
+    "Do not modify any files listed in frontend.immutablePaths"
   ],
   "nonGoals": [
-    "Adding multi-currency support or currency selection.",
-    "Changing the visual design or layout of ProductForm, CartPage, or CheckoutPage.",
-    "Modifying the variant pricing display logic introduced in the previous build."
+    "Video embedding or video posts in the blog",
+    "Age gate or 18+ confirmation screen",
+    "Donation button or payment features in this build",
+    "Merchandise shop changes in this build",
+    "Comment moderation or admin deletion of public comments (can be added later)"
   ],
   "imageRequirements": {
     "required": [],

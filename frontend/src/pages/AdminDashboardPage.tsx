@@ -3,7 +3,17 @@ import AdminGuard from '../components/AdminGuard';
 import AdminNotificationsPanel from '../components/AdminNotificationsPanel';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Package, ShoppingBag, MessageSquare, Image, MessageCircle, BarChart3 } from 'lucide-react';
+import {
+  Package,
+  ShoppingBag,
+  MessageSquare,
+  Image,
+  MessageCircle,
+  BarChart3,
+  Palette,
+  BookOpen,
+  Camera,
+} from 'lucide-react';
 
 export default function AdminDashboardPage() {
   const navigate = useNavigate();
@@ -34,7 +44,7 @@ export default function AdminDashboardPage() {
       bgColor: 'bg-purple-50 dark:bg-purple-950',
     },
     {
-      title: 'Gallery Management',
+      title: 'Social Media Gallery',
       description: 'Upload and manage social media content',
       icon: Image,
       path: '/admin/gallery',
@@ -57,6 +67,30 @@ export default function AdminDashboardPage() {
       color: 'text-indigo-600',
       bgColor: 'bg-indigo-50 dark:bg-indigo-950',
     },
+    {
+      title: 'Portfolio Management',
+      description: 'Add and manage your portfolio artwork pieces',
+      icon: Palette,
+      path: '/admin/portfolio',
+      color: 'text-teal-600',
+      bgColor: 'bg-teal-50 dark:bg-teal-950',
+    },
+    {
+      title: 'Gallery Content',
+      description: 'Upload photos and behind-the-scenes content',
+      icon: Camera,
+      path: '/admin/gallery-content',
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-50 dark:bg-orange-950',
+    },
+    {
+      title: 'Blog Management',
+      description: 'Write and manage your blog posts',
+      icon: BookOpen,
+      path: '/admin/blog',
+      color: 'text-cyan-600',
+      bgColor: 'bg-cyan-50 dark:bg-cyan-950',
+    },
   ];
 
   return (
@@ -76,13 +110,15 @@ export default function AdminDashboardPage() {
             {adminSections.map((section) => {
               const Icon = section.icon;
               return (
-                <Card 
+                <Card
                   key={section.path}
                   className="hover:shadow-lg transition-shadow cursor-pointer group"
                   onClick={() => navigate({ to: section.path })}
                 >
                   <CardHeader>
-                    <div className={`w-12 h-12 rounded-lg ${section.bgColor} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                    <div
+                      className={`w-12 h-12 rounded-lg ${section.bgColor} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}
+                    >
                       <Icon className={`h-6 w-6 ${section.color}`} />
                     </div>
                     <CardTitle className="font-serif">{section.title}</CardTitle>

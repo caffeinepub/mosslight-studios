@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { Loader2, ArrowLeft } from 'lucide-react';
+import { Loader2, ArrowLeft, Truck, Tag } from 'lucide-react';
 import AddToCartButton from '../components/AddToCartButton';
 import ProductReviews from '../components/ProductReviews';
 import ReviewForm from '../components/ReviewForm';
@@ -69,11 +69,18 @@ export default function ProductDetailPage() {
 
   const imageUrl = product.images[0]?.getDirectURL();
 
-  // Price display logic:
-  // - hasVariants + variant selected → show variant price
-  // - hasVariants + no variant selected → show "From $X" or prompt
-  // - no variants → show base price
-  // Prices are stored in USD dollars (no cents conversion needed)
+  // Determine the active base price for tax calculation
+  const activeBasePrice = product.hasVariants && selectedVariant
+    ? Number(selectedVariant.price)
+    : product.hasVariants && lowestVariantPrice !== null
+    ? lowestVariantPrice
+    : Number(product.price);
+
+  const taxRate = product.taxRate ?? 8.5;
+  const taxAmount = activeBasePrice * (taxRate / 100);
+  const shippingPrice = product.shippingPrice ?? 0;
+
+  // Price display logic
   const renderPrice = () => {
     if (product.hasVariants) {
       if (selectedVariant) {
@@ -102,6 +109,8 @@ export default function ProductDetailPage() {
       </p>
     );
   };
+
+  const showPricingBreakdown = !product.hasVariants || selectedVariant !== null;
 
   return (
     <div className="container py-12">
@@ -138,6 +147,37 @@ export default function ProductDetailPage() {
                 <Badge variant="destructive">Out of Stock</Badge>
               )}
             </div>
+
+            {/* Pricing Breakdown */}
+            {showPricingBreakdown && (
+              <div className="mt-3 p-3 bg-muted/50 rounded-lg space-y-1.5 text-sm">
+                <div className="flex justify-between text-muted-foreground">
+                  <span>Base Price</span>
+                  <span>${activeBasePrice.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-muted-foreground items-center">
+                  <span className="flex items-center gap-1">
+                    <Tag className="w-3.5 h-3.5" />
+                    Tax ({taxRate}%)
+                  </span>
+                  <span>+${taxAmount.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-muted-foreground items-center">
+                  <span className="flex items-center gap-1">
+                    <Truck className="w-3.5 h-3.5" />
+                    Shipping
+                  </span>
+                  <span>
+                    {shippingPrice > 0 ? `+$${shippingPrice.toFixed(2)}` : 'Free'}
+                  </span>
+                </div>
+                <Separator className="my-1" />
+                <div className="flex justify-between font-semibold text-foreground">
+                  <span>Estimated Total</span>
+                  <span>${(activeBasePrice + taxAmount + shippingPrice).toFixed(2)}</span>
+                </div>
+              </div>
+            )}
           </div>
 
           <Separator />

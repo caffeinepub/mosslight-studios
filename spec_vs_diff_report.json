@@ -1,19 +1,114 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-25T03:49:18.107Z",
-  "summary": "The diff addresses all three requirements. REQ-1 is handled in ProductForm.tsx where price is stored/transmitted as a plain USD number with no conversion. REQ-2 is handled in CartPage.tsx and MyOrderCard.tsx where totals are calculated as price × quantity in USD with $ symbols and no cents/GBP conversion. REQ-3 is addressed in backend/main.mo where prices are typed as Nat and stored as-is. The implementation appears complete and consistent with the requirements. No hallucinated features were identified.",
-  "missing_requirements": [],
-  "hallucinated_features": [],
-  "confidence": 0.88,
+  "generatedAt": "2026-02-28T13:55:38.597Z",
+  "summary": "The diff implements most of the requested requirements including portfolio, gallery, blog, admin pages, public comments, header nav links, and backend data types. However, several important gaps exist: edit functionality is not implemented (only add/delete), delete operations throw 'not yet implemented' errors in multiple hooks, and the Admin Gallery Management page routes to /admin/gallery-content rather than /admin/gallery as specified.",
+  "missing_requirements": [
+    {
+      "id": "REQ-1",
+      "requirement": "Admin can edit portfolio items via the admin panel",
+      "reason": "AdminPortfolioPage only shows add (PortfolioForm) and delete (useDeletePortfolioItem). No edit form or edit functionality is present. useDeletePortfolioItem throws 'not yet implemented'.",
+      "evidence": [
+        "frontend/src/pages/AdminPortfolioPage.tsx",
+        "frontend/src/hooks/usePortfolio.ts"
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "requirement": "Admin can edit gallery items via the admin panel",
+      "reason": "AdminGalleryManagementPage only shows add and delete. No edit functionality is present. useDeleteGalleryItem throws 'not yet implemented'.",
+      "evidence": [
+        "frontend/src/pages/AdminGalleryManagementPage.tsx",
+        "frontend/src/hooks/useGallery.ts"
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "requirement": "Admin can edit blog posts via the admin panel",
+      "reason": "AdminBlogPage only shows add (BlogForm) and delete. No edit form or edit functionality is present. useDeleteBlogPost throws 'not yet implemented'.",
+      "evidence": [
+        "frontend/src/pages/AdminBlogPage.tsx",
+        "frontend/src/hooks/useBlog.ts"
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "requirement": "CRUD functions exposed for portfolio items (admin only for write operations) including delete",
+      "reason": "useDeletePortfolioItem explicitly throws 'Delete portfolio item not yet implemented in backend', indicating the backend delete function is missing or not wired up.",
+      "evidence": [
+        "frontend/src/hooks/usePortfolio.ts"
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "requirement": "CRUD functions exposed for gallery items (admin only for write operations) including delete",
+      "reason": "useDeleteGalleryItem explicitly throws 'Delete gallery item not yet implemented in backend'.",
+      "evidence": [
+        "frontend/src/hooks/useGallery.ts"
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "requirement": "CRUD functions exposed for blog posts (admin only for write operations) including delete",
+      "reason": "useDeleteBlogPost explicitly throws 'Delete blog post not yet implemented in backend'.",
+      "evidence": [
+        "frontend/src/hooks/useBlog.ts"
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "requirement": "Admin Gallery management page at /admin/gallery allows creating, editing, and deleting gallery items",
+      "reason": "The admin dashboard card links to /admin/gallery-content instead of /admin/gallery, and editing is not implemented.",
+      "evidence": [
+        "frontend/src/pages/AdminDashboardPage.tsx",
+        "frontend/src/App.tsx"
+      ]
+    }
+  ],
+  "hallucinated_features": [
+    {
+      "description": "Admin Gallery Management page registered at /admin/gallery-content instead of /admin/gallery",
+      "reason": "The build request specifies /admin/gallery for the gallery management page, but the AdminDashboardPage card navigates to /admin/gallery-content and App.tsx registers the route accordingly.",
+      "evidence": [
+        "frontend/src/pages/AdminDashboardPage.tsx",
+        "frontend/src/App.tsx"
+      ]
+    },
+    {
+      "description": "migration.mo added as a separate module file outside main.mo",
+      "reason": "The build request constrains that all backend logic must remain in the single main actor (backend/main.mo). A separate migration.mo module was added.",
+      "evidence": [
+        "backend/migration.mo"
+      ]
+    }
+  ],
+  "confidence": 0.72,
   "changed_files": [
     "backend/main.mo",
+    "backend/migration.mo",
     "frontend-file-summaries.txt",
-    "frontend/src/components/MyOrderCard.tsx",
-    "frontend/src/components/ProductCard.tsx",
-    "frontend/src/components/ProductForm.tsx",
-    "frontend/src/pages/CartPage.tsx",
-    "frontend/src/pages/ProductDetailPage.tsx",
+    "frontend/src/App.tsx",
+    "frontend/src/components/BlogCard.tsx",
+    "frontend/src/components/BlogForm.tsx",
+    "frontend/src/components/CommentForm.tsx",
+    "frontend/src/components/CommentList.tsx",
+    "frontend/src/components/GalleryGrid.tsx",
+    "frontend/src/components/GalleryItemForm.tsx",
+    "frontend/src/components/Header.tsx",
+    "frontend/src/components/PortfolioForm.tsx",
+    "frontend/src/components/PortfolioGrid.tsx",
+    "frontend/src/hooks/useBlog.ts",
+    "frontend/src/hooks/useComments.ts",
+    "frontend/src/hooks/useGallery.ts",
+    "frontend/src/hooks/usePortfolio.ts",
+    "frontend/src/pages/AdminBlogPage.tsx",
+    "frontend/src/pages/AdminDashboardPage.tsx",
+    "frontend/src/pages/AdminGalleryManagementPage.tsx",
+    "frontend/src/pages/AdminPortfolioPage.tsx",
+    "frontend/src/pages/BlogDetailPage.tsx",
+    "frontend/src/pages/BlogPage.tsx",
+    "frontend/src/pages/GalleryPage.tsx",
+    "frontend/src/pages/PortfolioPage.tsx",
     "project_state.json"
   ]
 }
