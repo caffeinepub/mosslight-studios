@@ -1,14 +1,40 @@
-# Specification
+# Mosslight Studios
 
-## Summary
-**Goal:** Add Portfolio, Gallery, Blog, and Admin Panel sections to the Mosslight Studios site, along with public commenting on Gallery items and Blog posts.
+## Current State
+Full-stack art portfolio and merchandise store with:
+- Product management with variants, colors, sizes, SKU, tax, and shipping
+- Order management with cart, checkout, and order tracking
+- Admin portal (passcode + hardcoded principal auth)
+- Portfolio, Gallery, Blog sections with public comments
+- Discussion forum, FAQ, About page
+- Analytics dashboard, notifications, product reviews
+- Stripe payments
 
-**Planned changes:**
-- Add a `/portfolio` page displaying finished artwork in a responsive grid with title, image, description, and category/medium tag
-- Add a `/gallery` page displaying photos and behind-the-scenes content in a responsive grid, with a public comments section (name + comment text, no login required) on each item
-- Add a `/blog` page listing published blog posts as cards, and individual `/blog/:id` pages showing full post content with a public comments section (name + comment text, no login required)
-- Extend the backend with data types and CRUD functions for PortfolioItem, GalleryItem, BlogPost, and PublicComment; admin write operations are authenticated, comment submission is public
-- Add an Admin Panel with protected pages at `/admin/portfolio`, `/admin/gallery`, and `/admin/blog` for creating, editing, and deleting content including image blob uploads
-- Add Portfolio and Blog navigation links to the site Header alongside the existing Gallery link
+## Requested Changes (Diff)
 
-**User-visible outcome:** Visitors can browse portfolio artwork, explore the gallery and leave comments, read blog posts and comment on them. The admin can log in to manage all portfolio, gallery, and blog content through a protected admin panel.
+### Add
+- Commission data types in backend: `CommissionAddon` (name, price), `Commission` (id, title, description, basePrice, openSpots, totalSpots, addons, createdAt), `CommissionRequest` (id, commissionId, commissionTitle, name, discordUsername, phoneNumber, email, description, selectedAddons, totalPrice, referenceImages, status, createdAt)
+- Commission status type: `#pending`, `#accepted`, `#inProgress`, `#completed`, `#rejected`
+- Backend functions: `addCommission`, `updateCommission`, `deleteCommission`, `getCommissions`, `getCommission`, `submitCommissionRequest`, `getCommissionRequests` (admin), `updateCommissionRequestStatus` (admin - adjusts openSpots: accepting fills a spot, completing releases a spot)
+- Frontend page: `/commissions` — public-facing commission listing with each commission showing title, description, base price, open spots, addons list, and a "Request This Commission" button
+- Frontend page: `/commissions/$id` — commission detail + request submission form (name, Discord, phone, email, description, addon checkboxes with live price total, reference image uploads)
+- Frontend admin page: `/admin/commissions` — add/edit/delete commissions with addon manager (like VariantManager), view all requests, change request status (accept/reject/in-progress/complete)
+- Navigation: Add "Commissions" link to header nav and admin dashboard
+- Routes in App.tsx for all new pages
+
+### Modify
+- `App.tsx`: Add commission routes and admin commission route
+- `AdminDashboardPage.tsx`: Add Commissions card linking to `/admin/commissions`
+- `Header.tsx` / nav: Add Commissions link in public nav
+
+### Remove
+- Nothing removed
+
+## Implementation Plan
+1. Add Commission and CommissionRequest types + CRUD functions to `main.mo` backend
+2. Create frontend pages: `CommissionsPage.tsx`, `CommissionDetailPage.tsx`, `AdminCommissionsPage.tsx`
+3. Create `CommissionForm.tsx` admin form component with addon manager
+4. Create `CommissionRequestForm.tsx` customer-facing request form with image uploads and live price calc
+5. Wire routes in `App.tsx`
+6. Add Commissions nav link in `Header.tsx`
+7. Add Commissions card in `AdminDashboardPage.tsx`

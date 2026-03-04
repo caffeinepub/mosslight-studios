@@ -1,8 +1,8 @@
-import { useDiscussionPosts } from '../hooks/useDiscussionBoard';
-import { Loader2, MessageSquarePlus } from 'lucide-react';
-import DiscussionPostList from '../components/DiscussionPostList';
-import AskQuestionForm from '../components/AskQuestionForm';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Loader2, MessageSquarePlus } from "lucide-react";
+import AskQuestionForm from "../components/AskQuestionForm";
+import DiscussionPostList from "../components/DiscussionPostList";
+import { useDiscussionPosts } from "../hooks/useDiscussionBoard";
 
 export default function ForumPage() {
   const { data: posts = [], isLoading } = useDiscussionPosts();
@@ -38,7 +38,9 @@ export default function ForumPage() {
         </Card>
 
         <div className="space-y-4">
-          <h2 className="font-serif text-2xl font-semibold">Recent Questions</h2>
+          <h2 className="font-serif text-2xl font-semibold">
+            Recent Questions
+          </h2>
           {posts.length === 0 ? (
             <div className="text-center py-12 bg-muted/30 rounded-lg">
               <p className="text-muted-foreground">

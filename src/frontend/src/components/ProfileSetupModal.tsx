@@ -1,27 +1,33 @@
-import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { useSaveCallerUserProfile } from '../hooks/useUserProfile';
-import { toast } from 'sonner';
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useState } from "react";
+import { toast } from "sonner";
+import { useSaveCallerUserProfile } from "../hooks/useUserProfile";
 
 interface ProfileSetupModalProps {
   open: boolean;
 }
 
 export default function ProfileSetupModal({ open }: ProfileSetupModalProps) {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [shippingAddress, setShippingAddress] = useState('');
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [shippingAddress, setShippingAddress] = useState("");
   const saveProfile = useSaveCallerUserProfile();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!name.trim() || !email.trim() || !shippingAddress.trim()) {
-      toast.error('Please fill in all fields');
+      toast.error("Please fill in all fields");
       return;
     }
 
@@ -31,18 +37,23 @@ export default function ProfileSetupModal({ open }: ProfileSetupModalProps) {
         email: email.trim(),
         shippingAddress: shippingAddress.trim(),
       });
-      toast.success('Profile created successfully!');
+      toast.success("Profile created successfully!");
     } catch (error) {
-      toast.error('Failed to create profile');
+      toast.error("Failed to create profile");
       console.error(error);
     }
   };
 
   return (
     <Dialog open={open}>
-      <DialogContent className="sm:max-w-md" onPointerDownOutside={(e) => e.preventDefault()}>
+      <DialogContent
+        className="sm:max-w-md"
+        onPointerDownOutside={(e) => e.preventDefault()}
+      >
         <DialogHeader>
-          <DialogTitle className="font-serif text-2xl">Welcome to Mosslight Studios</DialogTitle>
+          <DialogTitle className="font-serif text-2xl">
+            Welcome to Mosslight Studios
+          </DialogTitle>
           <DialogDescription>
             Please complete your profile to continue shopping
           </DialogDescription>
@@ -80,16 +91,15 @@ export default function ProfileSetupModal({ open }: ProfileSetupModalProps) {
               required
             />
           </div>
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             className="w-full"
             disabled={saveProfile.isPending}
           >
-            {saveProfile.isPending ? 'Creating Profile...' : 'Complete Profile'}
+            {saveProfile.isPending ? "Creating Profile..." : "Complete Profile"}
           </Button>
         </form>
       </DialogContent>
     </Dialog>
   );
 }
-

@@ -1,12 +1,12 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useActor } from './useActor';
-import type { Message, Customer } from '../backend';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { Customer, Message } from "../backend";
+import { useActor } from "./useActor";
 
 export function useGetMessages() {
   const { actor, isFetching } = useActor();
 
   return useQuery<Message[]>({
-    queryKey: ['messages'],
+    queryKey: ["messages"],
     queryFn: async () => {
       if (!actor) return [];
       return actor.getMessages();
@@ -20,13 +20,15 @@ export function useSendMessage() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ content, recipient }: { content: string; recipient: Customer | null }) => {
-      if (!actor) throw new Error('Actor not available');
+    mutationFn: async ({
+      content,
+      recipient,
+    }: { content: string; recipient: Customer | null }) => {
+      if (!actor) throw new Error("Actor not available");
       return actor.sendMessage(content, recipient);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['messages'] });
+      queryClient.invalidateQueries({ queryKey: ["messages"] });
     },
   });
 }
-

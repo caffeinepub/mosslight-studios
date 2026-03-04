@@ -1,6 +1,6 @@
-import { Loader2 } from 'lucide-react';
-import GalleryUploadForm from '../components/GalleryUploadForm';
-import AdminGuard from '../components/AdminGuard';
+import { Loader2 } from "lucide-react";
+import AdminGuard from "../components/AdminGuard";
+import GalleryUploadForm from "../components/GalleryUploadForm";
 
 export default function AdminGalleryPage() {
   return (

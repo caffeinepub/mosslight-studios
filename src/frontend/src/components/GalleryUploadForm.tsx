@@ -1,17 +1,23 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Loader2, Upload, X } from 'lucide-react';
-import { useAddSocialMediaContent } from '../hooks/useGallery';
-import { ExternalBlob } from '../backend';
-import { toast } from 'sonner';
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
+import { Textarea } from "@/components/ui/textarea";
+import { Loader2, Upload, X } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { ExternalBlob } from "../backend";
+import { useAddSocialMediaContent } from "../hooks/useGallery";
 
 export default function GalleryUploadForm() {
-  const [content, setContent] = useState('');
+  const [content, setContent] = useState("");
   const [mediaFiles, setMediaFiles] = useState<File[]>([]);
   const [uploadProgress, setUploadProgress] = useState(0);
   const addContent = useAddSocialMediaContent();
@@ -26,7 +32,7 @@ export default function GalleryUploadForm() {
     e.preventDefault();
 
     if (!content.trim() && mediaFiles.length === 0) {
-      toast.error('Please add content or media');
+      toast.error("Please add content or media");
       return;
     }
 
@@ -37,9 +43,16 @@ export default function GalleryUploadForm() {
         setUploadProgress(0);
         const mediaPromises = mediaFiles.map(async (file, index) => {
           const bytes = new Uint8Array(await file.arrayBuffer());
-          const blob = ExternalBlob.fromBytes(bytes).withUploadProgress((percentage) => {
-            setUploadProgress((prev) => Math.max(prev, (index + percentage / 100) / mediaFiles.length * 100));
-          });
+          const blob = ExternalBlob.fromBytes(bytes).withUploadProgress(
+            (percentage) => {
+              setUploadProgress((prev) =>
+                Math.max(
+                  prev,
+                  ((index + percentage / 100) / mediaFiles.length) * 100,
+                ),
+              );
+            },
+          );
           return blob;
         });
         media = await Promise.all(mediaPromises);
@@ -50,12 +63,12 @@ export default function GalleryUploadForm() {
         media,
       });
 
-      toast.success('Content added to gallery');
-      setContent('');
+      toast.success("Content added to gallery");
+      setContent("");
       setMediaFiles([]);
       setUploadProgress(0);
     } catch (error) {
-      toast.error('Failed to add content');
+      toast.error("Failed to add content");
       console.error(error);
     }
   };
@@ -116,7 +129,11 @@ export default function GalleryUploadForm() {
         </CardContent>
 
         <CardFooter>
-          <Button type="submit" disabled={addContent.isPending} className="gap-2">
+          <Button
+            type="submit"
+            disabled={addContent.isPending}
+            className="gap-2"
+          >
             {addContent.isPending ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -134,4 +151,3 @@ export default function GalleryUploadForm() {
     </Card>
   );
 }
-

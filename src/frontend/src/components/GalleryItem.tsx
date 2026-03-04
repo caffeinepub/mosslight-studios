@@ -1,15 +1,17 @@
-import { useEffect } from 'react';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { useRecordAnalyticsEvent } from '../hooks/useAnalytics';
-import type { SocialMediaContent } from '../backend';
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { useEffect } from "react";
+import type { SocialMediaContent } from "../backend";
+import { useRecordAnalyticsEvent } from "../hooks/useAnalytics";
 
 interface GalleryItemProps {
   item: SocialMediaContent;
 }
 
 export default function GalleryItem({ item }: GalleryItemProps) {
-  const timestamp = new Date(Number(item.timestamp) / 1000000).toLocaleDateString();
+  const timestamp = new Date(
+    Number(item.timestamp) / 1000000,
+  ).toLocaleDateString();
   const hasMedia = item.media.length > 0;
   const mediaUrl = hasMedia ? item.media[0].getDirectURL() : null;
   const recordEvent = useRecordAnalyticsEvent();
@@ -17,13 +19,13 @@ export default function GalleryItem({ item }: GalleryItemProps) {
   useEffect(() => {
     try {
       recordEvent.mutate({
-        __kind__: 'contentView',
+        __kind__: "contentView",
         contentView: item.id,
       });
-    } catch (error) {
+    } catch (_error) {
       // Silently handle analytics errors
     }
-  }, [item.id]);
+  }, [item.id, recordEvent.mutate]);
 
   return (
     <Card className="overflow-hidden hover:shadow-elegant transition-shadow">
@@ -38,7 +40,7 @@ export default function GalleryItem({ item }: GalleryItemProps) {
       )}
       <CardFooter className="flex flex-col items-start gap-3 p-4">
         <div className="flex items-center gap-2">
-          <Badge variant="secondary">{hasMedia ? 'Media' : 'Text'}</Badge>
+          <Badge variant="secondary">{hasMedia ? "Media" : "Text"}</Badge>
           <span className="text-sm text-muted-foreground">{timestamp}</span>
         </div>
         {item.content && (

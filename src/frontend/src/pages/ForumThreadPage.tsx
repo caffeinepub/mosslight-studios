@@ -1,14 +1,14 @@
-import { useParams, useNavigate } from '@tanstack/react-router';
-import { useDiscussionThread } from '../hooks/useDiscussionBoard';
-import { Loader2, ArrowLeft, MessageCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import PostStatusBadge from '../components/PostStatusBadge';
-import ReplyList from '../components/ReplyList';
-import AdminReplyForm from '../components/AdminReplyForm';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { useNavigate, useParams } from "@tanstack/react-router";
+import { ArrowLeft, Loader2, MessageCircle } from "lucide-react";
+import AdminReplyForm from "../components/AdminReplyForm";
+import PostStatusBadge from "../components/PostStatusBadge";
+import ReplyList from "../components/ReplyList";
+import { useDiscussionThread } from "../hooks/useDiscussionBoard";
 
 export default function ForumThreadPage() {
-  const { postId } = useParams({ from: '/forum/$postId' });
+  const { postId } = useParams({ from: "/forum/$postId" });
   const navigate = useNavigate();
   const { data: post, isLoading } = useDiscussionThread(postId);
 
@@ -27,7 +27,7 @@ export default function ForumThreadPage() {
         <Button
           variant="outline"
           className="mt-4"
-          onClick={() => navigate({ to: '/forum' })}
+          onClick={() => navigate({ to: "/forum" })}
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Forum
@@ -43,7 +43,7 @@ export default function ForumThreadPage() {
       <div className="max-w-4xl mx-auto space-y-6">
         <Button
           variant="ghost"
-          onClick={() => navigate({ to: '/forum' })}
+          onClick={() => navigate({ to: "/forum" })}
           className="mb-4"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
@@ -64,12 +64,12 @@ export default function ForumThreadPage() {
                   {post.question}
                 </h1>
                 <p className="text-sm text-muted-foreground">
-                  {timestamp.toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
+                  {timestamp.toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
                   })}
                 </p>
               </div>

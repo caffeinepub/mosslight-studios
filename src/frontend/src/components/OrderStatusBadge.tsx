@@ -1,5 +1,5 @@
-import { Badge } from '@/components/ui/badge';
-import type { OrderStatus } from '../backend';
+import { Badge } from "@/components/ui/badge";
+import type { OrderStatus } from "../backend";
 
 interface OrderStatusBadgeProps {
   status: OrderStatus;
@@ -8,34 +8,29 @@ interface OrderStatusBadgeProps {
 export default function OrderStatusBadge({ status }: OrderStatusBadgeProps) {
   const getVariant = () => {
     switch (status) {
-      case 'pending':
-        return 'secondary';
-      case 'shipped':
-        return 'default';
-      case 'delivered':
-        return 'outline';
+      case "pending":
+        return "secondary";
+      case "shipped":
+        return "default";
+      case "delivered":
+        return "outline";
       default:
-        return 'secondary';
+        return "secondary";
     }
   };
 
   const getLabel = () => {
     switch (status) {
-      case 'pending':
-        return 'Pending';
-      case 'shipped':
-        return 'Shipped';
-      case 'delivered':
-        return 'Delivered';
+      case "pending":
+        return "Pending";
+      case "shipped":
+        return "Shipped";
+      case "delivered":
+        return "Delivered";
       default:
         return status;
     }
   };
 
-  return (
-    <Badge variant={getVariant()}>
-      {getLabel()}
-    </Badge>
-  );
+  return <Badge variant={getVariant()}>{getLabel()}</Badge>;
 }
-

@@ -1,18 +1,27 @@
-import { useState, useEffect } from 'react';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { Search, X } from 'lucide-react';
-import type { Product } from '../backend';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Search, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import type { Product } from "../backend";
 
 interface ProductSearchProps {
   products: Product[];
   onFilterChange: (filteredProducts: Product[]) => void;
 }
 
-export default function ProductSearch({ products, onFilterChange }: ProductSearchProps) {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [priceRange, setPriceRange] = useState<string>('all');
+export default function ProductSearch({
+  products,
+  onFilterChange,
+}: ProductSearchProps) {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [priceRange, setPriceRange] = useState<string>("all");
 
   useEffect(() => {
     let filtered = [...products];
@@ -23,22 +32,22 @@ export default function ProductSearch({ products, onFilterChange }: ProductSearc
       filtered = filtered.filter(
         (product) =>
           product.name.toLowerCase().includes(term) ||
-          product.description.toLowerCase().includes(term)
+          product.description.toLowerCase().includes(term),
       );
     }
 
     // Apply price range filter
-    if (priceRange !== 'all') {
+    if (priceRange !== "all") {
       filtered = filtered.filter((product) => {
         const price = Number(product.price) / 100;
         switch (priceRange) {
-          case 'under-50':
+          case "under-50":
             return price < 50;
-          case '50-100':
+          case "50-100":
             return price >= 50 && price < 100;
-          case '100-200':
+          case "100-200":
             return price >= 100 && price < 200;
-          case 'over-200':
+          case "over-200":
             return price >= 200;
           default:
             return true;
@@ -50,11 +59,11 @@ export default function ProductSearch({ products, onFilterChange }: ProductSearc
   }, [searchTerm, priceRange, products, onFilterChange]);
 
   const handleClearFilters = () => {
-    setSearchTerm('');
-    setPriceRange('all');
+    setSearchTerm("");
+    setPriceRange("all");
   };
 
-  const hasActiveFilters = searchTerm.trim() !== '' || priceRange !== 'all';
+  const hasActiveFilters = searchTerm.trim() !== "" || priceRange !== "all";
 
   return (
     <div className="space-y-4">
@@ -84,7 +93,11 @@ export default function ProductSearch({ products, onFilterChange }: ProductSearc
         </Select>
 
         {hasActiveFilters && (
-          <Button variant="outline" onClick={handleClearFilters} className="gap-2">
+          <Button
+            variant="outline"
+            onClick={handleClearFilters}
+            className="gap-2"
+          >
             <X className="h-4 w-4" />
             Clear
           </Button>

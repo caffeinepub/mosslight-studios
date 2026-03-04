@@ -1,15 +1,18 @@
-import { Bell } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { useGetUnreadNotifications, useMarkNotificationAsRead } from '../hooks/useNotifications';
-import { AlertCircle, Package, AlertTriangle } from 'lucide-react';
+} from "@/components/ui/dropdown-menu";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Bell } from "lucide-react";
+import { AlertCircle, AlertTriangle, Package } from "lucide-react";
+import {
+  useGetUnreadNotifications,
+  useMarkNotificationAsRead,
+} from "../hooks/useNotifications";
 
 export default function NotificationBell() {
   const { data: notifications = [] } = useGetUnreadNotifications();
@@ -20,13 +23,13 @@ export default function NotificationBell() {
   };
 
   const getNotificationIcon = (type: any) => {
-    if (type.__kind__ === 'orderUpdate') {
+    if (type.__kind__ === "orderUpdate") {
       return <Package className="h-4 w-4 text-blue-600" />;
-    } else if (type.__kind__ === 'lowInventory') {
-      return <AlertTriangle className="h-4 w-4 text-amber-600" />;
-    } else {
-      return <AlertCircle className="h-4 w-4 text-purple-600" />;
     }
+    if (type.__kind__ === "lowInventory") {
+      return <AlertTriangle className="h-4 w-4 text-amber-600" />;
+    }
+    return <AlertCircle className="h-4 w-4 text-purple-600" />;
   };
 
   const formatTimestamp = (timestamp: bigint) => {
@@ -34,8 +37,8 @@ export default function NotificationBell() {
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.floor(diffMs / 60000);
-    
-    if (diffMins < 1) return 'Just now';
+
+    if (diffMins < 1) return "Just now";
     if (diffMins < 60) return `${diffMins}m ago`;
     const diffHours = Math.floor(diffMins / 60);
     if (diffHours < 24) return `${diffHours}h ago`;
@@ -77,7 +80,9 @@ export default function NotificationBell() {
                       {getNotificationIcon(notification.notifType)}
                     </div>
                     <div className="flex-1 space-y-1">
-                      <p className="text-sm leading-snug">{notification.message}</p>
+                      <p className="text-sm leading-snug">
+                        {notification.message}
+                      </p>
                       <p className="text-xs text-muted-foreground">
                         {formatTimestamp(notification.timestamp)}
                       </p>

@@ -1,18 +1,18 @@
-import { useState } from 'react';
-import { useInternetIdentity } from '../hooks/useInternetIdentity';
-import { useQueryClient } from '@tanstack/react-query';
-import { Button } from '@/components/ui/button';
-import { LogIn, LogOut, Shield } from 'lucide-react';
-import AdminLoginModal from './AdminLoginModal';
+import { Button } from "@/components/ui/button";
+import { useQueryClient } from "@tanstack/react-query";
+import { Check, Copy, Loader2, LogOut, User } from "lucide-react";
+import type React from "react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { useInternetIdentity } from "../hooks/useInternetIdentity";
 
 export default function LoginButton() {
   const { login, clear, loginStatus, identity } = useInternetIdentity();
   const queryClient = useQueryClient();
-  const [showAdminModal, setShowAdminModal] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const isAuthenticated = !!identity;
-  const disabled = loginStatus === 'logging-in';
-  const text = loginStatus === 'logging-in' ? 'Logging in...' : isAuthenticated ? 'Logout' : 'Login';
+  const isLoggingIn = loginStatus === "logging-in";
 
   const handleAuth = async () => {
     if (isAuthenticated) {
@@ -22,8 +22,8 @@ export default function LoginButton() {
       try {
         await login();
       } catch (error: any) {
-        console.error('Login error:', error);
-        if (error.message === 'User is already authenticated') {
+        console.error("Login error:", error);
+        if (error.message === "User is already authenticated") {
           await clear();
           setTimeout(() => login(), 300);
         }
@@ -31,30 +31,73 @@ export default function LoginButton() {
     }
   };
 
-  return (
-    <div className="flex flex-col gap-2">
-      <Button
-        onClick={handleAuth}
-        disabled={disabled}
-        variant={isAuthenticated ? 'outline' : 'default'}
-        className="gap-2"
-      >
-        {isAuthenticated ? <LogOut className="h-4 w-4" /> : <LogIn className="h-4 w-4" />}
-        {text}
-      </Button>
-      
-      {!isAuthenticated && (
-        <Button
-          onClick={() => setShowAdminModal(true)}
-          variant="secondary"
-          className="gap-2 bg-primary/10 hover:bg-primary/20 text-primary"
-        >
-          <Shield className="h-4 w-4" />
-          Admin Login
-        </Button>
-      )}
+  const handleCopyPrincipal = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!identity) return;
+    const principal = identity.getPrincipal().toString();
+    try {
+      await navigator.clipboard.writeText(principal);
+      setCopied(true);
+      toast.success("Principal copied!");
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Failed to copy principal.");
+    }
+  };
 
-      <AdminLoginModal open={showAdminModal} onOpenChange={setShowAdminModal} />
-    </div>
+  if (isAuthenticated && identity) {
+    const principal = identity.getPrincipal().toString();
+    const truncated = `${principal.slice(0, 5)}…${principal.slice(-4)}`;
+
+    return (
+      <div className="flex flex-col items-end gap-0.5">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleAuth}
+          className="gap-2"
+        >
+          <LogOut className="h-4 w-4" />
+          <span className="hidden sm:inline">Logout</span>
+        </Button>
+        <div className="flex items-center gap-1 group">
+          <span
+            className="text-[10px] font-mono text-muted-foreground/60 leading-none select-all cursor-default"
+            title={principal}
+          >
+            {truncated}
+          </span>
+          <button
+            type="button"
+            onClick={handleCopyPrincipal}
+            className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded hover:text-primary"
+            title="Copy full principal"
+          >
+            {copied ? (
+              <Check className="h-2.5 w-2.5 text-green-500" />
+            ) : (
+              <Copy className="h-2.5 w-2.5 text-muted-foreground" />
+            )}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <Button
+      variant="default"
+      size="sm"
+      onClick={handleAuth}
+      disabled={isLoggingIn}
+      className="gap-2"
+    >
+      {isLoggingIn ? (
+        <Loader2 className="h-4 w-4 animate-spin" />
+      ) : (
+        <User className="h-4 w-4" />
+      )}
+      {isLoggingIn ? "Logging in..." : "Login"}
+    </Button>
   );
 }

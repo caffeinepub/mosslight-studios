@@ -1,12 +1,14 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import type { Message } from '../backend';
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { Message } from "../backend";
 
 interface CustomerMessagesPanelProps {
   messages: Message[];
 }
 
-export default function CustomerMessagesPanel({ messages }: CustomerMessagesPanelProps) {
+export default function CustomerMessagesPanel({
+  messages,
+}: CustomerMessagesPanelProps) {
   if (messages.length === 0) {
     return (
       <Card>
@@ -20,7 +22,9 @@ export default function CustomerMessagesPanel({ messages }: CustomerMessagesPane
   return (
     <div className="space-y-4">
       {messages.map((message) => {
-        const timestamp = new Date(Number(message.timestamp) / 1000000).toLocaleString();
+        const timestamp = new Date(
+          Number(message.timestamp) / 1000000,
+        ).toLocaleString();
         const isBroadcast = !message.recipient;
 
         return (
@@ -30,9 +34,7 @@ export default function CustomerMessagesPanel({ messages }: CustomerMessagesPane
                 <CardTitle className="font-serif text-lg">
                   Message from Mosslight Studios
                 </CardTitle>
-                {isBroadcast && (
-                  <Badge variant="secondary">Announcement</Badge>
-                )}
+                {isBroadcast && <Badge variant="secondary">Announcement</Badge>}
               </div>
               <p className="text-sm text-muted-foreground">{timestamp}</p>
             </CardHeader>
@@ -45,4 +47,3 @@ export default function CustomerMessagesPanel({ messages }: CustomerMessagesPane
     </div>
   );
 }
-

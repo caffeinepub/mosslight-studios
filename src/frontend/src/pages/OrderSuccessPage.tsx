@@ -1,11 +1,11 @@
-import { CheckCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { useNavigate, useSearch } from '@tanstack/react-router';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { useNavigate, useSearch } from "@tanstack/react-router";
+import { CheckCircle } from "lucide-react";
 
 export default function OrderSuccessPage() {
   const navigate = useNavigate();
-  const search = useSearch({ from: '/order-success' }) as { orderId?: string };
+  const search = useSearch({ from: "/order-success" }) as { orderId?: string };
 
   return (
     <div className="container py-20">
@@ -19,7 +19,8 @@ export default function OrderSuccessPage() {
           <div className="space-y-2">
             <h1 className="font-serif text-3xl font-bold">Order Confirmed!</h1>
             <p className="text-muted-foreground">
-              Thank you for your purchase. Your order has been successfully placed.
+              Thank you for your purchase. Your order has been successfully
+              placed.
             </p>
             {search.orderId && (
               <p className="text-sm text-muted-foreground pt-2">
@@ -28,10 +29,13 @@ export default function OrderSuccessPage() {
             )}
           </div>
           <div className="flex flex-col gap-3 pt-4">
-            <Button onClick={() => navigate({ to: '/my-orders' })}>
+            <Button onClick={() => navigate({ to: "/my-orders" })}>
               View My Orders
             </Button>
-            <Button variant="outline" onClick={() => navigate({ to: '/products' })}>
+            <Button
+              variant="outline"
+              onClick={() => navigate({ to: "/products" })}
+            >
               Continue Shopping
             </Button>
           </div>
@@ -40,4 +44,3 @@ export default function OrderSuccessPage() {
     </div>
   );
 }
-

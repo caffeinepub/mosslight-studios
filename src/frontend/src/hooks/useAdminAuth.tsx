@@ -1,105 +1,142 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useInternetIdentity } from './useInternetIdentity';
-import { useActor } from './useActor';
+import type React from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import { useActor } from "./useActor";
+import { useInternetIdentity } from "./useInternetIdentity";
+
+const ADMIN_PASSCODE = "09131991";
+const ADMIN_SESSION_KEY = "adminSession";
+const SESSION_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+
+interface AdminSession {
+  authenticated: boolean;
+  timestamp: number;
+}
 
 interface AdminAuthContextType {
   isAdminAuthenticated: boolean;
+  isInitializingAdmin: boolean;
   login: (passcode: string) => Promise<boolean>;
   logout: () => void;
 }
 
-const AdminAuthContext = createContext<AdminAuthContextType | undefined>(undefined);
+const AdminAuthContext = createContext<AdminAuthContextType>({
+  isAdminAuthenticated: false,
+  isInitializingAdmin: false,
+  login: async () => false,
+  logout: () => {},
+});
 
-const ADMIN_PASSCODE = '09131991';
-const ADMIN_AUTH_KEY = 'mosslight_admin_auth';
-
-export function AdminAuthProvider({ children }: { children: ReactNode }) {
+export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+  const [isInitializingAdmin, setIsInitializingAdmin] = useState(false);
+  const { actor, isFetching: actorFetching } = useActor();
   const { identity } = useInternetIdentity();
-  const { actor } = useActor();
+  const registrationAttempted = useRef(false);
 
-  // Check localStorage on mount and when identity changes
+  const isAuthenticated = !!identity;
+
+  // Check for existing valid passcode session on mount
   useEffect(() => {
-    const checkAdminAuth = () => {
-      const stored = localStorage.getItem(ADMIN_AUTH_KEY);
-      if (stored && identity) {
-        const { principal, timestamp } = JSON.parse(stored);
-        const currentPrincipal = identity.getPrincipal().toString();
-        
-        // Verify the stored principal matches current identity
-        // and session is less than 24 hours old
-        const isValid = 
-          principal === currentPrincipal && 
-          Date.now() - timestamp < 24 * 60 * 60 * 1000;
-        
-        setIsAdminAuthenticated(isValid);
-        
-        if (!isValid) {
-          localStorage.removeItem(ADMIN_AUTH_KEY);
+    const stored = localStorage.getItem(ADMIN_SESSION_KEY);
+    if (stored) {
+      try {
+        const session: AdminSession = JSON.parse(stored);
+        const isValid =
+          session.authenticated &&
+          Date.now() - session.timestamp < SESSION_DURATION;
+        if (isValid) {
+          setIsAdminAuthenticated(true);
+        } else {
+          localStorage.removeItem(ADMIN_SESSION_KEY);
         }
-      } else {
+      } catch {
+        localStorage.removeItem(ADMIN_SESSION_KEY);
+      }
+    }
+  }, []);
+
+  // When actor is ready and user is authenticated via Internet Identity,
+  // call registerOrLogin() to auto-register the first user as admin,
+  // then check if the caller is admin.
+  useEffect(() => {
+    if (
+      !actor ||
+      actorFetching ||
+      !isAuthenticated ||
+      registrationAttempted.current
+    ) {
+      return;
+    }
+
+    registrationAttempted.current = true;
+    setIsInitializingAdmin(true);
+
+    (async () => {
+      try {
+        // This registers the caller as admin if no admin exists yet,
+        // or is a no-op if an admin is already registered.
+        await actor.registerOrLogin();
+
+        // Now check if this caller is actually the admin
+        const isAdmin = await actor.isCallerAdmin();
+        if (isAdmin) {
+          setIsAdminAuthenticated(true);
+        }
+      } catch (_err) {
+        // Silently handle errors (e.g., anonymous principal)
+      } finally {
+        setIsInitializingAdmin(false);
+      }
+    })();
+  }, [actor, actorFetching, isAuthenticated]);
+
+  // Reset registration flag when identity changes (login/logout)
+  useEffect(() => {
+    registrationAttempted.current = false;
+    if (!isAuthenticated) {
+      // Clear admin state when user logs out (unless passcode session exists)
+      const stored = localStorage.getItem(ADMIN_SESSION_KEY);
+      if (!stored) {
         setIsAdminAuthenticated(false);
       }
-    };
+    }
+  }, [isAuthenticated]);
 
-    checkAdminAuth();
-  }, [identity]);
-
-  const login = async (passcode: string): Promise<boolean> => {
+  const login = useCallback(async (passcode: string): Promise<boolean> => {
     if (passcode !== ADMIN_PASSCODE) {
       return false;
     }
 
-    if (!identity) {
-      throw new Error('You must be logged in with Internet Identity first');
-    }
+    const session: AdminSession = {
+      authenticated: true,
+      timestamp: Date.now(),
+    };
+    localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(session));
+    setIsAdminAuthenticated(true);
+    return true;
+  }, []);
 
-    if (!actor) {
-      throw new Error('Backend actor not available');
-    }
-
-    try {
-      // Verify backend admin status
-      const isBackendAdmin = await actor.isCallerAdmin();
-      
-      if (!isBackendAdmin) {
-        throw new Error(
-          'Your Internet Identity principal is not registered as an admin in the backend. ' +
-          'Please contact the system administrator to grant admin access to your principal: ' +
-          identity.getPrincipal().toString()
-        );
-      }
-
-      // Store admin auth with current principal
-      const authData = {
-        principal: identity.getPrincipal().toString(),
-        timestamp: Date.now(),
-      };
-      localStorage.setItem(ADMIN_AUTH_KEY, JSON.stringify(authData));
-      setIsAdminAuthenticated(true);
-      return true;
-    } catch (error) {
-      console.error('Admin login error:', error);
-      throw error;
-    }
-  };
-
-  const logout = () => {
-    localStorage.removeItem(ADMIN_AUTH_KEY);
+  const logout = useCallback(() => {
+    localStorage.removeItem(ADMIN_SESSION_KEY);
     setIsAdminAuthenticated(false);
-  };
+  }, []);
 
   return (
-    <AdminAuthContext.Provider value={{ isAdminAuthenticated, login, logout }}>
+    <AdminAuthContext.Provider
+      value={{ isAdminAuthenticated, isInitializingAdmin, login, logout }}
+    >
       {children}
     </AdminAuthContext.Provider>
   );
 }
 
 export function useAdminAuth() {
-  const context = useContext(AdminAuthContext);
-  if (!context) {
-    throw new Error('useAdminAuth must be used within AdminAuthProvider');
-  }
-  return context;
+  return useContext(AdminAuthContext);
 }

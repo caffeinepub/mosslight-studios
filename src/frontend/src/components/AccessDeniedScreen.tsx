@@ -1,6 +1,6 @@
-import { ShieldAlert } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { useNavigate } from '@tanstack/react-router';
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "@tanstack/react-router";
+import { ShieldAlert } from "lucide-react";
 
 export default function AccessDeniedScreen() {
   const navigate = useNavigate();
@@ -16,14 +16,12 @@ export default function AccessDeniedScreen() {
         <div className="space-y-2">
           <h1 className="font-serif text-3xl font-semibold">Access Denied</h1>
           <p className="text-muted-foreground">
-            You don't have permission to access this page. Please contact an administrator if you believe this is an error.
+            You don't have permission to access this page. Please contact an
+            administrator if you believe this is an error.
           </p>
         </div>
-        <Button onClick={() => navigate({ to: '/' })}>
-          Return to Home
-        </Button>
+        <Button onClick={() => navigate({ to: "/" })}>Return to Home</Button>
       </div>
     </div>
   );
 }
-

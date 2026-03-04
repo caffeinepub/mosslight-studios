@@ -1,50 +1,70 @@
-import { useState, useMemo } from 'react';
-import { useParams, useNavigate } from '@tanstack/react-router';
-import { useGetProduct } from '../hooks/useProducts';
-import { useGetProductVariants } from '../hooks/useProductVariants';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-import { Loader2, ArrowLeft } from 'lucide-react';
-import AddToCartButton from '../components/AddToCartButton';
-import ProductReviews from '../components/ProductReviews';
-import ReviewForm from '../components/ReviewForm';
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { useNavigate, useParams } from "@tanstack/react-router";
+import { ArrowLeft, Loader2, Tag, Truck } from "lucide-react";
+import { useMemo, useState } from "react";
+import type { ProductColor } from "../backend";
+import AddToCartButton from "../components/AddToCartButton";
+import ProductReviews from "../components/ProductReviews";
+import ReviewForm from "../components/ReviewForm";
+import { useGetProductVariants } from "../hooks/useProductVariants";
+import { useGetProduct } from "../hooks/useProducts";
 
 export default function ProductDetailPage() {
-  const { id } = useParams({ from: '/products/$id' });
+  const { id } = useParams({ from: "/products/$id" });
   const navigate = useNavigate();
   const { data: product, isLoading: productLoading } = useGetProduct(id);
-  const { data: variants = [], isLoading: variantsLoading } = useGetProductVariants(id);
+  const { data: variants = [], isLoading: variantsLoading } =
+    useGetProductVariants(id);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
 
   const isLoading = productLoading || variantsLoading;
 
+  // Available sizes from variants
   const availableSizes = useMemo(() => {
     if (!product?.hasVariants || variants.length === 0) return [];
-    const sizes = [...new Set(variants.map(v => v.size))];
-    return sizes;
+    return [...new Set(variants.map((v) => v.size))];
   }, [product, variants]);
 
-  const availableColors = useMemo(() => {
-    if (!product?.hasVariants || variants.length === 0) return [];
-    const colors = [...new Set(variants.map(v => v.color))];
-    return colors;
-  }, [product, variants]);
-
+  // Selected variant based on size only (new model: color is per-variant colors array)
   const selectedVariant = useMemo(() => {
-    if (!product?.hasVariants || !selectedSize || !selectedColor) return null;
-    return variants.find(v => v.size === selectedSize && v.color === selectedColor) || null;
-  }, [product, variants, selectedSize, selectedColor]);
+    if (!product?.hasVariants || !selectedSize) return null;
+    return variants.find((v) => v.size === selectedSize) || null;
+  }, [product, variants, selectedSize]);
 
-  const displayPrice = useMemo(() => {
-    if (product?.hasVariants && selectedVariant) {
-      return Number(selectedVariant.price);
+  // Colors available for the selected variant (or product-level colors for unsized products)
+  const availableColors = useMemo((): ProductColor[] => {
+    if (product?.hasVariants) {
+      if (!selectedVariant) return [];
+      return selectedVariant.colors || [];
     }
-    return product ? Number(product.price) : 0;
+    // For unsized products, we don't have ProductColor objects from the product directly
+    // The product.colors is string[], but we need inventory info
+    // We'll show colors from the product.colors array (no per-color inventory for unsized in this view)
+    return [];
   }, [product, selectedVariant]);
+
+  // Lowest variant price for "From $X" display
+  const lowestVariantPrice = useMemo(() => {
+    if (!product?.hasVariants || variants.length === 0) return null;
+    return Math.min(...variants.map((v) => Number(v.price)));
+  }, [product, variants]);
+
+  // Reset color when size changes
+  const handleSizeChange = (size: string) => {
+    setSelectedSize(size);
+    setSelectedColor(null);
+  };
 
   if (isLoading) {
     return (
@@ -57,8 +77,10 @@ export default function ProductDetailPage() {
   if (!product) {
     return (
       <div className="container py-20 text-center">
-        <h1 className="font-serif text-3xl font-bold mb-4">Product Not Found</h1>
-        <Button onClick={() => navigate({ to: '/products' })}>
+        <h1 className="font-serif text-3xl font-bold mb-4">
+          Product Not Found
+        </h1>
+        <Button onClick={() => navigate({ to: "/products" })}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Products
         </Button>
@@ -67,16 +89,74 @@ export default function ProductDetailPage() {
   }
 
   const isOutOfStock = product.hasVariants
-    ? (selectedVariant ? Number(selectedVariant.inventory) === 0 : false)
+    ? selectedVariant
+      ? selectedColor
+        ? (selectedVariant.colors.find((c) => c.name === selectedColor)
+            ?.inventory ?? BigInt(0)) === BigInt(0)
+        : false
+      : false
     : Number(product.inventory) === 0;
 
   const imageUrl = product.images[0]?.getDirectURL();
 
+  // Determine the active base price for tax calculation
+  const activeBasePrice =
+    product.hasVariants && selectedVariant
+      ? Number(selectedVariant.price)
+      : product.hasVariants && lowestVariantPrice !== null
+        ? lowestVariantPrice
+        : Number(product.price);
+
+  const taxRate = product.taxRate ?? 8.5;
+  const taxAmount = activeBasePrice * (taxRate / 100);
+  const shippingPrice = product.shippingPrice ?? 0;
+
+  // Price display logic
+  const renderPrice = () => {
+    if (product.hasVariants) {
+      if (selectedVariant) {
+        return (
+          <p className="text-3xl font-semibold text-primary">
+            ${Number(selectedVariant.price).toFixed(2)}
+          </p>
+        );
+      }
+      if (lowestVariantPrice !== null) {
+        return (
+          <p className="text-3xl font-semibold text-primary">
+            From ${lowestVariantPrice.toFixed(2)}
+          </p>
+        );
+      }
+      return (
+        <p className="text-base text-muted-foreground italic">
+          Select options to see price
+        </p>
+      );
+    }
+    return (
+      <p className="text-3xl font-semibold text-primary">
+        ${Number(product.price).toFixed(2)}
+      </p>
+    );
+  };
+
+  const showPricingBreakdown = !product.hasVariants || selectedVariant !== null;
+
+  // Determine if color selection is needed and whether it's complete
+  const hasColorOptions = availableColors.length > 0;
+  const colorSelectionRequired =
+    product.hasVariants && selectedVariant !== null && hasColorOptions;
+  const isAddToCartDisabled =
+    isOutOfStock ||
+    (product.hasVariants && !selectedVariant) ||
+    (colorSelectionRequired && !selectedColor);
+
   return (
     <div className="container py-12">
-      <Button 
-        variant="ghost" 
-        onClick={() => navigate({ to: '/products' })}
+      <Button
+        variant="ghost"
+        onClick={() => navigate({ to: "/products" })}
         className="mb-6"
       >
         <ArrowLeft className="h-4 w-4 mr-2" />
@@ -102,39 +182,66 @@ export default function ProductDetailPage() {
           <div className="space-y-2">
             <h1 className="font-serif text-4xl font-bold">{product.name}</h1>
             <div className="flex items-center gap-3">
-              <p className="text-3xl font-semibold text-primary">
-                ${(displayPrice / 100).toFixed(2)}
-              </p>
-              {!product.hasVariants && (
-                <>
-                  {isOutOfStock ? (
-                    <Badge variant="destructive">Out of Stock</Badge>
-                  ) : (
-                    <Badge variant="secondary">
-                      {Number(product.inventory)} in stock
-                    </Badge>
-                  )}
-                </>
+              {renderPrice()}
+              {!product.hasVariants && isOutOfStock && (
+                <Badge variant="destructive">Out of Stock</Badge>
               )}
             </div>
+
+            {/* Pricing Breakdown */}
+            {showPricingBreakdown && (
+              <div className="mt-3 p-3 bg-muted/50 rounded-lg space-y-1.5 text-sm">
+                <div className="flex justify-between text-muted-foreground">
+                  <span>Base Price</span>
+                  <span>${activeBasePrice.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-muted-foreground items-center">
+                  <span className="flex items-center gap-1">
+                    <Tag className="w-3.5 h-3.5" />
+                    Tax ({taxRate}%)
+                  </span>
+                  <span>+${taxAmount.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-muted-foreground items-center">
+                  <span className="flex items-center gap-1">
+                    <Truck className="w-3.5 h-3.5" />
+                    Shipping
+                  </span>
+                  <span>
+                    {shippingPrice > 0
+                      ? `+$${shippingPrice.toFixed(2)}`
+                      : "Free"}
+                  </span>
+                </div>
+                <Separator className="my-1" />
+                <div className="flex justify-between font-semibold text-foreground">
+                  <span>Estimated Total</span>
+                  <span>
+                    ${(activeBasePrice + taxAmount + shippingPrice).toFixed(2)}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
 
-          <div className="prose prose-sm max-w-none">
-            <p className="text-muted-foreground whitespace-pre-wrap">
-              {product.description}
-            </p>
-          </div>
+          <Separator />
 
-          {product.hasVariants && (
-            <div className="space-y-4 pt-4">
+          <p className="text-muted-foreground leading-relaxed">
+            {product.description}
+          </p>
+
+          {/* Size Selection */}
+          {product.hasVariants &&
+            variants.length > 0 &&
+            availableSizes.length > 0 && (
               <div className="space-y-2">
-                <Label htmlFor="size-select">Select Size</Label>
-                <Select value={selectedSize || ''} onValueChange={setSelectedSize}>
-                  <SelectTrigger id="size-select">
-                    <SelectValue placeholder="Select size" />
+                <Label>Size</Label>
+                <Select onValueChange={handleSizeChange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a size" />
                   </SelectTrigger>
                   <SelectContent>
-                    {availableSizes.map(size => (
+                    {availableSizes.map((size) => (
                       <SelectItem key={size} value={size}>
                         {size}
                       </SelectItem>
@@ -142,66 +249,116 @@ export default function ProductDetailPage() {
                   </SelectContent>
                 </Select>
               </div>
+            )}
 
-              <div className="space-y-2">
-                <Label htmlFor="color-select">Select Color</Label>
-                <Select value={selectedColor || ''} onValueChange={setSelectedColor}>
-                  <SelectTrigger id="color-select">
-                    <SelectValue placeholder="Select color" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableColors.map(color => (
-                      <SelectItem key={color} value={color}>
-                        {color}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+          {/* Color Selection — shown when selected variant has color options */}
+          {hasColorOptions && (
+            <div className="space-y-2">
+              <Label>
+                Color
+                {selectedColor && (
+                  <span className="ml-2 font-normal text-muted-foreground">
+                    — {selectedColor}
+                  </span>
+                )}
+              </Label>
+              <div className="flex flex-wrap gap-2">
+                {availableColors.map((color) => {
+                  const outOfStock = Number(color.inventory) === 0;
+                  const isSelected = selectedColor === color.name;
+                  return (
+                    <button
+                      key={color.name}
+                      type="button"
+                      onClick={() =>
+                        !outOfStock && setSelectedColor(color.name)
+                      }
+                      disabled={outOfStock}
+                      className={[
+                        "px-3 py-1.5 rounded-full text-sm border transition-all",
+                        isSelected
+                          ? "border-primary bg-primary text-primary-foreground font-medium"
+                          : outOfStock
+                            ? "border-muted text-muted-foreground bg-muted/30 cursor-not-allowed line-through opacity-60"
+                            : "border-border hover:border-primary hover:bg-primary/5 cursor-pointer",
+                      ].join(" ")}
+                    >
+                      {color.name}
+                      {outOfStock && (
+                        <span className="ml-1 text-xs">(Out of stock)</span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
-
-              {selectedSize && selectedColor && selectedVariant && (
-                <div className="pt-2">
-                  {Number(selectedVariant.inventory) === 0 ? (
-                    <Badge variant="destructive">Out of Stock</Badge>
-                  ) : Number(selectedVariant.inventory) < 5 ? (
-                    <Badge variant="secondary" className="bg-amber-100 text-amber-900 dark:bg-amber-900 dark:text-amber-100">
-                      Only {Number(selectedVariant.inventory)} left in stock
-                    </Badge>
-                  ) : (
-                    <Badge variant="secondary">In Stock</Badge>
-                  )}
-                </div>
+              {colorSelectionRequired && !selectedColor && (
+                <p className="text-xs text-muted-foreground">
+                  Please select a color to continue
+                </p>
               )}
             </div>
           )}
 
-          <div className="pt-4">
-            <AddToCartButton 
-              product={product} 
-              disabled={isOutOfStock}
+          <div className="space-y-3">
+            {/* Stock info */}
+            {!product.hasVariants && (
+              <p className="text-sm text-muted-foreground">
+                {Number(product.inventory) > 0
+                  ? `${Number(product.inventory)} in stock`
+                  : "Out of stock"}
+              </p>
+            )}
+            {product.hasVariants && selectedVariant && !hasColorOptions && (
+              <p className="text-sm text-muted-foreground">
+                {Number(
+                  selectedVariant.colors.reduce(
+                    (sum, c) => sum + Number(c.inventory),
+                    0,
+                  ),
+                ) > 0
+                  ? `${selectedVariant.colors.reduce((sum, c) => sum + Number(c.inventory), 0)} in stock`
+                  : "Out of stock for this size"}
+              </p>
+            )}
+            {product.hasVariants && selectedVariant && selectedColor && (
+              <p className="text-sm text-muted-foreground">
+                {(() => {
+                  const colorEntry = selectedVariant.colors.find(
+                    (c) => c.name === selectedColor,
+                  );
+                  const stock = colorEntry ? Number(colorEntry.inventory) : 0;
+                  return stock > 0 ? `${stock} in stock` : "Out of stock";
+                })()}
+              </p>
+            )}
+
+            <AddToCartButton
+              product={product}
               hasVariants={product.hasVariants}
               selectedSize={selectedSize}
               selectedColor={selectedColor}
               variants={variants}
+              disabled={isAddToCartDisabled}
             />
           </div>
+
+          {product.categories.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {product.categories.map((cat) => (
+                <Badge key={cat} variant="secondary">
+                  {cat}
+                </Badge>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
       <Separator className="my-12" />
 
-      <div className="max-w-4xl mx-auto space-y-12">
-        <div className="space-y-6">
-          <h2 className="font-serif text-3xl font-bold">Write a Review</h2>
-          <ReviewForm productId={id} />
-        </div>
-
-        <Separator />
-
-        <div className="space-y-6">
-          <h2 className="font-serif text-3xl font-bold">Customer Reviews</h2>
-          <ProductReviews productId={id} />
-        </div>
+      <div className="max-w-2xl space-y-8">
+        <ProductReviews productId={product.id} />
+        <ReviewForm productId={product.id} />
       </div>
     </div>
   );

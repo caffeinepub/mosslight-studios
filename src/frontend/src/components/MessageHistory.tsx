@@ -1,6 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import type { Message } from '../backend';
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { Message } from "../backend";
 
 interface MessageHistoryProps {
   messages: Message[];
@@ -20,16 +20,20 @@ export default function MessageHistory({ messages }: MessageHistoryProps) {
   return (
     <div className="space-y-4">
       {messages.map((message) => {
-        const timestamp = new Date(Number(message.timestamp) / 1000000).toLocaleString();
+        const timestamp = new Date(
+          Number(message.timestamp) / 1000000,
+        ).toLocaleString();
         const isBroadcast = !message.recipient;
 
         return (
           <Card key={message.id}>
             <CardHeader>
               <div className="flex items-start justify-between gap-4">
-                <CardTitle className="font-serif text-lg">Message {message.id}</CardTitle>
-                <Badge variant={isBroadcast ? 'default' : 'secondary'}>
-                  {isBroadcast ? 'Broadcast' : 'Direct'}
+                <CardTitle className="font-serif text-lg">
+                  Message {message.id}
+                </CardTitle>
+                <Badge variant={isBroadcast ? "default" : "secondary"}>
+                  {isBroadcast ? "Broadcast" : "Direct"}
                 </Badge>
               </div>
               <p className="text-sm text-muted-foreground">{timestamp}</p>
@@ -48,4 +52,3 @@ export default function MessageHistory({ messages }: MessageHistoryProps) {
     </div>
   );
 }
-

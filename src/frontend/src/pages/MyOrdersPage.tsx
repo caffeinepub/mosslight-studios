@@ -1,22 +1,27 @@
-import { useInternetIdentity } from '../hooks/useInternetIdentity';
-import { useGetCallerUserProfile } from '../hooks/useUserProfile';
-import { useGetMyOrders } from '../hooks/useCustomerOrders';
-import { useGetMyMessages } from '../hooks/useCustomerMessages';
-import { Loader2 } from 'lucide-react';
-import MyOrderCard from '../components/MyOrderCard';
-import CustomerMessagesPanel from '../components/CustomerMessagesPanel';
-import ProfileSetupModal from '../components/ProfileSetupModal';
-import AccessDeniedScreen from '../components/AccessDeniedScreen';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Loader2 } from "lucide-react";
+import AccessDeniedScreen from "../components/AccessDeniedScreen";
+import CustomerMessagesPanel from "../components/CustomerMessagesPanel";
+import MyOrderCard from "../components/MyOrderCard";
+import ProfileSetupModal from "../components/ProfileSetupModal";
+import { useGetMyMessages } from "../hooks/useCustomerMessages";
+import { useGetMyOrders } from "../hooks/useCustomerOrders";
+import { useInternetIdentity } from "../hooks/useInternetIdentity";
+import { useGetCallerUserProfile } from "../hooks/useUserProfile";
 
 export default function MyOrdersPage() {
   const { identity } = useInternetIdentity();
-  const { data: userProfile, isLoading: profileLoading, isFetched } = useGetCallerUserProfile();
+  const {
+    data: userProfile,
+    isLoading: profileLoading,
+    isFetched,
+  } = useGetCallerUserProfile();
   const { data: orders = [], isLoading: ordersLoading } = useGetMyOrders();
   const { data: messages = [] } = useGetMyMessages();
 
   const isAuthenticated = !!identity;
-  const showProfileSetup = isAuthenticated && !profileLoading && isFetched && userProfile === null;
+  const showProfileSetup =
+    isAuthenticated && !profileLoading && isFetched && userProfile === null;
 
   if (!isAuthenticated) {
     return <AccessDeniedScreen />;
@@ -33,7 +38,7 @@ export default function MyOrdersPage() {
   return (
     <>
       <ProfileSetupModal open={showProfileSetup} />
-      
+
       <div className="container py-12">
         <div className="space-y-8">
           <div className="space-y-2">
@@ -80,4 +85,3 @@ export default function MyOrdersPage() {
     </>
   );
 }
-

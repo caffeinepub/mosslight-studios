@@ -1,27 +1,35 @@
-import { useState } from 'react';
-import { useGetProducts, useDeleteProduct } from '../hooks/useProducts';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Plus, Pencil, Trash2 } from 'lucide-react';
-import ProductForm from '../components/ProductForm';
-import AdminGuard from '../components/AdminGuard';
-import { toast } from 'sonner';
-import type { Product } from '../backend';
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Loader2, Pencil, Plus, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import type { Product } from "../backend";
+import AdminGuard from "../components/AdminGuard";
+import ProductForm from "../components/ProductForm";
+import { useDeleteProduct, useGetProducts } from "../hooks/useProducts";
 
 export default function AdminProductsPage() {
   const { data: products = [], isLoading: productsLoading } = useGetProducts();
   const deleteProduct = useDeleteProduct();
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [editingProduct, setEditingProduct] = useState<Product | undefined>(
+    undefined,
+  );
   const [showForm, setShowForm] = useState(false);
 
   const handleDelete = async (productId: string) => {
-    if (!confirm('Are you sure you want to delete this product?')) return;
-    
+    if (!confirm("Are you sure you want to delete this product?")) return;
+
     try {
       await deleteProduct.mutateAsync(productId);
-      toast.success('Product deleted successfully');
-    } catch (error) {
-      toast.error('Failed to delete product');
+      toast.success("Product deleted successfully");
+    } catch {
+      toast.error("Failed to delete product");
     }
   };
 
@@ -32,16 +40,17 @@ export default function AdminProductsPage() {
 
   const handleCloseForm = () => {
     setShowForm(false);
-    setEditingProduct(null);
+    setEditingProduct(undefined);
   };
 
   if (showForm) {
     return (
       <AdminGuard>
         <div className="container py-12">
-          <ProductForm 
-            product={editingProduct} 
-            onClose={handleCloseForm}
+          <ProductForm
+            product={editingProduct}
+            onSuccess={handleCloseForm}
+            onCancel={handleCloseForm}
           />
         </div>
       </AdminGuard>
@@ -73,7 +82,8 @@ export default function AdminProductsPage() {
             <Card>
               <CardContent className="py-12 text-center">
                 <p className="text-muted-foreground">
-                  No products yet. Click "Add Product" to create your first product.
+                  No products yet. Click "Add Product" to create your first
+                  product.
                 </p>
               </CardContent>
             </Card>
@@ -95,7 +105,9 @@ export default function AdminProductsPage() {
                       )}
                     </CardHeader>
                     <CardContent className="space-y-2">
-                      <CardTitle className="font-serif">{product.name}</CardTitle>
+                      <CardTitle className="font-serif">
+                        {product.name}
+                      </CardTitle>
                       <p className="text-sm text-muted-foreground line-clamp-2">
                         {product.description}
                       </p>
@@ -109,18 +121,18 @@ export default function AdminProductsPage() {
                       </div>
                     </CardContent>
                     <CardFooter className="gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
+                      <Button
+                        variant="outline"
+                        size="sm"
                         className="flex-1"
                         onClick={() => handleEdit(product)}
                       >
                         <Pencil className="h-4 w-4 mr-2" />
                         Edit
                       </Button>
-                      <Button 
-                        variant="destructive" 
-                        size="sm" 
+                      <Button
+                        variant="destructive"
+                        size="sm"
                         className="flex-1"
                         onClick={() => handleDelete(product.id)}
                         disabled={deleteProduct.isPending}

@@ -1,16 +1,16 @@
-import { Link } from '@tanstack/react-router';
-import { Card, CardContent } from '@/components/ui/card';
-import { MessageCircle } from 'lucide-react';
-import PostStatusBadge from './PostStatusBadge';
-import type { DiscussionPost } from '../backend';
+import { Card, CardContent } from "@/components/ui/card";
+import { Link } from "@tanstack/react-router";
+import { MessageCircle } from "lucide-react";
+import type { DiscussionPost } from "../backend";
+import PostStatusBadge from "./PostStatusBadge";
 
 interface DiscussionPostListProps {
   posts: DiscussionPost[];
 }
 
 export default function DiscussionPostList({ posts }: DiscussionPostListProps) {
-  const sortedPosts = [...posts].sort((a, b) => 
-    Number(b.timestamp) - Number(a.timestamp)
+  const sortedPosts = [...posts].sort(
+    (a, b) => Number(b.timestamp) - Number(a.timestamp),
   );
 
   return (
@@ -30,21 +30,23 @@ export default function DiscussionPostList({ posts }: DiscussionPostListProps) {
                     </h3>
                     <PostStatusBadge status={post.status} />
                   </div>
-                  
+
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <span>Asked by Customer</span>
                     <span>•</span>
                     <span>
-                      {timestamp.toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
+                      {timestamp.toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
                       })}
                     </span>
                     <span>•</span>
                     <div className="flex items-center gap-1">
                       <MessageCircle className="h-4 w-4" />
-                      <span>{replyCount} {replyCount === 1 ? 'reply' : 'replies'}</span>
+                      <span>
+                        {replyCount} {replyCount === 1 ? "reply" : "replies"}
+                      </span>
                     </div>
                   </div>
                 </div>

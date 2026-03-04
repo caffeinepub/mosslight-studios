@@ -1,11 +1,11 @@
-import { useState } from 'react';
-import { useSubmitReview } from '../hooks/useReviews';
-import { useInternetIdentity } from '../hooks/useInternetIdentity';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Star } from 'lucide-react';
-import { toast } from 'sonner';
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Star } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { useInternetIdentity } from "../hooks/useInternetIdentity";
+import { useSubmitReview } from "../hooks/useReviews";
 
 interface ReviewFormProps {
   productId: string;
@@ -14,7 +14,7 @@ interface ReviewFormProps {
 export default function ReviewForm({ productId }: ReviewFormProps) {
   const [rating, setRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
-  const [reviewText, setReviewText] = useState('');
+  const [reviewText, setReviewText] = useState("");
   const { identity } = useInternetIdentity();
   const submitReview = useSubmitReview();
 
@@ -24,17 +24,17 @@ export default function ReviewForm({ productId }: ReviewFormProps) {
     e.preventDefault();
 
     if (!isAuthenticated) {
-      toast.error('Please log in to submit a review');
+      toast.error("Please log in to submit a review");
       return;
     }
 
     if (rating === 0) {
-      toast.error('Please select a rating');
+      toast.error("Please select a rating");
       return;
     }
 
     if (!reviewText.trim()) {
-      toast.error('Please write a review');
+      toast.error("Please write a review");
       return;
     }
 
@@ -44,14 +44,14 @@ export default function ReviewForm({ productId }: ReviewFormProps) {
         rating,
         reviewText: reviewText.trim(),
       });
-      toast.success('Review submitted successfully!');
+      toast.success("Review submitted successfully!");
       setRating(0);
-      setReviewText('');
+      setReviewText("");
     } catch (error: any) {
-      if (error.message?.includes('only review products')) {
-        toast.error('You can only review products you have purchased');
+      if (error.message?.includes("only review products")) {
+        toast.error("You can only review products you have purchased");
       } else {
-        toast.error('Failed to submit review. Please try again.');
+        toast.error("Failed to submit review. Please try again.");
       }
     }
   };
@@ -59,9 +59,7 @@ export default function ReviewForm({ productId }: ReviewFormProps) {
   if (!isAuthenticated) {
     return (
       <div className="text-center py-6 bg-muted/30 rounded-lg">
-        <p className="text-muted-foreground">
-          Please log in to write a review
-        </p>
+        <p className="text-muted-foreground">Please log in to write a review</p>
       </div>
     );
   }
@@ -83,8 +81,8 @@ export default function ReviewForm({ productId }: ReviewFormProps) {
               <Star
                 className={`h-8 w-8 ${
                   star <= (hoveredRating || rating)
-                    ? 'fill-amber-400 text-amber-400'
-                    : 'text-gray-300'
+                    ? "fill-amber-400 text-amber-400"
+                    : "text-gray-300"
                 }`}
               />
             </button>
@@ -109,7 +107,7 @@ export default function ReviewForm({ productId }: ReviewFormProps) {
         disabled={submitReview.isPending || rating === 0 || !reviewText.trim()}
         className="w-full"
       >
-        {submitReview.isPending ? 'Submitting...' : 'Submit Review'}
+        {submitReview.isPending ? "Submitting..." : "Submit Review"}
       </Button>
     </form>
   );

@@ -1,23 +1,23 @@
-import { useState } from 'react';
-import { useGetCallerUserRole } from '../hooks/useUserProfile';
-import { useReplyToPost } from '../hooks/useDiscussionBoard';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Shield } from 'lucide-react';
-import { toast } from 'sonner';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Loader2, Shield } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { useReplyToPost } from "../hooks/useDiscussionBoard";
+import { useGetCallerUserRole } from "../hooks/useUserProfile";
 
 interface AdminReplyFormProps {
   postId: string;
 }
 
 export default function AdminReplyForm({ postId }: AdminReplyFormProps) {
-  const [replyContent, setReplyContent] = useState('');
+  const [replyContent, setReplyContent] = useState("");
   const { data: userRole } = useGetCallerUserRole();
   const replyMutation = useReplyToPost();
 
-  const isAdmin = userRole === 'admin';
+  const isAdmin = userRole === "admin";
 
   if (!isAdmin) {
     return null;
@@ -27,17 +27,17 @@ export default function AdminReplyForm({ postId }: AdminReplyFormProps) {
     e.preventDefault();
 
     if (!replyContent.trim()) {
-      toast.error('Please enter a reply');
+      toast.error("Please enter a reply");
       return;
     }
 
     try {
       await replyMutation.mutateAsync({ postId, content: replyContent.trim() });
-      toast.success('Reply posted successfully!');
-      setReplyContent('');
+      toast.success("Reply posted successfully!");
+      setReplyContent("");
     } catch (error) {
-      console.error('Error posting reply:', error);
-      toast.error('Failed to post reply. Please try again.');
+      console.error("Error posting reply:", error);
+      toast.error("Failed to post reply. Please try again.");
     }
   };
 
@@ -74,7 +74,7 @@ export default function AdminReplyForm({ postId }: AdminReplyFormProps) {
                 Posting...
               </>
             ) : (
-              'Post Reply'
+              "Post Reply"
             )}
           </Button>
         </form>

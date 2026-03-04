@@ -4,26 +4,26 @@ import Time "mo:core/Time";
 import Nat "mo:core/Nat";
 import Array "mo:core/Array";
 import List "mo:core/List";
+import Float "mo:core/Float";
 import Principal "mo:core/Principal";
-import Iter "mo:core/Iter";
 import Runtime "mo:core/Runtime";
 import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
+import Iter "mo:core/Iter";
 
 actor {
-  let accessControlState = AccessControl.initState();
-
-  include MixinStorage();
-  include MixinAuthorization(accessControlState);
+  public type ProductColor = {
+    name : Text;
+    inventory : Nat;
+  };
 
   public type ProductVariant = {
     id : Text;
     size : Text;
-    color : Text;
+    colors : [ProductColor];
     price : Nat;
-    inventory : Nat;
     parentProductId : Text;
   };
 
@@ -36,6 +36,12 @@ actor {
     inventory : Nat;
     variants : ?[ProductVariant];
     hasVariants : Bool;
+    sku : Text;
+    categories : [Text];
+    colors : [Text];
+    sizes : [Text];
+    taxRate : Float;
+    shippingPrice : Float;
   };
 
   public type Customer = Principal;
@@ -50,6 +56,7 @@ actor {
     id : Text;
     customer : Customer;
     items : [OrderItem];
+    total : Nat;
     status : OrderStatus;
     date : Time.Time;
   };
@@ -57,7 +64,9 @@ actor {
   public type OrderItem = {
     productId : Text;
     variantId : ?Text;
+    color : Text;
     quantity : Nat;
+    price : Nat;
   };
 
   public type Message = {
@@ -80,6 +89,14 @@ actor {
     shippingAddress : Text;
   };
 
+  var adminPrincipal : ?Principal = null;
+  let HARD_CODED_ADMIN_PRINCIPAL = Principal.fromText("axgif-6oipb-lnqzh-ddzf3-hsjsz-2nw65-g34cg-npb6b-jxnhn-jnnch-6qe");
+
+  let accessControlState = AccessControl.initState();
+  include MixinAuthorization(accessControlState);
+
+  include MixinStorage();
+
   public type CreateProductData = {
     name : Text;
     description : Text;
@@ -87,6 +104,12 @@ actor {
     inventory : Nat;
     hasVariants : Bool;
     variants : ?[ProductVariant];
+    sku : Text;
+    categories : [Text];
+    colors : [Text];
+    sizes : [Text];
+    taxRate : Float;
+    shippingPrice : Float;
   };
 
   public type ExternalProduct = {
@@ -178,57 +201,151 @@ actor {
   let analytics = Map.empty<Text, AnalyticsEvent>();
   let productReviews = Map.empty<Text, List.List<Review>>();
 
+  public type PortfolioItem = {
+    id : Text;
+    title : Text;
+    description : Text;
+    image : Storage.ExternalBlob;
+    category : Text;
+    createdAt : Time.Time;
+  };
+
+  public type GalleryItem = {
+    id : Text;
+    title : Text;
+    description : Text;
+    image : Storage.ExternalBlob;
+    createdAt : Time.Time;
+  };
+
+  public type BlogPost = {
+    id : Text;
+    title : Text;
+    bodyText : Text;
+    image : ?Storage.ExternalBlob;
+    createdAt : Time.Time;
+  };
+
+  public type CommentParentType = {
+    #galleryItem;
+    #blogPost;
+  };
+
+  public type Comment = {
+    id : Text;
+    parentId : Text;
+    parentType : CommentParentType;
+    name : Text;
+    text : Text;
+    timestamp : Time.Time;
+  };
+
+  let portfolioItems = Map.empty<Text, PortfolioItem>();
+  let galleryItems = Map.empty<Text, GalleryItem>();
+  let blogPosts = Map.empty<Text, BlogPost>();
+  let comments = Map.empty<Text, Comment>();
+
+  var portfolioIdCounter = 0;
+  var galleryIdCounter = 0;
+  var blogIdCounter = 0;
+  var commentIdCounter = 0;
+
+  // Commissions Types and State
+  public type CommissionAddon = {
+    name : Text;
+    price : Nat;
+  };
+
+  public type CommissionRequestStatus = {
+    #pending;
+    #accepted;
+    #inProgress;
+    #completed;
+    #rejected;
+  };
+
+  public type Commission = {
+    id : Text;
+    title : Text;
+    description : Text;
+    basePrice : Nat;
+    openSpots : Nat;
+    totalSpots : Nat;
+    addons : [CommissionAddon];
+    createdAt : Time.Time;
+  };
+
+  public type CommissionRequest = {
+    id : Text;
+    commissionId : Text;
+    commissionTitle : Text;
+    name : Text;
+    discordUsername : ?Text;
+    phoneNumber : ?Text;
+    email : ?Text;
+    description : Text;
+    selectedAddons : [CommissionAddon];
+    totalPrice : Nat;
+    referenceImages : [Storage.ExternalBlob];
+    status : CommissionRequestStatus;
+    createdAt : Time.Time;
+  };
+
+  let commissions = Map.empty<Text, Commission>();
+  let commissionRequests = Map.empty<Text, CommissionRequest>();
+
+  var commissionIdCounter = 0;
+  var commissionRequestIdCounter = 0;
+
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+    if (not isAdmin(caller) and not AccessControl.hasPermission(accessControlState, caller, #user)) {
       Runtime.trap("Unauthorized: Only users can view profiles");
     };
     userProfiles.get(caller);
   };
 
   public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
-    if (caller != user and not AccessControl.isAdmin(accessControlState, caller)) {
+    if (caller != user and not isAdmin(caller) and not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Can only view your own profile");
     };
     userProfiles.get(user);
   };
 
   public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+    if (not isAdmin(caller) and not AccessControl.hasPermission(accessControlState, caller, #user)) {
       Runtime.trap("Unauthorized: Only users can save profiles");
     };
     userProfiles.add(caller, profile);
   };
 
-  func validateVarientDataStructure(product : CreateProductData) {
-    let variantData = product.variants;
-    switch (variantData) {
+  func isAdmin(caller : Principal) : Bool {
+    let currentAdmin = switch (adminPrincipal) {
+      case (?admin) { admin };
+      case (null) { HARD_CODED_ADMIN_PRINCIPAL };
+    };
+    caller == currentAdmin;
+  };
+
+  func requireAdmin(caller : Principal) {
+    if (not isAdmin(caller) and not AccessControl.hasPermission(accessControlState, caller, #admin)) {
+      Runtime.trap("Unauthorized: Admin access required");
+    };
+  };
+
+  public shared ({ caller }) func registerOrLogin() : async () {
+    if (caller.isAnonymous()) {
+      Runtime.trap("Anonymous principals cannot register as admin");
+    };
+    switch (adminPrincipal) {
       case (null) {
-        let sizeArray = [1.89, 2.11, 2.67, 3.09];
-        let _resizedArray = Array.tabulate(4, func(i) { sizeArray[i] });
-        Runtime.trap("It's required to provide data for each of the 4 available variants: 2X2, 3X3, 4X4, 6X6. Please try again.");
+        adminPrincipal := ?caller;
       };
-      case (?variants) {
-        let sizeArray = [1.89, 2.11, 2.67, 3.09];
-        let _resizedArray = Array.tabulate(variants.size(), func(i) { sizeArray[i] });
-
-        let hasAllVariants = (
-          variants.any(func(v) { v.size == "2X2" }) and variants.any(func(v) { v.size == "3X3" }) and variants.any(func(v) { v.size == "4X4" }) and variants.any(func(v) { v.size == "6X6" })
-        );
-
-        if (not hasAllVariants) {
-          Runtime.trap("You must provide data for all 4 available variants: 2X2, 3X3, 4X4, 6X6.");
-        };
-      };
+      case (?_admin) {};
     };
   };
 
   public shared ({ caller }) func addProduct(product : CreateProductData, images : [Storage.ExternalBlob]) : async () {
-    // Check if caller is admin
-    if (not (AccessControl.isAdmin(accessControlState, caller))) {
-      Runtime.trap("Unauthorized: Only admins can add products");
-    };
-
-    validateVarientDataStructure(product);
+    requireAdmin(caller);
 
     let variantsToCheck = switch (product.variants) {
       case (null) { [] };
@@ -239,11 +356,8 @@ actor {
       if (variant.price == 0) {
         Runtime.trap("Price must be provided for each variant");
       };
-      if (variant.inventory == 0) {
-        Runtime.trap("Inventory must be provided for each variant");
-      };
-      if (variant.color == "") {
-        Runtime.trap("Color must be provided for each variant");
+      if (variant.colors.size() == 0) {
+        Runtime.trap("At least one color must be provided for each variant");
       };
       if (variant.size == "") {
         Runtime.trap("Size must be provided for each variant");
@@ -251,64 +365,78 @@ actor {
       if (variant.id == "") {
         Runtime.trap("Id must be provided for each variant");
       };
-      if (variant.parentProductId == "") {
-        Runtime.trap("parentProductId must be provided for each variant");
-      };
     };
 
     productIdCounter += 1;
     let id = "product_" # productIdCounter.toText();
-    let productWithId = {
+
+    let productWithVariantsSet = {
       id;
       name = product.name;
       description = product.description;
       price = product.price;
       images;
       inventory = product.inventory;
-      variants = product.variants;
       hasVariants = product.hasVariants;
+      sku = product.sku;
+      categories = product.categories;
+      colors = product.colors;
+      sizes = product.sizes;
+      variants = switch (product.variants) {
+        case (null) { null };
+        case (?variants) {
+          ?variants.map(func(variant) { { variant with parentProductId = id } });
+        };
+      };
+      taxRate = 8.0;
+      shippingPrice = product.shippingPrice;
     };
-    products.add(id, productWithId);
+
+    products.add(id, productWithVariantsSet);
     sendLowInventoryNotifications(id);
   };
 
   public shared ({ caller }) func updateProduct(productId : Text, productData : CreateProductData, images : [Storage.ExternalBlob]) : async () {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can update products");
-    };
-
+    requireAdmin(caller);
     switch (products.get(productId)) {
       case null {
         Runtime.trap("Product not found");
       };
       case (?existing) {
-        let updated : Product = {
-          id = productId;
+        let updatedProduct : Product = {
+          existing with
           name = productData.name;
           description = productData.description;
           price = productData.price;
           images;
           inventory = productData.inventory;
           hasVariants = productData.hasVariants;
-          variants = productData.variants;
+          sku = productData.sku;
+          categories = productData.categories;
+          colors = productData.colors;
+          sizes = productData.sizes;
+          variants = switch (productData.variants) {
+            case (null) { null };
+            case (?variants) {
+              ?variants.map(func(variant) { { variant with parentProductId = productId } });
+            };
+          };
+          taxRate = 8.0;
+          shippingPrice = productData.shippingPrice;
         };
-        products.add(productId, updated);
+        products.add(productId, updatedProduct);
         sendLowInventoryNotifications(productId);
       };
     };
   };
 
   public shared ({ caller }) func deleteProduct(productId : Text) : async () {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can delete products");
-    };
+    requireAdmin(caller);
     products.remove(productId);
   };
 
   public shared ({ caller }) func updateOrderStatus(orderId : Text, status : OrderStatus) : async () {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can update order status");
-    };
+    requireAdmin(caller);
 
     switch (orders.get(orderId)) {
       case null {
@@ -319,6 +447,7 @@ actor {
           id = order.id;
           customer = order.customer;
           items = order.items;
+          total = order.total;
           status;
           date = order.date;
         };
@@ -329,8 +458,8 @@ actor {
   };
 
   public shared ({ caller }) func sendMessage(content : Text, recipient : ?Customer) : async () {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can send messages");
+    if (not isAdmin(caller) and not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Runtime.trap("Unauthorized: Only users can send messages");
     };
 
     messageIdCounter += 1;
@@ -345,31 +474,27 @@ actor {
   };
 
   public shared ({ caller }) func sendAdminBroadcastAlert(message : Text) : async () {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can send broadcast alerts");
-    };
+    requireAdmin(caller);
 
     for ((principal, _) in userProfiles.entries()) {
-      if (AccessControl.isAdmin(accessControlState, principal)) {
-        messageIdCounter += 1;
-        let id = "notif_" # messageIdCounter.toText();
-        let notification : Notification = {
-          id;
-          recipient = principal;
-          notifType = #adminAlert;
-          message;
-          timestamp = Time.now();
-          read = false;
-          relatedOrderId = null;
-        };
-        notifications.add(id, notification);
+      messageIdCounter += 1;
+      let id = "notif_" # messageIdCounter.toText();
+      let notification : Notification = {
+        id;
+        recipient = principal;
+        notifType = #adminAlert;
+        message;
+        timestamp = Time.now();
+        read = false;
+        relatedOrderId = null;
       };
+      notifications.add(id, notification);
     };
   };
 
   public shared ({ caller }) func createDiscussionPost(question : Text) : async Text {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only authenticated users can create posts");
+    if (not isAdmin(caller) and not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Runtime.trap("Unauthorized: Only users can create discussion posts");
     };
 
     postIdCounter += 1;
@@ -389,8 +514,8 @@ actor {
   };
 
   public shared ({ caller }) func addReply(postId : Text, content : Text) : async () {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can reply");
+    if (not isAdmin(caller) and not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Runtime.trap("Unauthorized: Only users can add replies");
     };
 
     switch (discussionPosts.get(postId)) {
@@ -418,9 +543,6 @@ actor {
   };
 
   public query ({ caller }) func getAllDiscussionPosts() : async [DiscussionPost] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only authenticated users can view discussion posts");
-    };
     discussionPosts.values().toArray();
   };
 
@@ -433,25 +555,22 @@ actor {
   };
 
   public query ({ caller }) func getOrders() : async [Order] {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can view all orders");
-    };
+    requireAdmin(caller);
     orders.values().toArray();
   };
 
   public query ({ caller }) func getMyOrders() : async [Order] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only authenticated users can view their orders");
+    if (not isAdmin(caller) and not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Runtime.trap("Unauthorized: Only users can view orders");
     };
-
     orders.values().filter(func(order : Order) : Bool {
       order.customer == caller;
     }).toArray();
   };
 
   public query ({ caller }) func getMyOrder(orderId : Text) : async ?Order {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only authenticated users can view their orders");
+    if (not isAdmin(caller) and not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Runtime.trap("Unauthorized: Only users can view orders");
     };
 
     switch (orders.get(orderId)) {
@@ -467,17 +586,14 @@ actor {
   };
 
   public query ({ caller }) func getMessages() : async [Message] {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can view messages");
-    };
+    requireAdmin(caller);
     messages.values().toArray();
   };
 
   public query ({ caller }) func getMyMessages() : async [Message] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only authenticated users can view their messages");
+    if (not isAdmin(caller) and not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Runtime.trap("Unauthorized: Only users can view messages");
     };
-
     messages.values().filter(func(msg : Message) : Bool {
       switch (msg.recipient) {
         case null { true };
@@ -491,8 +607,8 @@ actor {
   };
 
   public shared ({ caller }) func addToCart(items : [OrderItem]) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only authenticated users can add items to cart");
+    if (not isAdmin(caller) and not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Runtime.trap("Unauthorized: Only users can add to cart");
     };
 
     for (item in items.values()) {
@@ -514,7 +630,7 @@ actor {
                     Runtime.trap("Variant not found for product: " # product.name);
                   };
                   case (?v) {
-                    if (v.inventory < item.quantity) {
+                    if (not checkColorInventory(item.color, item.quantity, v.colors)) {
                       Runtime.trap("Insufficient inventory for variant");
                     };
                   };
@@ -541,8 +657,8 @@ actor {
   };
 
   public shared ({ caller }) func addItemToCart(item : OrderItem) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only authenticated users can add items to cart");
+    if (not isAdmin(caller) and not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Runtime.trap("Unauthorized: Only users can add items to cart");
     };
 
     switch (products.get(item.productId)) {
@@ -563,7 +679,7 @@ actor {
                   Runtime.trap("Variant not found for product: " # product.name);
                 };
                 case (?v) {
-                  if (v.inventory < item.quantity) {
+                  if (not checkColorInventory(item.color, item.quantity, v.colors)) {
                     Runtime.trap("Insufficient inventory for variant");
                   };
                 };
@@ -588,8 +704,8 @@ actor {
   };
 
   public query ({ caller }) func viewCart() : async [OrderItem] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only authenticated users can view cart");
+    if (not isAdmin(caller) and not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Runtime.trap("Unauthorized: Only users can view cart");
     };
 
     switch (shoppingCarts.get(caller)) {
@@ -599,16 +715,15 @@ actor {
   };
 
   public shared ({ caller }) func clearCart() : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only authenticated users can clear cart");
+    if (not isAdmin(caller) and not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Runtime.trap("Unauthorized: Only users can clear cart");
     };
-
     shoppingCarts.remove(caller);
   };
 
   public shared ({ caller }) func checkout() : async Text {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only authenticated users can checkout");
+    if (not isAdmin(caller) and not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Runtime.trap("Unauthorized: Only users can checkout");
     };
 
     let cart = switch (shoppingCarts.get(caller)) {
@@ -641,7 +756,7 @@ actor {
                     Runtime.trap("Variant not found for product: " # product.name);
                   };
                   case (?v) {
-                    if (v.inventory < item.quantity) {
+                    if (not checkColorInventory(item.color, item.quantity, v.colors)) {
                       Runtime.trap("Insufficient inventory for variant");
                     };
                   };
@@ -673,10 +788,17 @@ actor {
                     let updatedVariants = variants.map(
                       func(v) {
                         if (v.id == variantId) {
-                          { v with inventory = v.inventory - item.quantity };
-                        } else {
-                          v;
-                        };
+                          let updatedColors = v.colors.map(
+                            func(c) {
+                              if (c.name == item.color and c.inventory >= item.quantity) {
+                                { c with inventory = c.inventory - item.quantity };
+                              } else {
+                                c;
+                              };
+                            }
+                          );
+                          { v with colors = updatedColors };
+                        } else { v };
                       }
                     );
                     let updatedProduct = {
@@ -706,13 +828,8 @@ actor {
     orderIdCounter += 1;
     let orderId = "order_" # orderIdCounter.toText();
 
-    let order : Order = {
-      id = orderId;
-      customer = caller;
-      items;
-      status = #pending;
-      date = Time.now();
-    };
+    let order = createOrder(caller, items, orderId);
+
     orders.add(orderId, order);
 
     shoppingCarts.remove(caller);
@@ -729,6 +846,78 @@ actor {
     orderId;
   };
 
+  func checkColorInventory(color : Text, quantity : Nat, colors : [ProductColor]) : Bool {
+    let colorOpt = colors.find(func(c) { c.name == color });
+    switch (colorOpt) {
+      case (null) { false };
+      case (?entry) { entry.inventory >= quantity };
+    };
+  };
+
+  func createOrder(customer : Customer, items : [OrderItem], orderId : Text) : Order {
+    let processedItems = items.map(
+      func(item) {
+        let price = getItemPrice(item.productId, item.variantId);
+        {
+          productId = item.productId;
+          variantId = item.variantId;
+          color = item.color;
+          quantity = item.quantity;
+          price;
+        };
+      }
+    );
+
+    let total = processedItems.foldLeft(
+      0,
+      func(acc, item) { acc + (item.price * item.quantity) },
+    );
+
+    let order : Order = {
+      id = orderId;
+      customer;
+      items = processedItems;
+      total;
+      status = #pending;
+      date = Time.now();
+    };
+
+    order;
+  };
+
+  func getItemPrice(productId : Text, variantId : ?Text) : Nat {
+    switch (products.get(productId)) {
+      case (null) {
+        Runtime.trap("Product not found: " # productId);
+      };
+      case (?product) {
+        switch (variantId) {
+          case (null) {
+            product.price;
+          };
+          case (?variantId) {
+            switch (product.variants) {
+              case (null) {
+                Runtime.trap("No variants found for product: " # productId);
+              };
+              case (?variants) {
+                let variantOpt = variants.find(func(v) { v.id == variantId });
+                switch (variantOpt) {
+                  case (null) {
+                    Runtime.trap("Variant not found for product: " # productId);
+                  };
+                  case (?variant) {
+                    variant.price;
+                  };
+                };
+              };
+            };
+          };
+        };
+      };
+    };
+  };
+
   public query ({ caller }) func getProductVariants(productId : Text) : async ?[ProductVariant] {
     switch (products.get(productId)) {
       case null { null };
@@ -737,8 +926,8 @@ actor {
   };
 
   public query ({ caller }) func getUnreadNotifications() : async [Notification] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only authenticated users can view notifications");
+    if (not isAdmin(caller) and not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Runtime.trap("Unauthorized: Only users can view notifications");
     };
 
     let unread = notifications.values().filter(
@@ -750,8 +939,8 @@ actor {
   };
 
   public shared ({ caller }) func markNotificationAsRead(notificationId : Text) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only authenticated users can mark notifications as read");
+    if (not isAdmin(caller) and not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Runtime.trap("Unauthorized: Only users can mark notifications as read");
     };
 
     switch (notifications.get(notificationId)) {
@@ -792,21 +981,19 @@ actor {
       case (?product) {
         if (product.inventory < 5) {
           for ((principal, _) in userProfiles.entries()) {
-            if (AccessControl.isAdmin(accessControlState, principal)) {
-              messageIdCounter += 1;
-              let id = "notif_" # messageIdCounter.toText();
-              let message = "Low inventory alert: Product '" # product.name # "' (ID: " # productId # ") has only " # product.inventory.toText() # " units remaining.";
-              let notification : Notification = {
-                id;
-                recipient = principal;
-                notifType = #lowInventory(productId);
-                message;
-                timestamp = Time.now();
-                read = false;
-                relatedOrderId = null;
-              };
-              notifications.add(id, notification);
+            messageIdCounter += 1;
+            let id = "notif_" # messageIdCounter.toText();
+            let message = "Low inventory alert: Product '" # product.name # "' (ID: " # productId # ") has only " # product.inventory.toText() # " units remaining.";
+            let notification : Notification = {
+              id;
+              recipient = principal;
+              notifType = #lowInventory(productId);
+              message;
+              timestamp = Time.now();
+              read = false;
+              relatedOrderId = null;
             };
+            notifications.add(id, notification);
           };
         };
       };
@@ -814,8 +1001,8 @@ actor {
   };
 
   public shared ({ caller }) func submitReview(productId : Text, rating : Nat, reviewText : Text, variantId : ?Text) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only authenticated users can submit reviews");
+    if (not isAdmin(caller) and not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Runtime.trap("Unauthorized: Only users can submit reviews");
     };
 
     if (rating < 1 or rating > 5) {
@@ -867,9 +1054,9 @@ actor {
   public shared ({ caller }) func recordAnalyticsEvent(eventType : { #productClick : Text; #contentView : Text; #orderComplete }) : async () {
     let id = "analytics_" # Time.now().toText();
     let userPrincipal = if (caller.isAnonymous()) {
-      null
+      null;
     } else {
-      ?caller
+      ?caller;
     };
 
     let event : AnalyticsEvent = {
@@ -893,9 +1080,7 @@ actor {
     orderCount : Nat;
     lowInventoryProducts : [Product];
   } {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can view analytics data");
-    };
+    requireAdmin(caller);
 
     let productClicks = Map.empty<Text, Nat>();
     for (event in analytics.values()) {
@@ -934,12 +1119,7 @@ actor {
 
     for (order in orders.values()) {
       for (item in order.items.values()) {
-        switch (products.get(item.productId)) {
-          case (null) {};
-          case (?product) {
-            totalRevenue += product.price * item.quantity;
-          };
-        };
+        totalRevenue += item.price * item.quantity;
       };
     };
 
@@ -951,6 +1131,252 @@ actor {
       totalRevenue;
       orderCount;
       lowInventoryProducts = lowInventory;
+    };
+  };
+
+  // Portfolio, Gallery, Blog & Comments
+
+  public shared ({ caller }) func addPortfolioItem(title : Text, description : Text, image : Storage.ExternalBlob, category : Text) : async Text {
+    requireAdmin(caller);
+    portfolioIdCounter += 1;
+    let id = "portfolio_" # portfolioIdCounter.toText();
+    let item : PortfolioItem = {
+      id;
+      title;
+      description;
+      image;
+      category;
+      createdAt = Time.now();
+    };
+    portfolioItems.add(id, item);
+    id;
+  };
+
+  public shared ({ caller }) func addGalleryItem(title : Text, description : Text, image : Storage.ExternalBlob) : async Text {
+    requireAdmin(caller);
+    galleryIdCounter += 1;
+    let id = "gallery_" # galleryIdCounter.toText();
+    let item : GalleryItem = {
+      id;
+      title;
+      description;
+      image;
+      createdAt = Time.now();
+    };
+    galleryItems.add(id, item);
+    id;
+  };
+
+  public shared ({ caller }) func addBlogPost(title : Text, bodyText : Text, image : ?Storage.ExternalBlob) : async Text {
+    requireAdmin(caller);
+    blogIdCounter += 1;
+    let id = "blog_" # blogIdCounter.toText();
+    let post : BlogPost = {
+      id;
+      title;
+      bodyText;
+      image;
+      createdAt = Time.now();
+    };
+    blogPosts.add(id, post);
+    id;
+  };
+
+  public shared ({ caller }) func addComment(parentId : Text, parentType : CommentParentType, name : Text, text : Text) : async Text {
+    if (not isAdmin(caller) and not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Runtime.trap("Unauthorized: Only users can add comments");
+    };
+
+    if (name.size() == 0 or text.size() == 0) {
+      Runtime.trap("Name and comment cannot be empty");
+    };
+
+    switch (parentType) {
+      case (#galleryItem) {
+        if (galleryItems.get(parentId) == null) {
+          Runtime.trap("Gallery item not found");
+        };
+      };
+      case (#blogPost) {
+        if (blogPosts.get(parentId) == null) {
+          Runtime.trap("Blog post not found");
+        };
+      };
+    };
+
+    commentIdCounter += 1;
+    let id = "comment_" # commentIdCounter.toText();
+    let comment : Comment = {
+      id;
+      parentId;
+      parentType;
+      name;
+      text;
+      timestamp = Time.now();
+    };
+    comments.add(id, comment);
+    id;
+  };
+
+  public query ({ caller }) func getPortfolioItems() : async [PortfolioItem] {
+    portfolioItems.values().toArray();
+  };
+
+  public query ({ caller }) func getGalleryItems() : async [GalleryItem] {
+    galleryItems.values().toArray();
+  };
+
+  public query ({ caller }) func getBlogPosts() : async [BlogPost] {
+    blogPosts.values().toArray();
+  };
+
+  public query ({ caller }) func getCommentsByParent(parentId : Text, parentType : CommentParentType) : async [Comment] {
+    let filtered = comments.values().filter(
+      func(c) { c.parentId == parentId and c.parentType == parentType }
+    );
+    filtered.toArray();
+  };
+
+  // Commission Storefront
+
+  public shared ({ caller }) func addCommission(title : Text, description : Text, basePrice : Nat, totalSpots : Nat, addons : [CommissionAddon]) : async Text {
+    requireAdmin(caller);
+
+    commissionIdCounter += 1;
+    let id = "commission_" # commissionIdCounter.toText();
+
+    let commission : Commission = {
+      id;
+      title;
+      description;
+      basePrice;
+      openSpots = totalSpots;
+      totalSpots;
+      addons;
+      createdAt = Time.now();
+    };
+
+    commissions.add(id, commission);
+    id;
+  };
+
+  public shared ({ caller }) func updateCommission(commissionId : Text, title : Text, description : Text, basePrice : Nat, totalSpots : Nat, addons : [CommissionAddon]) : async () {
+    requireAdmin(caller);
+
+    switch (commissions.get(commissionId)) {
+      case null {
+        Runtime.trap("Commission not found");
+      };
+      case (?existing) {
+        let updatedCommission : Commission = {
+          existing with
+          title;
+          description;
+          basePrice;
+          openSpots = totalSpots;
+          totalSpots;
+          addons;
+        };
+        commissions.add(commissionId, updatedCommission);
+      };
+    };
+  };
+
+  public shared ({ caller }) func deleteCommission(commissionId : Text) : async () {
+    requireAdmin(caller);
+    commissions.remove(commissionId);
+  };
+
+  public query ({ caller }) func getCommissions() : async [Commission] {
+    commissions.values().toArray();
+  };
+
+  public query ({ caller }) func getCommission(commissionId : Text) : async ?Commission {
+    commissions.get(commissionId);
+  };
+
+  public shared ({ caller }) func submitCommissionRequest(
+    commissionId : Text,
+    name : Text,
+    discordUsername : ?Text,
+    phoneNumber : ?Text,
+    email : ?Text,
+    description : Text,
+    selectedAddons : [CommissionAddon],
+    referenceImages : [Storage.ExternalBlob]
+  ) : async Text {
+    switch (commissions.get(commissionId)) {
+      case null {
+        Runtime.trap("Commission not found");
+      };
+      case (?commission) {
+        let totalPrice = selectedAddons.foldLeft(
+          commission.basePrice,
+          func(acc, addon) { acc + addon.price },
+        );
+
+        commissionRequestIdCounter += 1;
+        let requestId = "commission_req_" # commissionRequestIdCounter.toText();
+
+        let request : CommissionRequest = {
+          id = requestId;
+          commissionId;
+          commissionTitle = commission.title;
+          name;
+          discordUsername;
+          phoneNumber;
+          email;
+          description;
+          selectedAddons;
+          totalPrice;
+          referenceImages;
+          status = #pending;
+          createdAt = Time.now();
+        };
+
+        commissionRequests.add(requestId, request);
+        requestId;
+      };
+    };
+  };
+
+  public query ({ caller }) func getCommissionRequests() : async [CommissionRequest] {
+    requireAdmin(caller);
+    commissionRequests.values().toArray();
+  };
+
+  public shared ({ caller }) func updateCommissionRequestStatus(requestId : Text, status : CommissionRequestStatus) : async () {
+    requireAdmin(caller);
+
+    switch (commissionRequests.get(requestId)) {
+      case null {
+        Runtime.trap("Commission request not found");
+      };
+      case (?request) {
+        switch (commissions.get(request.commissionId)) {
+          case null {
+            Runtime.trap("Commission not found for request");
+          };
+          case (?commission) {
+            if (status == #accepted and request.status != #accepted) {
+              let openSpots = if (commission.openSpots > 0) { commission.openSpots - 1 } else { 0 };
+              commissions.add(request.commissionId, { commission with openSpots });
+            } else if (status == #completed and request.status != #completed) {
+              if (commission.openSpots < commission.totalSpots) {
+                let newOpenSpots = commission.openSpots + 1;
+                if (newOpenSpots <= commission.totalSpots) {
+                  commissions.add(request.commissionId, { commission with openSpots = newOpenSpots });
+                };
+              };
+            };
+
+            let updatedRequest : CommissionRequest = {
+              request with status;
+            };
+            commissionRequests.add(requestId, updatedRequest);
+          };
+        };
+      };
     };
   };
 };

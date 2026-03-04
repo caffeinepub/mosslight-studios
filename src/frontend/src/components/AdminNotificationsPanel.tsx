@@ -1,16 +1,21 @@
-import { useGetUnreadNotifications, useMarkNotificationAsRead } from '../hooks/useNotifications';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { AlertTriangle, AlertCircle, Package, Check } from 'lucide-react';
-import { Loader2 } from 'lucide-react';
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AlertCircle, AlertTriangle, Check, Package } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import {
+  useGetUnreadNotifications,
+  useMarkNotificationAsRead,
+} from "../hooks/useNotifications";
 
 export default function AdminNotificationsPanel() {
   const { data: notifications = [], isLoading } = useGetUnreadNotifications();
   const markAsRead = useMarkNotificationAsRead();
 
   const adminNotifications = notifications.filter(
-    (n) => n.notifType.__kind__ === 'adminAlert' || n.notifType.__kind__ === 'lowInventory'
+    (n) =>
+      n.notifType.__kind__ === "adminAlert" ||
+      n.notifType.__kind__ === "lowInventory",
   );
 
   if (isLoading) {
@@ -28,17 +33,17 @@ export default function AdminNotificationsPanel() {
   }
 
   const getIcon = (type: any) => {
-    if (type.__kind__ === 'lowInventory') {
+    if (type.__kind__ === "lowInventory") {
       return <AlertTriangle className="h-5 w-5" />;
     }
     return <AlertCircle className="h-5 w-5" />;
   };
 
-  const getVariant = (type: any): 'default' | 'destructive' => {
-    if (type.__kind__ === 'lowInventory') {
-      return 'destructive';
+  const getVariant = (type: any): "default" | "destructive" => {
+    if (type.__kind__ === "lowInventory") {
+      return "destructive";
     }
-    return 'default';
+    return "default";
   };
 
   const formatTimestamp = (timestamp: bigint) => {
@@ -56,7 +61,10 @@ export default function AdminNotificationsPanel() {
       </CardHeader>
       <CardContent className="space-y-3">
         {adminNotifications.map((notification) => (
-          <Alert key={notification.id} variant={getVariant(notification.notifType)}>
+          <Alert
+            key={notification.id}
+            variant={getVariant(notification.notifType)}
+          >
             <div className="flex items-start gap-3">
               {getIcon(notification.notifType)}
               <div className="flex-1 space-y-1">

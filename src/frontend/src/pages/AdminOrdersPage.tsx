@@ -1,7 +1,7 @@
-import { useGetOrders } from '../hooks/useOrders';
-import { Loader2 } from 'lucide-react';
-import OrderList from '../components/OrderList';
-import AdminGuard from '../components/AdminGuard';
+import { Loader2 } from "lucide-react";
+import AdminGuard from "../components/AdminGuard";
+import OrderList from "../components/OrderList";
+import { useGetOrders } from "../hooks/useOrders";
 
 export default function AdminOrdersPage() {
   const { data: orders = [], isLoading: ordersLoading } = useGetOrders();

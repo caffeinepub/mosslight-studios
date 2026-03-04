@@ -1,6 +1,6 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { useActor } from './useActor';
-import type { Product } from '../backend';
+import { useMutation, useQuery } from "@tanstack/react-query";
+import type { Product } from "../backend";
+import { useActor } from "./useActor";
 
 export function useGetAnalyticsData() {
   const { actor, isFetching } = useActor();
@@ -12,7 +12,7 @@ export function useGetAnalyticsData() {
     orderCount: bigint;
     lowInventoryProducts: Product[];
   }>({
-    queryKey: ['analyticsData'],
+    queryKey: ["analyticsData"],
     queryFn: async () => {
       if (!actor) {
         return {
@@ -35,9 +35,9 @@ export function useRecordAnalyticsEvent() {
   return useMutation({
     mutationFn: async (
       eventType:
-        | { __kind__: 'productClick'; productClick: string }
-        | { __kind__: 'contentView'; contentView: string }
-        | { __kind__: 'orderComplete'; orderComplete: null }
+        | { __kind__: "productClick"; productClick: string }
+        | { __kind__: "contentView"; contentView: string }
+        | { __kind__: "orderComplete"; orderComplete: null },
     ) => {
       if (!actor) return;
       return actor.recordAnalyticsEvent(eventType);

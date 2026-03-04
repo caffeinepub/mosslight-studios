@@ -1,9 +1,9 @@
-import { useGetMessages } from '../hooks/useMessages';
-import { Loader2 } from 'lucide-react';
-import MessageComposer from '../components/MessageComposer';
-import MessageHistory from '../components/MessageHistory';
-import AdminGuard from '../components/AdminGuard';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Loader2 } from "lucide-react";
+import AdminGuard from "../components/AdminGuard";
+import MessageComposer from "../components/MessageComposer";
+import MessageHistory from "../components/MessageHistory";
+import { useGetMessages } from "../hooks/useMessages";
 
 export default function AdminMessagesPage() {
   const { data: messages = [], isLoading: messagesLoading } = useGetMessages();
@@ -14,9 +14,7 @@ export default function AdminMessagesPage() {
         <div className="space-y-8">
           <div className="space-y-2">
             <h1 className="font-serif text-4xl font-bold">Messages</h1>
-            <p className="text-muted-foreground">
-              Send messages to customers
-            </p>
+            <p className="text-muted-foreground">Send messages to customers</p>
           </div>
 
           <Tabs defaultValue="compose" className="w-full">

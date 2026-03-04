@@ -1,12 +1,12 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useActor } from './useActor';
-import type { Notification } from '../backend';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { Notification } from "../backend";
+import { useActor } from "./useActor";
 
 export function useGetUnreadNotifications() {
   const { actor, isFetching } = useActor();
 
   return useQuery<Notification[]>({
-    queryKey: ['unreadNotifications'],
+    queryKey: ["unreadNotifications"],
     queryFn: async () => {
       if (!actor) return [];
       return actor.getUnreadNotifications();
@@ -21,11 +21,11 @@ export function useMarkNotificationAsRead() {
 
   return useMutation({
     mutationFn: async (notificationId: string) => {
-      if (!actor) throw new Error('Actor not available');
+      if (!actor) throw new Error("Actor not available");
       return actor.markNotificationAsRead(notificationId);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['unreadNotifications'] });
+      queryClient.invalidateQueries({ queryKey: ["unreadNotifications"] });
     },
   });
 }

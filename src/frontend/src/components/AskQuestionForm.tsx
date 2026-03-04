@@ -1,14 +1,14 @@
-import { useState } from 'react';
-import { useInternetIdentity } from '../hooks/useInternetIdentity';
-import { useCreateDiscussionPost } from '../hooks/useDiscussionBoard';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Loader2 } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { useCreateDiscussionPost } from "../hooks/useDiscussionBoard";
+import { useInternetIdentity } from "../hooks/useInternetIdentity";
 
 export default function AskQuestionForm() {
-  const [question, setQuestion] = useState('');
+  const [question, setQuestion] = useState("");
   const { identity } = useInternetIdentity();
   const createPost = useCreateDiscussionPost();
 
@@ -18,22 +18,22 @@ export default function AskQuestionForm() {
     e.preventDefault();
 
     if (!question.trim()) {
-      toast.error('Please enter a question');
+      toast.error("Please enter a question");
       return;
     }
 
     if (!isAuthenticated) {
-      toast.error('Please log in to ask a question');
+      toast.error("Please log in to ask a question");
       return;
     }
 
     try {
       await createPost.mutateAsync(question.trim());
-      toast.success('Your question has been posted!');
-      setQuestion('');
+      toast.success("Your question has been posted!");
+      setQuestion("");
     } catch (error) {
-      console.error('Error posting question:', error);
-      toast.error('Failed to post question. Please try again.');
+      console.error("Error posting question:", error);
+      toast.error("Failed to post question. Please try again.");
     }
   };
 
@@ -54,7 +54,9 @@ export default function AskQuestionForm() {
       <div className="flex items-center gap-3">
         <Button
           type="submit"
-          disabled={!isAuthenticated || createPost.isPending || !question.trim()}
+          disabled={
+            !isAuthenticated || createPost.isPending || !question.trim()
+          }
           className="min-w-32"
         >
           {createPost.isPending ? (
@@ -63,7 +65,7 @@ export default function AskQuestionForm() {
               Posting...
             </>
           ) : (
-            'Post Question'
+            "Post Question"
           )}
         </Button>
         {!isAuthenticated && (

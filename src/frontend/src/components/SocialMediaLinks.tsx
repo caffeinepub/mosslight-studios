@@ -1,25 +1,27 @@
-import { Instagram, Facebook } from 'lucide-react';
-import { SiTiktok } from 'react-icons/si';
+import { Facebook, Instagram } from "lucide-react";
+import { SiTiktok } from "react-icons/si";
 
 interface SocialMediaLinksProps {
   className?: string;
 }
 
-export default function SocialMediaLinks({ className = '' }: SocialMediaLinksProps) {
+export default function SocialMediaLinks({
+  className = "",
+}: SocialMediaLinksProps) {
   const socialLinks = [
     {
-      name: 'Instagram',
-      url: 'https://instagram.com/mosslightstudios',
+      name: "Instagram",
+      url: "https://instagram.com/mosslightstudios",
       icon: Instagram,
     },
     {
-      name: 'Facebook',
-      url: 'https://facebook.com/mosslightstudios',
+      name: "Facebook",
+      url: "https://facebook.com/mosslightstudios",
       icon: Facebook,
     },
     {
-      name: 'TikTok',
-      url: 'https://tiktok.com/@mosslightstudios',
+      name: "TikTok",
+      url: "https://tiktok.com/@mosslightstudios",
       icon: SiTiktok,
     },
   ];

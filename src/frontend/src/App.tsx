@@ -1,26 +1,40 @@
-import { RouterProvider, createRouter, createRoute, createRootRoute } from '@tanstack/react-router';
-import { ThemeProvider } from 'next-themes';
-import { Toaster } from '@/components/ui/sonner';
-import { AdminAuthProvider } from './hooks/useAdminAuth';
-import Layout from './components/Layout';
-import HomePage from './pages/HomePage';
-import ProductsPage from './pages/ProductsPage';
-import ProductDetailPage from './pages/ProductDetailPage';
-import CartPage from './pages/CartPage';
-import CheckoutPage from './pages/CheckoutPage';
-import OrderSuccessPage from './pages/OrderSuccessPage';
-import MyOrdersPage from './pages/MyOrdersPage';
-import GalleryPage from './pages/GalleryPage';
-import ForumPage from './pages/ForumPage';
-import ForumThreadPage from './pages/ForumThreadPage';
-import AboutPage from './pages/AboutPage';
-import FAQPage from './pages/FAQPage';
-import AdminDashboardPage from './pages/AdminDashboardPage';
-import AdminProductsPage from './pages/AdminProductsPage';
-import AdminOrdersPage from './pages/AdminOrdersPage';
-import AdminMessagesPage from './pages/AdminMessagesPage';
-import AdminGalleryPage from './pages/AdminGalleryPage';
-import AdminAnalyticsPage from './pages/AdminAnalyticsPage';
+import { Toaster } from "@/components/ui/sonner";
+import {
+  RouterProvider,
+  createRootRoute,
+  createRoute,
+  createRouter,
+} from "@tanstack/react-router";
+import { ThemeProvider } from "next-themes";
+import Layout from "./components/Layout";
+import { AdminAuthProvider } from "./hooks/useAdminAuth";
+import AboutPage from "./pages/AboutPage";
+import AdminAnalyticsPage from "./pages/AdminAnalyticsPage";
+import AdminBlogPage from "./pages/AdminBlogPage";
+import AdminCommissionsPage from "./pages/AdminCommissionsPage";
+import AdminDashboardPage from "./pages/AdminDashboardPage";
+import AdminGalleryManagementPage from "./pages/AdminGalleryManagementPage";
+import AdminGalleryPage from "./pages/AdminGalleryPage";
+import AdminMessagesPage from "./pages/AdminMessagesPage";
+import AdminOrdersPage from "./pages/AdminOrdersPage";
+import AdminPortfolioPage from "./pages/AdminPortfolioPage";
+import AdminProductsPage from "./pages/AdminProductsPage";
+import BlogDetailPage from "./pages/BlogDetailPage";
+import BlogPage from "./pages/BlogPage";
+import CartPage from "./pages/CartPage";
+import CheckoutPage from "./pages/CheckoutPage";
+import CommissionDetailPage from "./pages/CommissionDetailPage";
+import CommissionsPage from "./pages/CommissionsPage";
+import FAQPage from "./pages/FAQPage";
+import ForumPage from "./pages/ForumPage";
+import ForumThreadPage from "./pages/ForumThreadPage";
+import GalleryPage from "./pages/GalleryPage";
+import HomePage from "./pages/HomePage";
+import MyOrdersPage from "./pages/MyOrdersPage";
+import OrderSuccessPage from "./pages/OrderSuccessPage";
+import PortfolioPage from "./pages/PortfolioPage";
+import ProductDetailPage from "./pages/ProductDetailPage";
+import ProductsPage from "./pages/ProductsPage";
 
 const rootRoute = createRootRoute({
   component: Layout,
@@ -28,110 +42,164 @@ const rootRoute = createRootRoute({
 
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/',
+  path: "/",
   component: HomePage,
 });
 
 const productsRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/products',
+  path: "/products",
   component: ProductsPage,
 });
 
 const productDetailRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/products/$id',
+  path: "/products/$id",
   component: ProductDetailPage,
 });
 
 const cartRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/cart',
+  path: "/cart",
   component: CartPage,
 });
 
 const checkoutRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/checkout',
+  path: "/checkout",
   component: CheckoutPage,
 });
 
 const orderSuccessRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/order-success',
+  path: "/order-success",
   component: OrderSuccessPage,
 });
 
 const myOrdersRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/my-orders',
+  path: "/my-orders",
   component: MyOrdersPage,
 });
 
 const galleryRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/gallery',
+  path: "/gallery",
   component: GalleryPage,
+});
+
+const portfolioRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/portfolio",
+  component: PortfolioPage,
+});
+
+const blogRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/blog",
+  component: BlogPage,
+});
+
+const blogDetailRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/blog/$id",
+  component: BlogDetailPage,
 });
 
 const forumRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/forum',
+  path: "/forum",
   component: ForumPage,
 });
 
 const forumThreadRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/forum/$postId',
+  path: "/forum/$postId",
   component: ForumThreadPage,
 });
 
 const aboutRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/about',
+  path: "/about",
   component: AboutPage,
 });
 
 const faqRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/faq',
+  path: "/faq",
   component: FAQPage,
 });
 
 const adminDashboardRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/admin-dashboard',
+  path: "/admin-dashboard",
   component: AdminDashboardPage,
 });
 
 const adminProductsRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/admin/products',
+  path: "/admin/products",
   component: AdminProductsPage,
 });
 
 const adminOrdersRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/admin/orders',
+  path: "/admin/orders",
   component: AdminOrdersPage,
 });
 
 const adminMessagesRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/admin/messages',
+  path: "/admin/messages",
   component: AdminMessagesPage,
 });
 
 const adminGalleryRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/admin/gallery',
+  path: "/admin/gallery",
   component: AdminGalleryPage,
 });
 
 const adminAnalyticsRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/admin/analytics',
+  path: "/admin/analytics",
   component: AdminAnalyticsPage,
+});
+
+const adminPortfolioRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/admin/portfolio",
+  component: AdminPortfolioPage,
+});
+
+const adminGalleryContentRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/admin/gallery-content",
+  component: AdminGalleryManagementPage,
+});
+
+const adminBlogRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/admin/blog",
+  component: AdminBlogPage,
+});
+
+const commissionsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/commissions",
+  component: CommissionsPage,
+});
+
+const commissionDetailRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/commissions/$id",
+  component: CommissionDetailPage,
+});
+
+const adminCommissionsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/admin/commissions",
+  component: AdminCommissionsPage,
 });
 
 const routeTree = rootRoute.addChildren([
@@ -143,6 +211,9 @@ const routeTree = rootRoute.addChildren([
   orderSuccessRoute,
   myOrdersRoute,
   galleryRoute,
+  portfolioRoute,
+  blogRoute,
+  blogDetailRoute,
   forumRoute,
   forumThreadRoute,
   aboutRoute,
@@ -153,11 +224,17 @@ const routeTree = rootRoute.addChildren([
   adminMessagesRoute,
   adminGalleryRoute,
   adminAnalyticsRoute,
+  adminPortfolioRoute,
+  adminGalleryContentRoute,
+  adminBlogRoute,
+  commissionsRoute,
+  commissionDetailRoute,
+  adminCommissionsRoute,
 ]);
 
 const router = createRouter({ routeTree });
 
-declare module '@tanstack/react-router' {
+declare module "@tanstack/react-router" {
   interface Register {
     router: typeof router;
   }

@@ -19,28 +19,47 @@ export const _CaffeineStorageRefillResult = IDL.Record({
   'success' : IDL.Opt(IDL.Bool),
   'topped_up_amount' : IDL.Opt(IDL.Nat),
 });
+export const ExternalBlob = IDL.Vec(IDL.Nat8);
+export const CommentParentType = IDL.Variant({
+  'blogPost' : IDL.Null,
+  'galleryItem' : IDL.Null,
+});
+export const CommissionAddon = IDL.Record({
+  'name' : IDL.Text,
+  'price' : IDL.Nat,
+});
 export const OrderItem = IDL.Record({
+  'color' : IDL.Text,
   'productId' : IDL.Text,
   'variantId' : IDL.Opt(IDL.Text),
   'quantity' : IDL.Nat,
+  'price' : IDL.Nat,
+});
+export const ProductColor = IDL.Record({
+  'inventory' : IDL.Nat,
+  'name' : IDL.Text,
 });
 export const ProductVariant = IDL.Record({
   'id' : IDL.Text,
-  'inventory' : IDL.Nat,
-  'color' : IDL.Text,
   'size' : IDL.Text,
   'parentProductId' : IDL.Text,
+  'colors' : IDL.Vec(ProductColor),
   'price' : IDL.Nat,
 });
 export const CreateProductData = IDL.Record({
+  'sku' : IDL.Text,
+  'categories' : IDL.Vec(IDL.Text),
+  'shippingPrice' : IDL.Float64,
   'hasVariants' : IDL.Bool,
   'inventory' : IDL.Nat,
   'name' : IDL.Text,
   'description' : IDL.Text,
   'variants' : IDL.Opt(IDL.Vec(ProductVariant)),
+  'sizes' : IDL.Vec(IDL.Text),
+  'colors' : IDL.Vec(IDL.Text),
   'price' : IDL.Nat,
+  'taxRate' : IDL.Float64,
 });
-export const ExternalBlob = IDL.Vec(IDL.Nat8);
 export const UserRole = IDL.Variant({
   'admin' : IDL.Null,
   'user' : IDL.Null,
@@ -66,18 +85,78 @@ export const DiscussionPost = IDL.Record({
 });
 export const Product = IDL.Record({
   'id' : IDL.Text,
+  'sku' : IDL.Text,
+  'categories' : IDL.Vec(IDL.Text),
+  'shippingPrice' : IDL.Float64,
   'hasVariants' : IDL.Bool,
   'inventory' : IDL.Nat,
   'name' : IDL.Text,
   'description' : IDL.Text,
   'variants' : IDL.Opt(IDL.Vec(ProductVariant)),
+  'sizes' : IDL.Vec(IDL.Text),
+  'colors' : IDL.Vec(IDL.Text),
   'price' : IDL.Nat,
+  'taxRate' : IDL.Float64,
   'images' : IDL.Vec(ExternalBlob),
+});
+export const BlogPost = IDL.Record({
+  'id' : IDL.Text,
+  'title' : IDL.Text,
+  'createdAt' : Time,
+  'image' : IDL.Opt(ExternalBlob),
+  'bodyText' : IDL.Text,
 });
 export const UserProfile = IDL.Record({
   'name' : IDL.Text,
   'email' : IDL.Text,
   'shippingAddress' : IDL.Text,
+});
+export const Comment = IDL.Record({
+  'id' : IDL.Text,
+  'name' : IDL.Text,
+  'text' : IDL.Text,
+  'timestamp' : Time,
+  'parentId' : IDL.Text,
+  'parentType' : CommentParentType,
+});
+export const Commission = IDL.Record({
+  'id' : IDL.Text,
+  'title' : IDL.Text,
+  'createdAt' : Time,
+  'description' : IDL.Text,
+  'totalSpots' : IDL.Nat,
+  'addons' : IDL.Vec(CommissionAddon),
+  'basePrice' : IDL.Nat,
+  'openSpots' : IDL.Nat,
+});
+export const CommissionRequestStatus = IDL.Variant({
+  'pending' : IDL.Null,
+  'completed' : IDL.Null,
+  'rejected' : IDL.Null,
+  'accepted' : IDL.Null,
+  'inProgress' : IDL.Null,
+});
+export const CommissionRequest = IDL.Record({
+  'id' : IDL.Text,
+  'status' : CommissionRequestStatus,
+  'selectedAddons' : IDL.Vec(CommissionAddon),
+  'name' : IDL.Text,
+  'createdAt' : Time,
+  'description' : IDL.Text,
+  'email' : IDL.Opt(IDL.Text),
+  'referenceImages' : IDL.Vec(ExternalBlob),
+  'discordUsername' : IDL.Opt(IDL.Text),
+  'phoneNumber' : IDL.Opt(IDL.Text),
+  'totalPrice' : IDL.Nat,
+  'commissionTitle' : IDL.Text,
+  'commissionId' : IDL.Text,
+});
+export const GalleryItem = IDL.Record({
+  'id' : IDL.Text,
+  'title' : IDL.Text,
+  'createdAt' : Time,
+  'description' : IDL.Text,
+  'image' : ExternalBlob,
 });
 export const Customer = IDL.Principal;
 export const Message = IDL.Record({
@@ -94,9 +173,18 @@ export const OrderStatus = IDL.Variant({
 export const Order = IDL.Record({
   'id' : IDL.Text,
   'status' : OrderStatus,
+  'total' : IDL.Nat,
   'customer' : Customer,
   'date' : Time,
   'items' : IDL.Vec(OrderItem),
+});
+export const PortfolioItem = IDL.Record({
+  'id' : IDL.Text,
+  'title' : IDL.Text,
+  'createdAt' : Time,
+  'description' : IDL.Text,
+  'category' : IDL.Text,
+  'image' : ExternalBlob,
 });
 export const Review = IDL.Record({
   'reviewText' : IDL.Text,
@@ -156,7 +244,32 @@ export const idlService = IDL.Service({
     ),
   '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
+  'addBlogPost' : IDL.Func(
+      [IDL.Text, IDL.Text, IDL.Opt(ExternalBlob)],
+      [IDL.Text],
+      [],
+    ),
+  'addComment' : IDL.Func(
+      [IDL.Text, CommentParentType, IDL.Text, IDL.Text],
+      [IDL.Text],
+      [],
+    ),
+  'addCommission' : IDL.Func(
+      [IDL.Text, IDL.Text, IDL.Nat, IDL.Nat, IDL.Vec(CommissionAddon)],
+      [IDL.Text],
+      [],
+    ),
+  'addGalleryItem' : IDL.Func(
+      [IDL.Text, IDL.Text, ExternalBlob],
+      [IDL.Text],
+      [],
+    ),
   'addItemToCart' : IDL.Func([OrderItem], [], []),
+  'addPortfolioItem' : IDL.Func(
+      [IDL.Text, IDL.Text, ExternalBlob, IDL.Text],
+      [IDL.Text],
+      [],
+    ),
   'addProduct' : IDL.Func([CreateProductData, IDL.Vec(ExternalBlob)], [], []),
   'addReply' : IDL.Func([IDL.Text, IDL.Text], [], []),
   'addToCart' : IDL.Func([IDL.Vec(OrderItem)], [], []),
@@ -164,6 +277,7 @@ export const idlService = IDL.Service({
   'checkout' : IDL.Func([], [IDL.Text], []),
   'clearCart' : IDL.Func([], [], []),
   'createDiscussionPost' : IDL.Func([IDL.Text], [IDL.Text], []),
+  'deleteCommission' : IDL.Func([IDL.Text], [], []),
   'deleteProduct' : IDL.Func([IDL.Text], [], []),
   'getAllDiscussionPosts' : IDL.Func([], [IDL.Vec(DiscussionPost)], ['query']),
   'getAnalyticsData' : IDL.Func(
@@ -179,13 +293,28 @@ export const idlService = IDL.Service({
       ],
       ['query'],
     ),
+  'getBlogPosts' : IDL.Func([], [IDL.Vec(BlogPost)], ['query']),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+  'getCommentsByParent' : IDL.Func(
+      [IDL.Text, CommentParentType],
+      [IDL.Vec(Comment)],
+      ['query'],
+    ),
+  'getCommission' : IDL.Func([IDL.Text], [IDL.Opt(Commission)], ['query']),
+  'getCommissionRequests' : IDL.Func(
+      [],
+      [IDL.Vec(CommissionRequest)],
+      ['query'],
+    ),
+  'getCommissions' : IDL.Func([], [IDL.Vec(Commission)], ['query']),
+  'getGalleryItems' : IDL.Func([], [IDL.Vec(GalleryItem)], ['query']),
   'getMessages' : IDL.Func([], [IDL.Vec(Message)], ['query']),
   'getMyMessages' : IDL.Func([], [IDL.Vec(Message)], ['query']),
   'getMyOrder' : IDL.Func([IDL.Text], [IDL.Opt(Order)], ['query']),
   'getMyOrders' : IDL.Func([], [IDL.Vec(Order)], ['query']),
   'getOrders' : IDL.Func([], [IDL.Vec(Order)], ['query']),
+  'getPortfolioItems' : IDL.Func([], [IDL.Vec(PortfolioItem)], ['query']),
   'getProduct' : IDL.Func([IDL.Text], [IDL.Opt(Product)], ['query']),
   'getProductReviews' : IDL.Func(
       [IDL.Text],
@@ -222,11 +351,43 @@ export const idlService = IDL.Service({
       [],
       [],
     ),
+  'registerOrLogin' : IDL.Func([], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'sendAdminBroadcastAlert' : IDL.Func([IDL.Text], [], []),
   'sendMessage' : IDL.Func([IDL.Text, IDL.Opt(Customer)], [], []),
+  'submitCommissionRequest' : IDL.Func(
+      [
+        IDL.Text,
+        IDL.Text,
+        IDL.Opt(IDL.Text),
+        IDL.Opt(IDL.Text),
+        IDL.Opt(IDL.Text),
+        IDL.Text,
+        IDL.Vec(CommissionAddon),
+        IDL.Vec(ExternalBlob),
+      ],
+      [IDL.Text],
+      [],
+    ),
   'submitReview' : IDL.Func(
       [IDL.Text, IDL.Nat, IDL.Text, IDL.Opt(IDL.Text)],
+      [],
+      [],
+    ),
+  'updateCommission' : IDL.Func(
+      [
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Nat,
+        IDL.Nat,
+        IDL.Vec(CommissionAddon),
+      ],
+      [],
+      [],
+    ),
+  'updateCommissionRequestStatus' : IDL.Func(
+      [IDL.Text, CommissionRequestStatus],
       [],
       [],
     ),
@@ -253,28 +414,41 @@ export const idlFactory = ({ IDL }) => {
     'success' : IDL.Opt(IDL.Bool),
     'topped_up_amount' : IDL.Opt(IDL.Nat),
   });
+  const ExternalBlob = IDL.Vec(IDL.Nat8);
+  const CommentParentType = IDL.Variant({
+    'blogPost' : IDL.Null,
+    'galleryItem' : IDL.Null,
+  });
+  const CommissionAddon = IDL.Record({ 'name' : IDL.Text, 'price' : IDL.Nat });
   const OrderItem = IDL.Record({
+    'color' : IDL.Text,
     'productId' : IDL.Text,
     'variantId' : IDL.Opt(IDL.Text),
     'quantity' : IDL.Nat,
+    'price' : IDL.Nat,
   });
+  const ProductColor = IDL.Record({ 'inventory' : IDL.Nat, 'name' : IDL.Text });
   const ProductVariant = IDL.Record({
     'id' : IDL.Text,
-    'inventory' : IDL.Nat,
-    'color' : IDL.Text,
     'size' : IDL.Text,
     'parentProductId' : IDL.Text,
+    'colors' : IDL.Vec(ProductColor),
     'price' : IDL.Nat,
   });
   const CreateProductData = IDL.Record({
+    'sku' : IDL.Text,
+    'categories' : IDL.Vec(IDL.Text),
+    'shippingPrice' : IDL.Float64,
     'hasVariants' : IDL.Bool,
     'inventory' : IDL.Nat,
     'name' : IDL.Text,
     'description' : IDL.Text,
     'variants' : IDL.Opt(IDL.Vec(ProductVariant)),
+    'sizes' : IDL.Vec(IDL.Text),
+    'colors' : IDL.Vec(IDL.Text),
     'price' : IDL.Nat,
+    'taxRate' : IDL.Float64,
   });
-  const ExternalBlob = IDL.Vec(IDL.Nat8);
   const UserRole = IDL.Variant({
     'admin' : IDL.Null,
     'user' : IDL.Null,
@@ -297,18 +471,78 @@ export const idlFactory = ({ IDL }) => {
   });
   const Product = IDL.Record({
     'id' : IDL.Text,
+    'sku' : IDL.Text,
+    'categories' : IDL.Vec(IDL.Text),
+    'shippingPrice' : IDL.Float64,
     'hasVariants' : IDL.Bool,
     'inventory' : IDL.Nat,
     'name' : IDL.Text,
     'description' : IDL.Text,
     'variants' : IDL.Opt(IDL.Vec(ProductVariant)),
+    'sizes' : IDL.Vec(IDL.Text),
+    'colors' : IDL.Vec(IDL.Text),
     'price' : IDL.Nat,
+    'taxRate' : IDL.Float64,
     'images' : IDL.Vec(ExternalBlob),
+  });
+  const BlogPost = IDL.Record({
+    'id' : IDL.Text,
+    'title' : IDL.Text,
+    'createdAt' : Time,
+    'image' : IDL.Opt(ExternalBlob),
+    'bodyText' : IDL.Text,
   });
   const UserProfile = IDL.Record({
     'name' : IDL.Text,
     'email' : IDL.Text,
     'shippingAddress' : IDL.Text,
+  });
+  const Comment = IDL.Record({
+    'id' : IDL.Text,
+    'name' : IDL.Text,
+    'text' : IDL.Text,
+    'timestamp' : Time,
+    'parentId' : IDL.Text,
+    'parentType' : CommentParentType,
+  });
+  const Commission = IDL.Record({
+    'id' : IDL.Text,
+    'title' : IDL.Text,
+    'createdAt' : Time,
+    'description' : IDL.Text,
+    'totalSpots' : IDL.Nat,
+    'addons' : IDL.Vec(CommissionAddon),
+    'basePrice' : IDL.Nat,
+    'openSpots' : IDL.Nat,
+  });
+  const CommissionRequestStatus = IDL.Variant({
+    'pending' : IDL.Null,
+    'completed' : IDL.Null,
+    'rejected' : IDL.Null,
+    'accepted' : IDL.Null,
+    'inProgress' : IDL.Null,
+  });
+  const CommissionRequest = IDL.Record({
+    'id' : IDL.Text,
+    'status' : CommissionRequestStatus,
+    'selectedAddons' : IDL.Vec(CommissionAddon),
+    'name' : IDL.Text,
+    'createdAt' : Time,
+    'description' : IDL.Text,
+    'email' : IDL.Opt(IDL.Text),
+    'referenceImages' : IDL.Vec(ExternalBlob),
+    'discordUsername' : IDL.Opt(IDL.Text),
+    'phoneNumber' : IDL.Opt(IDL.Text),
+    'totalPrice' : IDL.Nat,
+    'commissionTitle' : IDL.Text,
+    'commissionId' : IDL.Text,
+  });
+  const GalleryItem = IDL.Record({
+    'id' : IDL.Text,
+    'title' : IDL.Text,
+    'createdAt' : Time,
+    'description' : IDL.Text,
+    'image' : ExternalBlob,
   });
   const Customer = IDL.Principal;
   const Message = IDL.Record({
@@ -325,9 +559,18 @@ export const idlFactory = ({ IDL }) => {
   const Order = IDL.Record({
     'id' : IDL.Text,
     'status' : OrderStatus,
+    'total' : IDL.Nat,
     'customer' : Customer,
     'date' : Time,
     'items' : IDL.Vec(OrderItem),
+  });
+  const PortfolioItem = IDL.Record({
+    'id' : IDL.Text,
+    'title' : IDL.Text,
+    'createdAt' : Time,
+    'description' : IDL.Text,
+    'category' : IDL.Text,
+    'image' : ExternalBlob,
   });
   const Review = IDL.Record({
     'reviewText' : IDL.Text,
@@ -387,7 +630,32 @@ export const idlFactory = ({ IDL }) => {
       ),
     '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
+    'addBlogPost' : IDL.Func(
+        [IDL.Text, IDL.Text, IDL.Opt(ExternalBlob)],
+        [IDL.Text],
+        [],
+      ),
+    'addComment' : IDL.Func(
+        [IDL.Text, CommentParentType, IDL.Text, IDL.Text],
+        [IDL.Text],
+        [],
+      ),
+    'addCommission' : IDL.Func(
+        [IDL.Text, IDL.Text, IDL.Nat, IDL.Nat, IDL.Vec(CommissionAddon)],
+        [IDL.Text],
+        [],
+      ),
+    'addGalleryItem' : IDL.Func(
+        [IDL.Text, IDL.Text, ExternalBlob],
+        [IDL.Text],
+        [],
+      ),
     'addItemToCart' : IDL.Func([OrderItem], [], []),
+    'addPortfolioItem' : IDL.Func(
+        [IDL.Text, IDL.Text, ExternalBlob, IDL.Text],
+        [IDL.Text],
+        [],
+      ),
     'addProduct' : IDL.Func([CreateProductData, IDL.Vec(ExternalBlob)], [], []),
     'addReply' : IDL.Func([IDL.Text, IDL.Text], [], []),
     'addToCart' : IDL.Func([IDL.Vec(OrderItem)], [], []),
@@ -395,6 +663,7 @@ export const idlFactory = ({ IDL }) => {
     'checkout' : IDL.Func([], [IDL.Text], []),
     'clearCart' : IDL.Func([], [], []),
     'createDiscussionPost' : IDL.Func([IDL.Text], [IDL.Text], []),
+    'deleteCommission' : IDL.Func([IDL.Text], [], []),
     'deleteProduct' : IDL.Func([IDL.Text], [], []),
     'getAllDiscussionPosts' : IDL.Func(
         [],
@@ -414,13 +683,28 @@ export const idlFactory = ({ IDL }) => {
         ],
         ['query'],
       ),
+    'getBlogPosts' : IDL.Func([], [IDL.Vec(BlogPost)], ['query']),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+    'getCommentsByParent' : IDL.Func(
+        [IDL.Text, CommentParentType],
+        [IDL.Vec(Comment)],
+        ['query'],
+      ),
+    'getCommission' : IDL.Func([IDL.Text], [IDL.Opt(Commission)], ['query']),
+    'getCommissionRequests' : IDL.Func(
+        [],
+        [IDL.Vec(CommissionRequest)],
+        ['query'],
+      ),
+    'getCommissions' : IDL.Func([], [IDL.Vec(Commission)], ['query']),
+    'getGalleryItems' : IDL.Func([], [IDL.Vec(GalleryItem)], ['query']),
     'getMessages' : IDL.Func([], [IDL.Vec(Message)], ['query']),
     'getMyMessages' : IDL.Func([], [IDL.Vec(Message)], ['query']),
     'getMyOrder' : IDL.Func([IDL.Text], [IDL.Opt(Order)], ['query']),
     'getMyOrders' : IDL.Func([], [IDL.Vec(Order)], ['query']),
     'getOrders' : IDL.Func([], [IDL.Vec(Order)], ['query']),
+    'getPortfolioItems' : IDL.Func([], [IDL.Vec(PortfolioItem)], ['query']),
     'getProduct' : IDL.Func([IDL.Text], [IDL.Opt(Product)], ['query']),
     'getProductReviews' : IDL.Func(
         [IDL.Text],
@@ -457,11 +741,43 @@ export const idlFactory = ({ IDL }) => {
         [],
         [],
       ),
+    'registerOrLogin' : IDL.Func([], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'sendAdminBroadcastAlert' : IDL.Func([IDL.Text], [], []),
     'sendMessage' : IDL.Func([IDL.Text, IDL.Opt(Customer)], [], []),
+    'submitCommissionRequest' : IDL.Func(
+        [
+          IDL.Text,
+          IDL.Text,
+          IDL.Opt(IDL.Text),
+          IDL.Opt(IDL.Text),
+          IDL.Opt(IDL.Text),
+          IDL.Text,
+          IDL.Vec(CommissionAddon),
+          IDL.Vec(ExternalBlob),
+        ],
+        [IDL.Text],
+        [],
+      ),
     'submitReview' : IDL.Func(
         [IDL.Text, IDL.Nat, IDL.Text, IDL.Opt(IDL.Text)],
+        [],
+        [],
+      ),
+    'updateCommission' : IDL.Func(
+        [
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Nat,
+          IDL.Nat,
+          IDL.Vec(CommissionAddon),
+        ],
+        [],
+        [],
+      ),
+    'updateCommissionRequestStatus' : IDL.Func(
+        [IDL.Text, CommissionRequestStatus],
         [],
         [],
       ),

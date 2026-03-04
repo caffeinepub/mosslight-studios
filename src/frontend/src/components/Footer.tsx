@@ -1,18 +1,19 @@
-import { Heart } from 'lucide-react';
-import SocialMediaLinks from './SocialMediaLinks';
+import { Heart } from "lucide-react";
+import SocialMediaLinks from "./SocialMediaLinks";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
-  const appIdentifier = typeof window !== 'undefined' 
-    ? encodeURIComponent(window.location.hostname) 
-    : 'mosslight-studios';
+  const appIdentifier =
+    typeof window !== "undefined"
+      ? encodeURIComponent(window.location.hostname)
+      : "mosslight-studios";
 
   return (
     <footer className="border-t bg-muted/30 mt-auto">
       <div className="container py-8">
         <div className="flex flex-col items-center gap-6">
           <SocialMediaLinks />
-          
+
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 w-full">
             <div className="text-sm text-muted-foreground">
               © {currentYear} Mosslight Studios. All rights reserved.

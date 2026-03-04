@@ -1,9 +1,22 @@
-import AdminGuard from '../components/AdminGuard';
-import { useGetAnalyticsData } from '../hooks/useAnalytics';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, DollarSign, ShoppingBag, MousePointer, Eye, AlertTriangle } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  AlertTriangle,
+  DollarSign,
+  Eye,
+  Loader2,
+  MousePointer,
+  ShoppingBag,
+} from "lucide-react";
+import AdminGuard from "../components/AdminGuard";
+import { useGetAnalyticsData } from "../hooks/useAnalytics";
 
 export default function AdminAnalyticsPage() {
   const { data, isLoading } = useGetAnalyticsData();
@@ -35,7 +48,9 @@ export default function AdminAnalyticsPage() {
       <div className="container py-12">
         <div className="space-y-8">
           <div className="space-y-2">
-            <h1 className="font-serif text-4xl font-bold">Analytics Dashboard</h1>
+            <h1 className="font-serif text-4xl font-bold">
+              Analytics Dashboard
+            </h1>
             <p className="text-muted-foreground">
               Track performance metrics and business insights
             </p>
@@ -78,7 +93,10 @@ export default function AdminAnalyticsPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold">
-                  {mostClickedProducts.reduce((sum, [_, count]) => sum + Number(count), 0)}
+                  {mostClickedProducts.reduce(
+                    (sum, [_, count]) => sum + Number(count),
+                    0,
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -92,7 +110,10 @@ export default function AdminAnalyticsPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold">
-                  {mostViewedContent.reduce((sum, [_, count]) => sum + Number(count), 0)}
+                  {mostViewedContent.reduce(
+                    (sum, [_, count]) => sum + Number(count),
+                    0,
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -106,11 +127,17 @@ export default function AdminAnalyticsPage() {
                 <div className="space-y-2">
                   <p className="font-semibold">Low Inventory Alert</p>
                   <p className="text-sm">
-                    {lowInventoryProducts.length} product{lowInventoryProducts.length !== 1 ? 's' : ''} running low on stock
+                    {lowInventoryProducts.length} product
+                    {lowInventoryProducts.length !== 1 ? "s" : ""} running low
+                    on stock
                   </p>
                   <div className="flex flex-wrap gap-2 mt-2">
                     {lowInventoryProducts.map((product) => (
-                      <Badge key={product.id} variant="outline" className="bg-background">
+                      <Badge
+                        key={product.id}
+                        variant="outline"
+                        className="bg-background"
+                      >
                         {product.name} ({Number(product.inventory)} left)
                       </Badge>
                     ))}
@@ -127,7 +154,9 @@ export default function AdminAnalyticsPage() {
                 <MousePointer className="h-5 w-5" />
                 Top Clicked Products
               </CardTitle>
-              <CardDescription>Most popular products by click count</CardDescription>
+              <CardDescription>
+                Most popular products by click count
+              </CardDescription>
             </CardHeader>
             <CardContent>
               {mostClickedProducts.length === 0 ? (
@@ -136,17 +165,26 @@ export default function AdminAnalyticsPage() {
                 </p>
               ) : (
                 <div className="space-y-3">
-                  {mostClickedProducts.slice(0, 10).map(([productId, count], index) => (
-                    <div key={productId} className="flex items-center justify-between py-2 border-b last:border-0">
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm font-semibold text-muted-foreground w-6">
-                          #{index + 1}
-                        </span>
-                        <span className="text-sm font-medium">{productId}</span>
+                  {mostClickedProducts
+                    .slice(0, 10)
+                    .map(([productId, count], index) => (
+                      <div
+                        key={productId}
+                        className="flex items-center justify-between py-2 border-b last:border-0"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="text-sm font-semibold text-muted-foreground w-6">
+                            #{index + 1}
+                          </span>
+                          <span className="text-sm font-medium">
+                            {productId}
+                          </span>
+                        </div>
+                        <Badge variant="secondary">
+                          {Number(count)} clicks
+                        </Badge>
                       </div>
-                      <Badge variant="secondary">{Number(count)} clicks</Badge>
-                    </div>
-                  ))}
+                    ))}
                 </div>
               )}
             </CardContent>
@@ -159,7 +197,9 @@ export default function AdminAnalyticsPage() {
                 <Eye className="h-5 w-5" />
                 Most Viewed Gallery Content
               </CardTitle>
-              <CardDescription>Top performing content by view count</CardDescription>
+              <CardDescription>
+                Top performing content by view count
+              </CardDescription>
             </CardHeader>
             <CardContent>
               {mostViewedContent.length === 0 ? (
@@ -168,17 +208,24 @@ export default function AdminAnalyticsPage() {
                 </p>
               ) : (
                 <div className="space-y-3">
-                  {mostViewedContent.slice(0, 10).map(([contentId, count], index) => (
-                    <div key={contentId} className="flex items-center justify-between py-2 border-b last:border-0">
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm font-semibold text-muted-foreground w-6">
-                          #{index + 1}
-                        </span>
-                        <span className="text-sm font-medium">{contentId}</span>
+                  {mostViewedContent
+                    .slice(0, 10)
+                    .map(([contentId, count], index) => (
+                      <div
+                        key={contentId}
+                        className="flex items-center justify-between py-2 border-b last:border-0"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="text-sm font-semibold text-muted-foreground w-6">
+                            #{index + 1}
+                          </span>
+                          <span className="text-sm font-medium">
+                            {contentId}
+                          </span>
+                        </div>
+                        <Badge variant="secondary">{Number(count)} views</Badge>
                       </div>
-                      <Badge variant="secondary">{Number(count)} views</Badge>
-                    </div>
-                  ))}
+                    ))}
                 </div>
               )}
             </CardContent>

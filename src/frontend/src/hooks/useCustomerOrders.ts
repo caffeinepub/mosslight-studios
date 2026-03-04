@@ -1,12 +1,12 @@
-import { useQuery } from '@tanstack/react-query';
-import { useActor } from './useActor';
-import type { Order } from '../backend';
+import { useQuery } from "@tanstack/react-query";
+import type { Order } from "../backend";
+import { useActor } from "./useActor";
 
 export function useGetMyOrders() {
   const { actor, isFetching } = useActor();
 
   return useQuery<Order[]>({
-    queryKey: ['myOrders'],
+    queryKey: ["myOrders"],
     queryFn: async () => {
       if (!actor) return [];
       return actor.getMyOrders();
@@ -19,7 +19,7 @@ export function useGetMyOrder(orderId: string) {
   const { actor, isFetching } = useActor();
 
   return useQuery<Order | null>({
-    queryKey: ['myOrder', orderId],
+    queryKey: ["myOrder", orderId],
     queryFn: async () => {
       if (!actor) return null;
       return actor.getMyOrder(orderId);
@@ -27,4 +27,3 @@ export function useGetMyOrder(orderId: string) {
     enabled: !!actor && !isFetching && !!orderId,
   });
 }
-

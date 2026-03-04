@@ -1,35 +1,41 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Loader2, Send } from 'lucide-react';
-import { useSendMessage } from '../hooks/useMessages';
-import { toast } from 'sonner';
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Textarea } from "@/components/ui/textarea";
+import { Loader2, Send } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { useSendMessage } from "../hooks/useMessages";
 
 export default function MessageComposer() {
-  const [content, setContent] = useState('');
-  const [recipientType, setRecipientType] = useState<'all' | 'specific'>('all');
+  const [content, setContent] = useState("");
+  const [recipientType, setRecipientType] = useState<"all" | "specific">("all");
   const sendMessage = useSendMessage();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!content.trim()) {
-      toast.error('Please enter a message');
+      toast.error("Please enter a message");
       return;
     }
 
     try {
       await sendMessage.mutateAsync({
         content: content.trim(),
-        recipient: recipientType === 'all' ? null : null, // For now, only broadcast messages
+        recipient: recipientType === "all" ? null : null, // For now, only broadcast messages
       });
-      toast.success('Message sent successfully');
-      setContent('');
-    } catch (error) {
-      toast.error('Failed to send message');
+      toast.success("Message sent successfully");
+      setContent("");
+    } catch (_error) {
+      toast.error("Failed to send message");
     }
   };
 
@@ -42,7 +48,12 @@ export default function MessageComposer() {
         <CardContent className="space-y-4">
           <div className="space-y-3">
             <Label>Recipients</Label>
-            <RadioGroup value={recipientType} onValueChange={(value) => setRecipientType(value as 'all' | 'specific')}>
+            <RadioGroup
+              value={recipientType}
+              onValueChange={(value) =>
+                setRecipientType(value as "all" | "specific")
+              }
+            >
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="all" id="all" />
                 <Label htmlFor="all" className="font-normal cursor-pointer">
@@ -65,7 +76,11 @@ export default function MessageComposer() {
           </div>
         </CardContent>
         <CardFooter>
-          <Button type="submit" disabled={sendMessage.isPending} className="gap-2">
+          <Button
+            type="submit"
+            disabled={sendMessage.isPending}
+            className="gap-2"
+          >
             {sendMessage.isPending ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -83,4 +98,3 @@ export default function MessageComposer() {
     </Card>
   );
 }
-
