@@ -8,14 +8,14 @@ import Float "mo:core/Float";
 import Principal "mo:core/Principal";
 import Iter "mo:core/Iter";
 import Runtime "mo:core/Runtime";
-import Migration "migration";
+
 import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
 
 // Specify the data migration function in with-clause
-(with migration = Migration.run)
+
 actor {
   // Types
   public type ProductColor = {
@@ -296,6 +296,17 @@ actor {
 
   include MixinStorage();
 
+  // Helper function to check if caller is admin
+  func isAdminCaller(caller : Principal) : Bool {
+    // First check if caller is the hardcoded admin
+    if (caller == HARD_CODED_ADMIN_PRINCIPAL) {
+      return true;
+    };
+    // Then check if caller is registered and has admin role
+    // Use isAdmin which internally checks the role
+    AccessControl.isAdmin(accessControlState, caller);
+  };
+
   // User profile endpoints
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
     if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
@@ -305,7 +316,7 @@ actor {
   };
 
   public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
-    if (caller != user and not AccessControl.isAdmin(accessControlState, caller)) {
+    if (caller != user and not isAdminCaller(caller)) {
       Runtime.trap("Unauthorized: Can only view your own profile");
     };
     userProfiles.get(user);
@@ -333,7 +344,7 @@ actor {
 
   // Product management
   public shared ({ caller }) func addProduct(product : CreateProductData, images : [Storage.ExternalBlob]) : async () {
-    if (not AccessControl.hasPermission(accessControlState, caller, #admin)) {
+    if (not isAdminCaller(caller)) {
       Runtime.trap("Unauthorized: Only admins can add products");
     };
 
@@ -387,7 +398,7 @@ actor {
   };
 
   public shared ({ caller }) func updateProduct(productId : Text, productData : CreateProductData, images : [Storage.ExternalBlob]) : async () {
-    if (not AccessControl.hasPermission(accessControlState, caller, #admin)) {
+    if (not isAdminCaller(caller)) {
       Runtime.trap("Unauthorized: Only admins can update products");
     };
 
@@ -424,7 +435,7 @@ actor {
   };
 
   public shared ({ caller }) func deleteProduct(productId : Text) : async () {
-    if (not AccessControl.hasPermission(accessControlState, caller, #admin)) {
+    if (not isAdminCaller(caller)) {
       Runtime.trap("Unauthorized: Only admins can delete products");
     };
     products.remove(productId);
@@ -432,7 +443,7 @@ actor {
 
   // Orders
   public shared ({ caller }) func updateOrderStatus(orderId : Text, status : OrderStatus) : async () {
-    if (not AccessControl.hasPermission(accessControlState, caller, #admin)) {
+    if (not isAdminCaller(caller)) {
       Runtime.trap("Unauthorized: Only admins can update order status");
     };
 
@@ -473,7 +484,7 @@ actor {
   };
 
   public shared ({ caller }) func sendAdminBroadcastAlert(message : Text) : async () {
-    if (not AccessControl.hasPermission(accessControlState, caller, #admin)) {
+    if (not isAdminCaller(caller)) {
       Runtime.trap("Unauthorized: Only admins can send broadcast alerts");
     };
 
@@ -557,7 +568,7 @@ actor {
   };
 
   public query ({ caller }) func getOrders() : async [Order] {
-    if (not AccessControl.hasPermission(accessControlState, caller, #admin)) {
+    if (not isAdminCaller(caller)) {
       Runtime.trap("Unauthorized: Only admins can view all orders");
     };
     orders.values().toArray();
@@ -590,7 +601,7 @@ actor {
   };
 
   public query ({ caller }) func getMessages() : async [Message] {
-    if (not AccessControl.hasPermission(accessControlState, caller, #admin)) {
+    if (not isAdminCaller(caller)) {
       Runtime.trap("Unauthorized: Only admins can view all messages");
     };
     messages.values().toArray();
@@ -1088,7 +1099,7 @@ actor {
     orderCount : Nat;
     lowInventoryProducts : [Product];
   } {
-    if (not AccessControl.hasPermission(accessControlState, caller, #admin)) {
+    if (not isAdminCaller(caller)) {
       Runtime.trap("Only admins can view analytics data");
     };
 
@@ -1146,7 +1157,7 @@ actor {
 
   // Portfolio, Gallery, Blog & Comments
   public shared ({ caller }) func addPortfolioItem(title : Text, description : Text, image : Storage.ExternalBlob, category : Text) : async Text {
-    if (not AccessControl.hasPermission(accessControlState, caller, #admin)) {
+    if (not isAdminCaller(caller)) {
       Runtime.trap("Unauthorized: Only admins can add portfolio items");
     };
     portfolioIdCounter += 1;
@@ -1169,7 +1180,7 @@ actor {
     image : Storage.ExternalBlob,
     taggedProductIds : [Text],
   ) : async Text {
-    if (not AccessControl.hasPermission(accessControlState, caller, #admin)) {
+    if (not isAdminCaller(caller)) {
       Runtime.trap("Unauthorized: Only admins can add gallery items");
     };
     galleryIdCounter += 1;
@@ -1187,7 +1198,7 @@ actor {
   };
 
   public shared ({ caller }) func updateGalleryItemTags(galleryItemId : Text, taggedProductIds : [Text]) : async () {
-    if (not AccessControl.hasPermission(accessControlState, caller, #admin)) {
+    if (not isAdminCaller(caller)) {
       Runtime.trap("Unauthorized: Only admins can update gallery items");
     };
     switch (galleryItems.get(galleryItemId)) {
@@ -1202,14 +1213,14 @@ actor {
   };
 
   public shared ({ caller }) func deleteGalleryItem(id : Text) : async () {
-    if (not AccessControl.hasPermission(accessControlState, caller, #admin)) {
+    if (not isAdminCaller(caller)) {
       Runtime.trap("Unauthorized: Only admins can delete gallery items");
     };
     galleryItems.remove(id);
   };
 
   public shared ({ caller }) func addBlogPost(title : Text, bodyText : Text, image : ?Storage.ExternalBlob) : async Text {
-    if (not AccessControl.hasPermission(accessControlState, caller, #admin)) {
+    if (not isAdminCaller(caller)) {
       Runtime.trap("Unauthorized: Only admins can add blog posts");
     };
     blogIdCounter += 1;
@@ -1282,7 +1293,7 @@ actor {
 
   // Commissions
   public shared ({ caller }) func addCommission(title : Text, description : Text, basePrice : Nat, totalSpots : Nat, addons : [CommissionAddon]) : async Text {
-    if (not AccessControl.hasPermission(accessControlState, caller, #admin)) {
+    if (not isAdminCaller(caller)) {
       Runtime.trap("Unauthorized: Only admins can add commissions");
     };
 
@@ -1305,7 +1316,7 @@ actor {
   };
 
   public shared ({ caller }) func updateCommission(commissionId : Text, title : Text, description : Text, basePrice : Nat, totalSpots : Nat, addons : [CommissionAddon]) : async () {
-    if (not AccessControl.hasPermission(accessControlState, caller, #admin)) {
+    if (not isAdminCaller(caller)) {
       Runtime.trap("Unauthorized: Only admins can update commissions");
     };
 
@@ -1329,7 +1340,7 @@ actor {
   };
 
   public shared ({ caller }) func deleteCommission(commissionId : Text) : async () {
-    if (not AccessControl.hasPermission(accessControlState, caller, #admin)) {
+    if (not isAdminCaller(caller)) {
       Runtime.trap("Unauthorized: Only admins can delete commissions");
     };
     commissions.remove(commissionId);
@@ -1389,14 +1400,14 @@ actor {
   };
 
   public query ({ caller }) func getCommissionRequests() : async [CommissionRequest] {
-    if (not AccessControl.hasPermission(accessControlState, caller, #admin)) {
+    if (not isAdminCaller(caller)) {
       Runtime.trap("Unauthorized: Only admins can view commission requests");
     };
     commissionRequests.values().toArray();
   };
 
   public shared ({ caller }) func updateCommissionRequestStatus(requestId : Text, status : CommissionRequestStatus) : async () {
-    if (not AccessControl.hasPermission(accessControlState, caller, #admin)) {
+    if (not isAdminCaller(caller)) {
       Runtime.trap("Unauthorized: Only admins can update commission request status");
     };
 
