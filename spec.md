@@ -1,40 +1,26 @@
 # Mosslight Studios
 
 ## Current State
-
-The app has a Gallery section where the admin can upload photos/videos as `GalleryItem` records (title, description, image, createdAt). The `GalleryGrid` component renders gallery items with a comment section. There is no way to link a gallery item to products in the shop.
-
-Products are stored with full metadata (name, price, images, variants, SKU, categories, etc.) and are accessible via `getProducts()` and `getProduct(productId)`.
-
-The `addGalleryItem` backend function takes `(title, description, image)` — no product tags. The `GalleryItem` type has no `taggedProductIds` field.
+The admin dashboard shows an `AdminNotificationsPanel` that fetches notifications using `getUnreadNotifications` — a backend endpoint that requires `#user` permission. The admin logs in via Internet Identity (with a hardcoded principal check via `isAdminCaller`) and does not have the `#user` role, so the query silently fails or errors, causing notifications to show up again on every visit because they are never successfully marked as read.
 
 ## Requested Changes (Diff)
 
 ### Add
-- `taggedProductIds : [Text]` field to the `GalleryItem` type in the backend
-- Updated `addGalleryItem` function signature to accept `taggedProductIds : [Text]` as an additional parameter
-- New `updateGalleryItemTags(galleryItemId: Text, taggedProductIds: [Text])` admin function to update tags on existing gallery items
-- New `deleteGalleryItem(id: Text)` admin function
-- Frontend: product tag selector in `GalleryUploadForm` (admin) — multi-select from existing products by name, stores product IDs
-- Frontend: "Shop This Product" button section below each gallery item in `GalleryGrid`, showing all tagged products with their name/thumbnail and a "Shop" button linking to `/products/:id`
-- Frontend: support updating tags on existing gallery items from `AdminGalleryManagementPage`
+- Backend: `getAdminNotifications` — query func, requires `isAdminCaller`, returns all unread notifications where `notifType` is `#adminAlert` or `#lowInventory`
+- Backend: `dismissAdminNotification(id: Text)` — shared func, requires `isAdminCaller`, marks a single notification as read
+- Backend: `dismissAllAdminNotifications()` — shared func, requires `isAdminCaller`, marks all admin-type unread notifications as read
+- Frontend hook `useAdminNotifications.ts` — uses `getAdminNotifications`, `dismissAdminNotification`, `dismissAllAdminNotifications` backend calls. Does NOT require `identity` to be set (admin uses II principal). Enabled when `actor` is available.
+- "Dismiss All" button in `AdminNotificationsPanel`
+- Each notification row gets a checkbox/check button to dismiss individually
 
 ### Modify
-- `GalleryItem` type: add `taggedProductIds : [Text]`
-- `addGalleryItem` backend: accept `taggedProductIds` parameter and store it
-- `GalleryUploadForm`: add a product multi-select input that lets admin search/pick products to tag
-- `GalleryGrid`: render "Shop This Product" section below each item when `taggedProductIds.length > 0`, showing product cards with a "Shop" button
-- `useAddGalleryItem` hook: pass `taggedProductIds` parameter
-- `useGallery.ts`: add `useDeleteGalleryItem` (wired to real backend) and `useUpdateGalleryItemTags` hooks
+- `AdminNotificationsPanel.tsx` — switch from `useGetUnreadNotifications` / `useMarkNotificationAsRead` to the new admin-specific hooks. Add "Dismiss All" button in the card header. Add `data-ocid` markers.
+- Low-inventory and adminAlert notifications should be sent to `HARD_CODED_ADMIN_PRINCIPAL` (not to all user profiles) so they appear only for the admin.
 
 ### Remove
-- Nothing removed
+- `AdminNotificationsPanel` no longer imports or uses `useGetUnreadNotifications` or `useMarkNotificationAsRead`
 
 ## Implementation Plan
-
-1. **Backend**: Add `taggedProductIds : [Text]` to `GalleryItem` type. Update `addGalleryItem` to accept `taggedProductIds`. Add `updateGalleryItemTags(id, taggedProductIds)` admin method. Add `deleteGalleryItem(id)` admin method.
-2. **Frontend hooks**: Update `useAddGalleryItem` to pass `taggedProductIds`. Add `useUpdateGalleryItemTags` and wire `useDeleteGalleryItem` to the real backend method.
-3. **GalleryUploadForm**: Add a product multi-select (search + checkbox list) that fetches existing products and lets admin pick which to tag. Pass selected IDs on submit.
-4. **GalleryGrid**: After each gallery item's content, if `taggedProductIds` has entries, render a "Shop This Product" row showing each tagged product's name (and image if available) with a "Shop" button (`/products/:id`).
-5. **AdminGalleryManagementPage**: Show existing gallery items with an "Edit Tags" action that opens a tag-editing UI, calling `updateGalleryItemTags`.
-6. Validate and build.
+1. Update `main.mo`: add `getAdminNotifications`, `dismissAdminNotification`, `dismissAllAdminNotifications` endpoints using `isAdminCaller`. Fix `sendLowInventoryNotifications` and `sendAdminBroadcastAlert` to send notifications to `HARD_CODED_ADMIN_PRINCIPAL` instead of all user profiles.
+2. Add `src/frontend/src/hooks/useAdminNotifications.ts` — React Query hooks wrapping the three new backend calls, enabled based only on `!!actor`.
+3. Rewrite `AdminNotificationsPanel.tsx` to use new hooks, add "Dismiss All" button and individual dismiss checkmarks.
