@@ -1,9 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import type { Order } from "../backend";
 import { useActor } from "./useActor";
+import { useInternetIdentity } from "./useInternetIdentity";
 
 export function useGetMyOrders() {
   const { actor, isFetching } = useActor();
+  const { identity } = useInternetIdentity();
 
   return useQuery<Order[]>({
     queryKey: ["myOrders"],
@@ -11,12 +13,13 @@ export function useGetMyOrders() {
       if (!actor) return [];
       return actor.getMyOrders();
     },
-    enabled: !!actor && !isFetching,
+    enabled: !!actor && !isFetching && !!identity,
   });
 }
 
 export function useGetMyOrder(orderId: string) {
   const { actor, isFetching } = useActor();
+  const { identity } = useInternetIdentity();
 
   return useQuery<Order | null>({
     queryKey: ["myOrder", orderId],
@@ -24,6 +27,6 @@ export function useGetMyOrder(orderId: string) {
       if (!actor) return null;
       return actor.getMyOrder(orderId);
     },
-    enabled: !!actor && !isFetching && !!orderId,
+    enabled: !!actor && !isFetching && !!orderId && !!identity,
   });
 }

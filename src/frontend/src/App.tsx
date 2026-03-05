@@ -6,6 +6,7 @@ import {
   createRouter,
 } from "@tanstack/react-router";
 import { ThemeProvider } from "next-themes";
+import React from "react";
 import Layout from "./components/Layout";
 import { AdminAuthProvider } from "./hooks/useAdminAuth";
 import AboutPage from "./pages/AboutPage";
@@ -202,6 +203,43 @@ const adminCommissionsRoute = createRoute({
   component: AdminCommissionsPage,
 });
 
+class ErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen flex items-center justify-center text-center p-8 bg-background">
+          <div>
+            <h1 className="text-2xl font-bold mb-2 text-foreground">
+              Mosslight Studios
+            </h1>
+            <p className="text-muted-foreground">
+              Something went wrong. Please refresh the page.
+            </p>
+            <button
+              type="button"
+              className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm"
+              onClick={() => window.location.reload()}
+            >
+              Refresh
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   productsRoute,
@@ -242,11 +280,13 @@ declare module "@tanstack/react-router" {
 
 export default function App() {
   return (
-    <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-      <AdminAuthProvider>
-        <RouterProvider router={router} />
-        <Toaster />
-      </AdminAuthProvider>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+        <AdminAuthProvider>
+          <RouterProvider router={router} />
+          <Toaster />
+        </AdminAuthProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }

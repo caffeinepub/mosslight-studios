@@ -1,9 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Notification } from "../backend";
 import { useActor } from "./useActor";
+import { useInternetIdentity } from "./useInternetIdentity";
 
 export function useGetUnreadNotifications() {
   const { actor, isFetching } = useActor();
+  const { identity } = useInternetIdentity();
 
   return useQuery<Notification[]>({
     queryKey: ["unreadNotifications"],
@@ -11,7 +13,7 @@ export function useGetUnreadNotifications() {
       if (!actor) return [];
       return actor.getUnreadNotifications();
     },
-    enabled: !!actor && !isFetching,
+    enabled: !!actor && !isFetching && !!identity,
   });
 }
 

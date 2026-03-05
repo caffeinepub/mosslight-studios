@@ -1,9 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { UserProfile, UserRole } from "../backend";
 import { useActor } from "./useActor";
+import { useInternetIdentity } from "./useInternetIdentity";
 
 export function useGetCallerUserProfile() {
   const { actor, isFetching: actorFetching } = useActor();
+  const { identity } = useInternetIdentity();
 
   const query = useQuery<UserProfile | null>({
     queryKey: ["currentUserProfile"],
@@ -11,7 +13,7 @@ export function useGetCallerUserProfile() {
       if (!actor) throw new Error("Actor not available");
       return actor.getCallerUserProfile();
     },
-    enabled: !!actor && !actorFetching,
+    enabled: !!actor && !actorFetching && !!identity,
     retry: false,
   });
 
@@ -39,6 +41,7 @@ export function useSaveCallerUserProfile() {
 
 export function useGetCallerUserRole() {
   const { actor, isFetching } = useActor();
+  const { identity } = useInternetIdentity();
 
   return useQuery<UserRole>({
     queryKey: ["currentUserRole"],
@@ -46,6 +49,6 @@ export function useGetCallerUserRole() {
       if (!actor) throw new Error("Actor not available");
       return actor.getCallerUserRole();
     },
-    enabled: !!actor && !isFetching,
+    enabled: !!actor && !isFetching && !!identity,
   });
 }
