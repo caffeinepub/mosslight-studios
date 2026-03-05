@@ -78,8 +78,8 @@ export default {
                 'elegant-lg': '0 10px 40px rgba(13, 77, 61, 0.15)'
             },
             fontFamily: {
-                serif: ['Playfair Display', 'Georgia', 'serif'],
-                sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif']
+                serif: ['"Playfair Display"', 'Georgia', 'serif'],
+                sans: ['"General Sans"', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif']
             },
             keyframes: {
                 'accordion-down': {

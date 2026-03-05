@@ -1,75 +1,40 @@
 import Map "mo:core/Map";
 import Text "mo:core/Text";
-import Nat "mo:core/Nat";
+import Time "mo:core/Time";
+import Storage "blob-storage/Storage";
 
 module {
-  type OldProductVariant = {
+  type OldGalleryItem = {
     id : Text;
-    size : Text;
-    color : Text;
-    inventory : Nat;
-    parentProductId : Text;
-  };
-
-  type OldProduct = {
-    id : Text;
-    name : Text;
+    title : Text;
     description : Text;
-    price : Nat;
-    images : [Blob];
-    inventory : Nat;
-    variants : ?[OldProductVariant];
-    hasVariants : Bool;
+    image : Storage.ExternalBlob;
+    createdAt : Time.Time;
   };
 
   type OldActor = {
-    products : Map.Map<Text, OldProduct>;
+    galleryItems : Map.Map<Text, OldGalleryItem>;
   };
 
-  type NewProductVariant = {
+  type NewGalleryItem = {
     id : Text;
-    size : Text;
-    color : Text;
-    price : Nat;
-    inventory : Nat;
-    parentProductId : Text;
-  };
-
-  type NewProduct = {
-    id : Text;
-    name : Text;
+    title : Text;
     description : Text;
-    price : Nat;
-    images : [Blob];
-    inventory : Nat;
-    variants : ?[NewProductVariant];
-    hasVariants : Bool;
+    image : Storage.ExternalBlob;
+    createdAt : Time.Time;
+    taggedProductIds : [Text];
   };
 
   type NewActor = {
-    products : Map.Map<Text, NewProduct>;
+    galleryItems : Map.Map<Text, NewGalleryItem>;
   };
 
   public func run(old : OldActor) : NewActor {
-    let newProducts = old.products.map<Text, OldProduct, NewProduct>(
-      func(_id, oldProduct) {
-        {
-          oldProduct with
-          variants = oldProduct.variants.map(
-            func(oldVariants) {
-              oldVariants.map(
-                func(oldVariant) {
-                  {
-                    oldVariant with
-                    price = 0; // Default price for existing variants
-                  };
-                }
-              );
-            }
-          );
-        };
+    let newGalleryItems = old.galleryItems.map<Text, OldGalleryItem, NewGalleryItem>(
+      func(_id, oldGalleryItem) {
+        { oldGalleryItem with taggedProductIds = [] };
       }
     );
-    { products = newProducts };
+    { galleryItems = newGalleryItems };
   };
 };

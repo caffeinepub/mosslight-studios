@@ -1,40 +1,40 @@
 # Mosslight Studios
 
 ## Current State
-Full-stack art portfolio and merchandise store with:
-- Product management with variants, colors, sizes, SKU, tax, and shipping
-- Order management with cart, checkout, and order tracking
-- Admin portal (passcode + hardcoded principal auth)
-- Portfolio, Gallery, Blog sections with public comments
-- Discussion forum, FAQ, About page
-- Analytics dashboard, notifications, product reviews
-- Stripe payments
+
+The app has a Gallery section where the admin can upload photos/videos as `GalleryItem` records (title, description, image, createdAt). The `GalleryGrid` component renders gallery items with a comment section. There is no way to link a gallery item to products in the shop.
+
+Products are stored with full metadata (name, price, images, variants, SKU, categories, etc.) and are accessible via `getProducts()` and `getProduct(productId)`.
+
+The `addGalleryItem` backend function takes `(title, description, image)` — no product tags. The `GalleryItem` type has no `taggedProductIds` field.
 
 ## Requested Changes (Diff)
 
 ### Add
-- Commission data types in backend: `CommissionAddon` (name, price), `Commission` (id, title, description, basePrice, openSpots, totalSpots, addons, createdAt), `CommissionRequest` (id, commissionId, commissionTitle, name, discordUsername, phoneNumber, email, description, selectedAddons, totalPrice, referenceImages, status, createdAt)
-- Commission status type: `#pending`, `#accepted`, `#inProgress`, `#completed`, `#rejected`
-- Backend functions: `addCommission`, `updateCommission`, `deleteCommission`, `getCommissions`, `getCommission`, `submitCommissionRequest`, `getCommissionRequests` (admin), `updateCommissionRequestStatus` (admin - adjusts openSpots: accepting fills a spot, completing releases a spot)
-- Frontend page: `/commissions` — public-facing commission listing with each commission showing title, description, base price, open spots, addons list, and a "Request This Commission" button
-- Frontend page: `/commissions/$id` — commission detail + request submission form (name, Discord, phone, email, description, addon checkboxes with live price total, reference image uploads)
-- Frontend admin page: `/admin/commissions` — add/edit/delete commissions with addon manager (like VariantManager), view all requests, change request status (accept/reject/in-progress/complete)
-- Navigation: Add "Commissions" link to header nav and admin dashboard
-- Routes in App.tsx for all new pages
+- `taggedProductIds : [Text]` field to the `GalleryItem` type in the backend
+- Updated `addGalleryItem` function signature to accept `taggedProductIds : [Text]` as an additional parameter
+- New `updateGalleryItemTags(galleryItemId: Text, taggedProductIds: [Text])` admin function to update tags on existing gallery items
+- New `deleteGalleryItem(id: Text)` admin function
+- Frontend: product tag selector in `GalleryUploadForm` (admin) — multi-select from existing products by name, stores product IDs
+- Frontend: "Shop This Product" button section below each gallery item in `GalleryGrid`, showing all tagged products with their name/thumbnail and a "Shop" button linking to `/products/:id`
+- Frontend: support updating tags on existing gallery items from `AdminGalleryManagementPage`
 
 ### Modify
-- `App.tsx`: Add commission routes and admin commission route
-- `AdminDashboardPage.tsx`: Add Commissions card linking to `/admin/commissions`
-- `Header.tsx` / nav: Add Commissions link in public nav
+- `GalleryItem` type: add `taggedProductIds : [Text]`
+- `addGalleryItem` backend: accept `taggedProductIds` parameter and store it
+- `GalleryUploadForm`: add a product multi-select input that lets admin search/pick products to tag
+- `GalleryGrid`: render "Shop This Product" section below each item when `taggedProductIds.length > 0`, showing product cards with a "Shop" button
+- `useAddGalleryItem` hook: pass `taggedProductIds` parameter
+- `useGallery.ts`: add `useDeleteGalleryItem` (wired to real backend) and `useUpdateGalleryItemTags` hooks
 
 ### Remove
 - Nothing removed
 
 ## Implementation Plan
-1. Add Commission and CommissionRequest types + CRUD functions to `main.mo` backend
-2. Create frontend pages: `CommissionsPage.tsx`, `CommissionDetailPage.tsx`, `AdminCommissionsPage.tsx`
-3. Create `CommissionForm.tsx` admin form component with addon manager
-4. Create `CommissionRequestForm.tsx` customer-facing request form with image uploads and live price calc
-5. Wire routes in `App.tsx`
-6. Add Commissions nav link in `Header.tsx`
-7. Add Commissions card in `AdminDashboardPage.tsx`
+
+1. **Backend**: Add `taggedProductIds : [Text]` to `GalleryItem` type. Update `addGalleryItem` to accept `taggedProductIds`. Add `updateGalleryItemTags(id, taggedProductIds)` admin method. Add `deleteGalleryItem(id)` admin method.
+2. **Frontend hooks**: Update `useAddGalleryItem` to pass `taggedProductIds`. Add `useUpdateGalleryItemTags` and wire `useDeleteGalleryItem` to the real backend method.
+3. **GalleryUploadForm**: Add a product multi-select (search + checkbox list) that fetches existing products and lets admin pick which to tag. Pass selected IDs on submit.
+4. **GalleryGrid**: After each gallery item's content, if `taggedProductIds` has entries, render a "Shop This Product" row showing each tagged product's name (and image if available) with a "Shop" button (`/products/:id`).
+5. **AdminGalleryManagementPage**: Show existing gallery items with an "Edit Tags" action that opens a tag-editing UI, calling `updateGalleryItemTags`.
+6. Validate and build.

@@ -156,6 +156,7 @@ export const GalleryItem = IDL.Record({
   'title' : IDL.Text,
   'createdAt' : Time,
   'description' : IDL.Text,
+  'taggedProductIds' : IDL.Vec(IDL.Text),
   'image' : ExternalBlob,
 });
 export const Customer = IDL.Principal;
@@ -260,7 +261,7 @@ export const idlService = IDL.Service({
       [],
     ),
   'addGalleryItem' : IDL.Func(
-      [IDL.Text, IDL.Text, ExternalBlob],
+      [IDL.Text, IDL.Text, ExternalBlob, IDL.Vec(IDL.Text)],
       [IDL.Text],
       [],
     ),
@@ -278,6 +279,7 @@ export const idlService = IDL.Service({
   'clearCart' : IDL.Func([], [], []),
   'createDiscussionPost' : IDL.Func([IDL.Text], [IDL.Text], []),
   'deleteCommission' : IDL.Func([IDL.Text], [], []),
+  'deleteGalleryItem' : IDL.Func([IDL.Text], [], []),
   'deleteProduct' : IDL.Func([IDL.Text], [], []),
   'getAllDiscussionPosts' : IDL.Func([], [IDL.Vec(DiscussionPost)], ['query']),
   'getAnalyticsData' : IDL.Func(
@@ -391,6 +393,7 @@ export const idlService = IDL.Service({
       [],
       [],
     ),
+  'updateGalleryItemTags' : IDL.Func([IDL.Text, IDL.Vec(IDL.Text)], [], []),
   'updateOrderStatus' : IDL.Func([IDL.Text, OrderStatus], [], []),
   'updateProduct' : IDL.Func(
       [IDL.Text, CreateProductData, IDL.Vec(ExternalBlob)],
@@ -542,6 +545,7 @@ export const idlFactory = ({ IDL }) => {
     'title' : IDL.Text,
     'createdAt' : Time,
     'description' : IDL.Text,
+    'taggedProductIds' : IDL.Vec(IDL.Text),
     'image' : ExternalBlob,
   });
   const Customer = IDL.Principal;
@@ -646,7 +650,7 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'addGalleryItem' : IDL.Func(
-        [IDL.Text, IDL.Text, ExternalBlob],
+        [IDL.Text, IDL.Text, ExternalBlob, IDL.Vec(IDL.Text)],
         [IDL.Text],
         [],
       ),
@@ -664,6 +668,7 @@ export const idlFactory = ({ IDL }) => {
     'clearCart' : IDL.Func([], [], []),
     'createDiscussionPost' : IDL.Func([IDL.Text], [IDL.Text], []),
     'deleteCommission' : IDL.Func([IDL.Text], [], []),
+    'deleteGalleryItem' : IDL.Func([IDL.Text], [], []),
     'deleteProduct' : IDL.Func([IDL.Text], [], []),
     'getAllDiscussionPosts' : IDL.Func(
         [],
@@ -781,6 +786,7 @@ export const idlFactory = ({ IDL }) => {
         [],
         [],
       ),
+    'updateGalleryItemTags' : IDL.Func([IDL.Text, IDL.Vec(IDL.Text)], [], []),
     'updateOrderStatus' : IDL.Func([IDL.Text, OrderStatus], [], []),
     'updateProduct' : IDL.Func(
         [IDL.Text, CreateProductData, IDL.Vec(ExternalBlob)],

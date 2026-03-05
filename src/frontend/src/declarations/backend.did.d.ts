@@ -87,6 +87,7 @@ export interface GalleryItem {
   'title' : string,
   'createdAt' : Time,
   'description' : string,
+  'taggedProductIds' : Array<string>,
   'image' : ExternalBlob,
 }
 export interface Message {
@@ -225,7 +226,10 @@ export interface _SERVICE {
     [string, string, bigint, bigint, Array<CommissionAddon>],
     string
   >,
-  'addGalleryItem' : ActorMethod<[string, string, ExternalBlob], string>,
+  'addGalleryItem' : ActorMethod<
+    [string, string, ExternalBlob, Array<string>],
+    string
+  >,
   'addItemToCart' : ActorMethod<[OrderItem], undefined>,
   'addPortfolioItem' : ActorMethod<
     [string, string, ExternalBlob, string],
@@ -242,6 +246,7 @@ export interface _SERVICE {
   'clearCart' : ActorMethod<[], undefined>,
   'createDiscussionPost' : ActorMethod<[string], string>,
   'deleteCommission' : ActorMethod<[string], undefined>,
+  'deleteGalleryItem' : ActorMethod<[string], undefined>,
   'deleteProduct' : ActorMethod<[string], undefined>,
   'getAllDiscussionPosts' : ActorMethod<[], Array<DiscussionPost>>,
   'getAnalyticsData' : ActorMethod<
@@ -317,6 +322,7 @@ export interface _SERVICE {
     [string, CommissionRequestStatus],
     undefined
   >,
+  'updateGalleryItemTags' : ActorMethod<[string, Array<string>], undefined>,
   'updateOrderStatus' : ActorMethod<[string, OrderStatus], undefined>,
   'updateProduct' : ActorMethod<
     [string, CreateProductData, Array<ExternalBlob>],

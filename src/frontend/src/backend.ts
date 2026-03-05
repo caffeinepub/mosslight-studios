@@ -252,6 +252,7 @@ export interface GalleryItem {
     title: string;
     createdAt: Time;
     description: string;
+    taggedProductIds: Array<string>;
     image: ExternalBlob;
 }
 export interface Product {
@@ -311,7 +312,7 @@ export interface backendInterface {
     addBlogPost(title: string, bodyText: string, image: ExternalBlob | null): Promise<string>;
     addComment(parentId: string, parentType: CommentParentType, name: string, text: string): Promise<string>;
     addCommission(title: string, description: string, basePrice: bigint, totalSpots: bigint, addons: Array<CommissionAddon>): Promise<string>;
-    addGalleryItem(title: string, description: string, image: ExternalBlob): Promise<string>;
+    addGalleryItem(title: string, description: string, image: ExternalBlob, taggedProductIds: Array<string>): Promise<string>;
     addItemToCart(item: OrderItem): Promise<void>;
     addPortfolioItem(title: string, description: string, image: ExternalBlob, category: string): Promise<string>;
     addProduct(product: CreateProductData, images: Array<ExternalBlob>): Promise<void>;
@@ -322,6 +323,7 @@ export interface backendInterface {
     clearCart(): Promise<void>;
     createDiscussionPost(question: string): Promise<string>;
     deleteCommission(commissionId: string): Promise<void>;
+    deleteGalleryItem(id: string): Promise<void>;
     deleteProduct(productId: string): Promise<void>;
     getAllDiscussionPosts(): Promise<Array<DiscussionPost>>;
     getAnalyticsData(): Promise<{
@@ -372,6 +374,7 @@ export interface backendInterface {
     submitReview(productId: string, rating: bigint, reviewText: string, variantId: string | null): Promise<void>;
     updateCommission(commissionId: string, title: string, description: string, basePrice: bigint, totalSpots: bigint, addons: Array<CommissionAddon>): Promise<void>;
     updateCommissionRequestStatus(requestId: string, status: CommissionRequestStatus): Promise<void>;
+    updateGalleryItemTags(galleryItemId: string, taggedProductIds: Array<string>): Promise<void>;
     updateOrderStatus(orderId: string, status: OrderStatus): Promise<void>;
     updateProduct(productId: string, productData: CreateProductData, images: Array<ExternalBlob>): Promise<void>;
     viewCart(): Promise<Array<OrderItem>>;
@@ -519,17 +522,17 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async addGalleryItem(arg0: string, arg1: string, arg2: ExternalBlob): Promise<string> {
+    async addGalleryItem(arg0: string, arg1: string, arg2: ExternalBlob, arg3: Array<string>): Promise<string> {
         if (this.processError) {
             try {
-                const result = await this.actor.addGalleryItem(arg0, arg1, await to_candid_ExternalBlob_n9(this._uploadFile, this._downloadFile, arg2));
+                const result = await this.actor.addGalleryItem(arg0, arg1, await to_candid_ExternalBlob_n9(this._uploadFile, this._downloadFile, arg2), arg3);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.addGalleryItem(arg0, arg1, await to_candid_ExternalBlob_n9(this._uploadFile, this._downloadFile, arg2));
+            const result = await this.actor.addGalleryItem(arg0, arg1, await to_candid_ExternalBlob_n9(this._uploadFile, this._downloadFile, arg2), arg3);
             return result;
         }
     }
@@ -670,6 +673,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.deleteCommission(arg0);
+            return result;
+        }
+    }
+    async deleteGalleryItem(arg0: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.deleteGalleryItem(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.deleteGalleryItem(arg0);
             return result;
         }
     }
@@ -1184,6 +1201,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async updateGalleryItemTags(arg0: string, arg1: Array<string>): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updateGalleryItemTags(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updateGalleryItemTags(arg0, arg1);
+            return result;
+        }
+    }
     async updateOrderStatus(arg0: string, arg1: OrderStatus): Promise<void> {
         if (this.processError) {
             try {
@@ -1520,12 +1551,14 @@ async function from_candid_record_n53(_uploadFile: (file: ExternalBlob) => Promi
     title: string;
     createdAt: _Time;
     description: string;
+    taggedProductIds: Array<string>;
     image: _ExternalBlob;
 }): Promise<{
     id: string;
     title: string;
     createdAt: Time;
     description: string;
+    taggedProductIds: Array<string>;
     image: ExternalBlob;
 }> {
     return {
@@ -1533,6 +1566,7 @@ async function from_candid_record_n53(_uploadFile: (file: ExternalBlob) => Promi
         title: value.title,
         createdAt: value.createdAt,
         description: value.description,
+        taggedProductIds: value.taggedProductIds,
         image: await from_candid_ExternalBlob_n31(_uploadFile, _downloadFile, value.image)
     };
 }

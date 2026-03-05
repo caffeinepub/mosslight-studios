@@ -52,13 +52,36 @@ export function useAddGalleryItem() {
       title,
       description,
       image,
+      taggedProductIds = [],
     }: {
       title: string;
       description: string;
       image: ExternalBlob;
+      taggedProductIds?: string[];
     }) => {
       if (!actor) throw new Error("Actor not available");
-      return actor.addGalleryItem(title, description, image);
+      return actor.addGalleryItem(title, description, image, taggedProductIds);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["galleryItems"] });
+    },
+  });
+}
+
+export function useUpdateGalleryItemTags() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      galleryItemId,
+      taggedProductIds,
+    }: {
+      galleryItemId: string;
+      taggedProductIds: string[];
+    }) => {
+      if (!actor) throw new Error("Actor not available");
+      return actor.updateGalleryItemTags(galleryItemId, taggedProductIds);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["galleryItems"] });
@@ -67,12 +90,13 @@ export function useAddGalleryItem() {
 }
 
 export function useDeleteGalleryItem() {
+  const { actor } = useActor();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (_id: string) => {
-      // Backend does not expose deleteGalleryItem yet
-      throw new Error("Delete gallery item not yet implemented in backend");
+    mutationFn: async (id: string) => {
+      if (!actor) throw new Error("Actor not available");
+      return actor.deleteGalleryItem(id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["galleryItems"] });
