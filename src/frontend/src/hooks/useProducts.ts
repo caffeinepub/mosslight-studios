@@ -139,7 +139,23 @@ export function useDeleteProduct() {
           "BACKEND_UNAVAILABLE: Backend actor is not available. Please wait for the connection to initialize and try again.",
         );
       }
-      await actor.deleteProduct(productId);
+
+      try {
+        await actor.deleteProduct(productId);
+      } catch (err: any) {
+        const message = err?.message || String(err);
+        if (
+          message.includes("Permission Denied") ||
+          message.includes("not registered as an admin") ||
+          message.includes("Unauthorized") ||
+          message.includes("Only admins")
+        ) {
+          throw new Error(
+            "PERMISSION_DENIED: Admin permission denied. Please log out and log back in with Internet Identity, then re-enter your admin passcode.",
+          );
+        }
+        throw err;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });

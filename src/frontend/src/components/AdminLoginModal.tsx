@@ -11,9 +11,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "@tanstack/react-router";
-import { AlertCircle, Loader2 } from "lucide-react";
+import { AlertCircle, Loader2, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { useAdminAuth } from "../hooks/useAdminAuth";
+import { useInternetIdentity } from "../hooks/useInternetIdentity";
 
 interface AdminLoginModalProps {
   open: boolean;
@@ -28,7 +29,10 @@ export default function AdminLoginModal({
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAdminAuth();
+  const { identity, login: iiLogin, isLoggingIn } = useInternetIdentity();
   const navigate = useNavigate();
+
+  const isIILoggedIn = !!identity;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,6 +40,13 @@ export default function AdminLoginModal({
 
     if (passcode.length !== 8) {
       setError("Passcode must be 8 digits");
+      return;
+    }
+
+    if (!isIILoggedIn) {
+      setError(
+        "You must also sign in with Internet Identity to perform admin actions (like adding or deleting products).",
+      );
       return;
     }
 
@@ -63,13 +74,39 @@ export default function AdminLoginModal({
         <DialogHeader>
           <DialogTitle className="font-serif text-2xl">Admin Login</DialogTitle>
           <DialogDescription>
-            Enter the admin passcode to access the admin dashboard
+            Sign in with Internet Identity and enter your admin passcode
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Step 1: Internet Identity */}
           <div className="space-y-2">
-            <Label htmlFor="passcode">Admin Passcode</Label>
+            <Label>Step 1: Sign in with Internet Identity</Label>
+            {isIILoggedIn ? (
+              <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 border border-green-200 rounded-md px-3 py-2">
+                <ShieldCheck className="h-4 w-4 flex-shrink-0" />
+                <span>Signed in with Internet Identity</span>
+              </div>
+            ) : (
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={iiLogin}
+                disabled={isLoggingIn}
+                data-ocid="admin_login.ii_login.button"
+              >
+                {isLoggingIn && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                Sign in with Internet Identity
+              </Button>
+            )}
+          </div>
+
+          {/* Step 2: Passcode */}
+          <div className="space-y-2">
+            <Label htmlFor="passcode">Step 2: Admin Passcode</Label>
             <Input
               id="passcode"
               type="password"
@@ -78,7 +115,8 @@ export default function AdminLoginModal({
               onChange={(e) => setPasscode(e.target.value)}
               maxLength={8}
               disabled={isLoading}
-              autoFocus
+              autoFocus={isIILoggedIn}
+              data-ocid="admin_login.passcode.input"
             />
           </div>
 
@@ -99,10 +137,15 @@ export default function AdminLoginModal({
                 setError("");
               }}
               disabled={isLoading}
+              data-ocid="admin_login.cancel.button"
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading || passcode.length !== 8}>
+            <Button
+              type="submit"
+              disabled={isLoading || passcode.length !== 8 || !isIILoggedIn}
+              data-ocid="admin_login.submit.button"
+            >
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Login
             </Button>
