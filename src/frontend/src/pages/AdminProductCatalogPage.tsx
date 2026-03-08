@@ -1,3 +1,4 @@
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -47,19 +48,19 @@ import {
   Trash2,
   Upload,
 } from "lucide-react";
+import { AlertTriangle, LogIn } from "lucide-react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import AdminGuard from "../components/AdminGuard";
+import { useInternetIdentity } from "../hooks/useInternetIdentity";
 import {
+  type CatalogEntry,
+  type CatalogEntryInput,
   useBulkUpsertCatalogEntries,
   useClearCatalog,
   useGetCatalogEntries,
 } from "../hooks/useProductCatalog";
 import { useSaleRecords } from "../hooks/useSaleRecords";
-import type {
-  ProductCatalogEntry,
-  ProductCatalogEntryInput,
-} from "../types/catalog";
 
 // ─── CSV Parser ───────────────────────────────────────────────────────────────
 
@@ -81,7 +82,7 @@ type CSVRow = {
   [key: string]: string;
 };
 
-function parseCSV(text: string): ProductCatalogEntryInput[] {
+function parseCSV(text: string): CatalogEntryInput[] {
   const lines = text.trim().split("\n");
   if (lines.length < 2) return [];
   const headers = lines[0].split(",").map((h) => h.trim().replace(/"/g, ""));
@@ -129,6 +130,9 @@ type SortDir = "asc" | "desc";
 export default function AdminProductCatalogPage() {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { identity, login: iiLogin } = useInternetIdentity();
+  const isIIAuthenticated =
+    !!identity && !identity.getPrincipal().isAnonymous();
 
   // Data
   const { data: entries = [], isLoading } = useGetCatalogEntries();
@@ -139,7 +143,7 @@ export default function AdminProductCatalogPage() {
   const { getSaleRecord } = useSaleRecords();
 
   // CSV state
-  const [parsedRows, setParsedRows] = useState<ProductCatalogEntryInput[]>([]);
+  const [parsedRows, setParsedRows] = useState<CatalogEntryInput[]>([]);
   const [fileName, setFileName] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -309,6 +313,32 @@ export default function AdminProductCatalogPage() {
           </Badge>
         </div>
 
+        {/* Internet Identity warning */}
+        {!isIIAuthenticated && (
+          <Alert className="border-amber-300 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-700">
+            <AlertTriangle className="h-4 w-4 text-amber-600" />
+            <AlertTitle className="text-amber-800 dark:text-amber-400">
+              Internet Identity required for uploads
+            </AlertTitle>
+            <AlertDescription className="text-amber-700 dark:text-amber-300 mt-1 flex items-center gap-3">
+              <span>
+                CSV upload and catalog changes require you to be signed in with
+                Internet Identity so the backend can verify your admin identity.
+              </span>
+              <Button
+                size="sm"
+                variant="outline"
+                className="shrink-0 border-amber-400 text-amber-800 hover:bg-amber-100 dark:text-amber-300 dark:border-amber-600"
+                onClick={iiLogin}
+                data-ocid="catalog.ii_login_button"
+              >
+                <LogIn className="mr-2 h-4 w-4" />
+                Sign in with Internet Identity
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* CSV Upload Card */}
         <Card className="border-dashed border-2 border-lime-200 dark:border-lime-800">
           <CardHeader>
@@ -423,8 +453,17 @@ export default function AdminProductCatalogPage() {
             <div className="flex gap-3 flex-wrap">
               <Button
                 onClick={handleUpload}
-                disabled={parsedRows.length === 0 || bulkUpsert.isPending}
+                disabled={
+                  parsedRows.length === 0 ||
+                  bulkUpsert.isPending ||
+                  !isIIAuthenticated
+                }
                 className="bg-lime-700 hover:bg-lime-800 text-white"
+                title={
+                  !isIIAuthenticated
+                    ? "Sign in with Internet Identity first"
+                    : undefined
+                }
                 data-ocid="catalog.upload_button"
               >
                 {bulkUpsert.isPending ? (
@@ -636,7 +675,7 @@ export default function AdminProductCatalogPage() {
                       </TableRow>
                     ) : (
                       displayedEntries.map(
-                        (entry: ProductCatalogEntry, idx: number) => {
+                        (entry: CatalogEntry, idx: number) => {
                           const saleRecord = getSaleRecord(
                             entry.item_name,
                             entry.size,

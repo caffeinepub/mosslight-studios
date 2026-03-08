@@ -10,6 +10,42 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
+export interface CatalogEntry {
+  'id' : string,
+  'production_cost' : number,
+  'linkedProductId' : [] | [string],
+  'merch_type' : string,
+  'createdAt' : Time,
+  'size' : string,
+  'shipping' : number,
+  'az_tax_rate' : number,
+  'total_cost' : number,
+  'item_name' : string,
+  'quarter_sales' : number,
+  'az_tax_total' : number,
+  'quarterly_earnings' : number,
+  'profit_margin' : number,
+  'yearly_sales' : number,
+  'yearly_earnings' : number,
+  'profit_amount' : number,
+}
+export interface CatalogEntryInput {
+  'production_cost' : number,
+  'linkedProductId' : [] | [string],
+  'merch_type' : string,
+  'size' : string,
+  'shipping' : number,
+  'az_tax_rate' : number,
+  'total_cost' : number,
+  'item_name' : string,
+  'quarter_sales' : number,
+  'az_tax_total' : number,
+  'quarterly_earnings' : number,
+  'profit_margin' : number,
+  'yearly_sales' : number,
+  'yearly_earnings' : number,
+  'profit_amount' : number,
+}
 export interface ContentBankEntry {
   'id' : string,
   'url' : string,
@@ -98,11 +134,18 @@ export interface _SERVICE {
     IdeaVaultEntry
   >,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
+  'bulkUpsertCatalogEntries' : ActorMethod<
+    [Array<CatalogEntryInput>],
+    Array<CatalogEntry>
+  >,
+  'clearCatalog' : ActorMethod<[], undefined>,
+  'deleteCatalogEntry' : ActorMethod<[string], boolean>,
   'deleteContentBankEntry' : ActorMethod<[string], boolean>,
   'deleteDrawing' : ActorMethod<[string], boolean>,
   'deleteIdeaVaultEntry' : ActorMethod<[string], boolean>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
+  'getCatalogEntries' : ActorMethod<[], Array<CatalogEntry>>,
   'getContentBank' : ActorMethod<[], Array<ContentBankEntry>>,
   'getDrawings' : ActorMethod<[], Array<Drawing>>,
   'getIdeaVault' : ActorMethod<[], Array<IdeaVaultEntry>>,

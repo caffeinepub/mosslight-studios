@@ -1,22 +1,17 @@
 import Map "mo:core/Map";
 import Text "mo:core/Text";
 import Time "mo:core/Time";
-import Nat "mo:core/Nat";
 import Array "mo:core/Array";
-import List "mo:core/List";
 import Float "mo:core/Float";
 import Principal "mo:core/Principal";
-import Iter "mo:core/Iter";
+import List "mo:core/List";
 import Runtime "mo:core/Runtime";
-
 import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
 
-// Changed actor pattern to regular actor as no migration is needed
 actor {
-  // --- All previous types remain unchanged ---
   public type ProductColor = {
     name : Text;
     inventory : Nat;
@@ -258,7 +253,6 @@ actor {
     createdAt : Time.Time;
   };
 
-  // --- Creator Dashboard Types ---
   public type Drawing = {
     id : Text;
     title : Text;
@@ -307,7 +301,44 @@ actor {
     createdAt : Time.Time;
   };
 
-  // State - previous state unchanged ...
+  public type CatalogEntry = {
+    id : Text;
+    merch_type : Text;
+    item_name : Text;
+    size : Text;
+    total_cost : Float;
+    production_cost : Float;
+    profit_margin : Float;
+    profit_amount : Float;
+    shipping : Float;
+    az_tax_rate : Float;
+    az_tax_total : Float;
+    quarter_sales : Float;
+    quarterly_earnings : Float;
+    yearly_sales : Float;
+    yearly_earnings : Float;
+    linkedProductId : ?Text;
+    createdAt : Time.Time;
+  };
+
+  public type CatalogEntryInput = {
+    merch_type : Text;
+    item_name : Text;
+    size : Text;
+    total_cost : Float;
+    production_cost : Float;
+    profit_margin : Float;
+    profit_amount : Float;
+    shipping : Float;
+    az_tax_rate : Float;
+    az_tax_total : Float;
+    quarter_sales : Float;
+    quarterly_earnings : Float;
+    yearly_sales : Float;
+    yearly_earnings : Float;
+    linkedProductId : ?Text;
+  };
+
   var adminPrincipal : ?Principal = null;
   let HARD_CODED_ADMIN_PRINCIPAL = Principal.fromText("axgif-6oipb-lnqzh-ddzf3-hsjsz-2nw65-g34cg-npb6b-jxnhn-jnnch-6qe");
 
@@ -321,6 +352,8 @@ actor {
   var commentIdCounter = 0;
   var commissionIdCounter = 0;
   var commissionRequestIdCounter = 0;
+  var drawingIdCounter = 0;
+  var catalogEntryIdCounter = 0;
 
   let products = Map.empty<Text, Product>();
   let orders = Map.empty<Text, Order>();
@@ -338,30 +371,143 @@ actor {
   let comments = Map.empty<Text, Comment>();
   let commissions = Map.empty<Text, Commission>();
   let commissionRequests = Map.empty<Text, CommissionRequest>();
-
-  // New Creator Dashboard State
   let drawings = Map.empty<Text, Drawing>();
   let merchPipelines = Map.empty<Text, MerchPipeline>();
   let contentBank = Map.empty<Text, ContentBankEntry>();
   let ideaVault = Map.empty<Text, IdeaVaultEntry>();
-  var drawingIdCounter = 0;
+  let catalogEntries = Map.empty<Text, CatalogEntry>();
 
   let accessControlState = AccessControl.initState();
-  include MixinAuthorization(accessControlState);
 
+  include MixinAuthorization(accessControlState);
   include MixinStorage();
 
-  // --- Creator Dashboard APIs ---
+  // --- Product Catalog API ---
+  public query ({ caller }) func getCatalogEntries() : async [CatalogEntry] {
+    if (not isAdminCaller(caller)) {
+      Runtime.trap("Unauthorized: Only admins can view catalog entries");
+    };
+    catalogEntries.values().toArray();
+  };
+
+  public shared ({ caller }) func bulkUpsertCatalogEntries(entries : [CatalogEntryInput]) : async [CatalogEntry] {
+    if (not isAdminCaller(caller)) {
+      Runtime.trap("Unauthorized: Only admins can bulk upsert catalog entries");
+    };
+    catalogEntries.clear();
+
+    let newEntries = entries.map(
+      func(entry) {
+        catalogEntryIdCounter += 1;
+        let catalogEntry : CatalogEntry = {
+          id = "catalog_entry_" # catalogEntryIdCounter.toText();
+          merch_type = entry.merch_type;
+          item_name = entry.item_name;
+          size = entry.size;
+          total_cost = entry.total_cost;
+          production_cost = entry.production_cost;
+          profit_margin = entry.profit_margin;
+          profit_amount = entry.profit_amount;
+          shipping = entry.shipping;
+          az_tax_rate = entry.az_tax_rate;
+          az_tax_total = entry.az_tax_total;
+          quarter_sales = entry.quarter_sales;
+          quarterly_earnings = entry.quarterly_earnings;
+          yearly_sales = entry.yearly_sales;
+          yearly_earnings = entry.yearly_earnings;
+          linkedProductId = entry.linkedProductId;
+          createdAt = Time.now();
+        };
+        catalogEntries.add(catalogEntry.id, catalogEntry);
+        catalogEntry;
+      }
+    );
+    newEntries;
+  };
+
+  public shared ({ caller }) func clearCatalog() : async () {
+    if (not isAdminCaller(caller)) {
+      Runtime.trap("Unauthorized: Only admins can clear catalog");
+    };
+    catalogEntries.clear();
+  };
+
+  public shared ({ caller }) func deleteCatalogEntry(id : Text) : async Bool {
+    if (not isAdminCaller(caller)) {
+      Runtime.trap("Unauthorized: Only admins can delete catalog entries");
+    };
+    switch (catalogEntries.get(id)) {
+      case null {
+        Runtime.trap("Catalog entry not found: " # id);
+      };
+      case (_) {
+        catalogEntries.remove(id);
+        true;
+      };
+    };
+  };
+
+  func assertAdmin(caller : Principal) {
+    if (not isAdminCaller(caller)) {
+      Runtime.trap("Unauthorized: Only admins can perform this action.");
+    };
+  };
+
+  func getDrawingChecked(id : Text) : Drawing {
+    switch (drawings.get(id)) {
+      case null {
+        Runtime.trap("Drawing not found: " # id);
+      };
+      case (?drawing) { drawing };
+    };
+  };
+
+  func isAdminCaller(caller : Principal) : Bool {
+    if (caller == HARD_CODED_ADMIN_PRINCIPAL) {
+      return true;
+    };
+    AccessControl.isAdmin(accessControlState, caller);
+  };
+
+  public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
+    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Runtime.trap("Unauthorized: Only users can view profiles");
+    };
+    userProfiles.get(caller);
+  };
+
+  public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
+    if (caller != user and not isAdminCaller(caller)) {
+      Runtime.trap("Unauthorized: Can only view your own profile");
+    };
+    userProfiles.get(user);
+  };
+
+  public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
+    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Runtime.trap("Unauthorized: Only users can save profiles");
+    };
+    userProfiles.add(caller, profile);
+  };
+
+  public shared ({ caller }) func registerOrLogin() : async () {
+    if (caller.isAnonymous()) {
+      Runtime.trap("Anonymous principals cannot register as admin");
+    };
+    switch (adminPrincipal) {
+      case (null) { adminPrincipal := ?caller };
+      case (?_admin) {};
+    };
+  };
+
   public shared ({ caller }) func addDrawing(
     title : Text,
     scheduledDate : Int,
     weekLabel : Text,
   ) : async Drawing {
     assertAdmin(caller);
-
     drawingIdCounter += 1;
     let id = "drawing_" # drawingIdCounter.toText();
-
     let drawing : Drawing = {
       id;
       title;
@@ -376,7 +522,6 @@ actor {
       status_merch = false;
       createdAt = Time.now();
     };
-
     drawings.add(id, drawing);
     drawing;
   };
@@ -388,7 +533,6 @@ actor {
   ) : async Drawing {
     assertAdmin(caller);
     let drawing = getDrawingChecked(id);
-
     let updated = switch (field) {
       case ("status_pov") { { drawing with status_pov = value } };
       case ("status_bts") { { drawing with status_bts = value } };
@@ -401,7 +545,6 @@ actor {
         Runtime.trap("Invalid status field: " # field);
       };
     };
-
     drawings.add(id, updated);
     updated;
   };
@@ -445,11 +588,9 @@ actor {
     live : Bool,
   ) : async MerchPipeline {
     assertAdmin(caller);
-
     if (drawings.get(drawingId) == null) {
       Runtime.trap("Drawing not found: " # drawingId);
     };
-
     let pipeline : MerchPipeline = {
       drawingId;
       sticker;
@@ -460,7 +601,6 @@ actor {
       uploaded;
       live;
     };
-
     merchPipelines.add(drawingId, pipeline);
     pipeline;
   };
@@ -478,7 +618,6 @@ actor {
     note : Text,
   ) : async ContentBankEntry {
     assertAdmin(caller);
-
     let id = "content_bank_" # Time.now().toText();
     let entry : ContentBankEntry = {
       id;
@@ -487,7 +626,6 @@ actor {
       note;
       createdAt = Time.now();
     };
-
     contentBank.add(id, entry);
     entry;
   };
@@ -517,7 +655,6 @@ actor {
     content : Text,
   ) : async IdeaVaultEntry {
     assertAdmin(caller);
-
     let id = "idea_vault_" # Time.now().toText();
     let entry : IdeaVaultEntry = {
       id;
@@ -525,7 +662,6 @@ actor {
       content;
       createdAt = Time.now();
     };
-
     ideaVault.add(id, entry);
     entry;
   };
@@ -549,66 +685,4 @@ actor {
       };
     };
   };
-
-  // --- Helper Functions ---
-  func assertAdmin(caller : Principal) {
-    if (not isAdminCaller(caller)) {
-      Runtime.trap("Unauthorized: Only admins can perform this action.");
-    };
-  };
-
-  func getDrawingChecked(id : Text) : Drawing {
-    switch (drawings.get(id)) {
-      case null {
-        Runtime.trap("Drawing not found: " # id);
-      };
-      case (?drawing) {
-        drawing;
-      };
-    };
-  };
-
-  func isAdminCaller(caller : Principal) : Bool {
-    if (caller == HARD_CODED_ADMIN_PRINCIPAL) {
-      return true;
-    };
-    AccessControl.isAdmin(accessControlState, caller);
-  };
-
-  // --- All previous methods remain unchanged ---
-  // ... Keep all previously implemented methods here ...
-  public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
-      Runtime.trap("Unauthorized: Only users can view profiles");
-    };
-    userProfiles.get(caller);
-  };
-
-  public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
-    if (caller != user and not isAdminCaller(caller)) {
-      Runtime.trap("Unauthorized: Can only view your own profile");
-    };
-    userProfiles.get(user);
-  };
-
-  public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
-      Runtime.trap("Unauthorized: Only users can save profiles");
-    };
-    userProfiles.add(caller, profile);
-  };
-
-  public shared ({ caller }) func registerOrLogin() : async () {
-    if (caller.isAnonymous()) {
-      Runtime.trap("Anonymous principals cannot register as admin");
-    };
-    switch (adminPrincipal) {
-      case (null) {
-        adminPrincipal := ?caller;
-      };
-      case (?_admin) {};
-    };
-  };
-
-  // ... (rest of the methods)
 };

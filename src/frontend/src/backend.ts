@@ -124,6 +124,42 @@ export interface IdeaVaultEntry {
 export interface _CaffeineStorageRefillInformation {
     proposed_top_up_amount?: bigint;
 }
+export interface CatalogEntryInput {
+    production_cost: number;
+    linkedProductId?: string;
+    merch_type: string;
+    size: string;
+    shipping: number;
+    az_tax_rate: number;
+    total_cost: number;
+    item_name: string;
+    quarter_sales: number;
+    az_tax_total: number;
+    quarterly_earnings: number;
+    profit_margin: number;
+    yearly_sales: number;
+    yearly_earnings: number;
+    profit_amount: number;
+}
+export interface CatalogEntry {
+    id: string;
+    production_cost: number;
+    linkedProductId?: string;
+    merch_type: string;
+    createdAt: Time;
+    size: string;
+    shipping: number;
+    az_tax_rate: number;
+    total_cost: number;
+    item_name: string;
+    quarter_sales: number;
+    az_tax_total: number;
+    quarterly_earnings: number;
+    profit_margin: number;
+    yearly_sales: number;
+    yearly_earnings: number;
+    profit_amount: number;
+}
 export interface _CaffeineStorageCreateCertificateResult {
     method: string;
     blob_hash: string;
@@ -166,11 +202,15 @@ export interface backendInterface {
     addDrawing(title: string, scheduledDate: bigint, weekLabel: string): Promise<Drawing>;
     addIdeaVaultEntry(category: IdeaVaultCategory, content: string): Promise<IdeaVaultEntry>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
+    bulkUpsertCatalogEntries(entries: Array<CatalogEntryInput>): Promise<Array<CatalogEntry>>;
+    clearCatalog(): Promise<void>;
+    deleteCatalogEntry(id: string): Promise<boolean>;
     deleteContentBankEntry(id: string): Promise<boolean>;
     deleteDrawing(id: string): Promise<boolean>;
     deleteIdeaVaultEntry(id: string): Promise<boolean>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
+    getCatalogEntries(): Promise<Array<CatalogEntry>>;
     getContentBank(): Promise<Array<ContentBankEntry>>;
     getDrawings(): Promise<Array<Drawing>>;
     getIdeaVault(): Promise<Array<IdeaVaultEntry>>;
@@ -183,7 +223,7 @@ export interface backendInterface {
     updateDrawingStatus(id: string, field: string, value: boolean): Promise<Drawing>;
     upsertMerchPipeline(drawingId: string, sticker: boolean, magnet: boolean, keychain: boolean, tote: boolean, print: boolean, uploaded: boolean, live: boolean): Promise<MerchPipeline>;
 }
-import type { IdeaVaultCategory as _IdeaVaultCategory, IdeaVaultEntry as _IdeaVaultEntry, Time as _Time, UserProfile as _UserProfile, UserRole as _UserRole, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
+import type { CatalogEntry as _CatalogEntry, CatalogEntryInput as _CatalogEntryInput, IdeaVaultCategory as _IdeaVaultCategory, IdeaVaultEntry as _IdeaVaultEntry, Time as _Time, UserProfile as _UserProfile, UserRole as _UserRole, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
     async _caffeineStorageBlobIsLive(arg0: Uint8Array): Promise<boolean> {
@@ -340,6 +380,48 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async bulkUpsertCatalogEntries(arg0: Array<CatalogEntryInput>): Promise<Array<CatalogEntry>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.bulkUpsertCatalogEntries(to_candid_vec_n16(this._uploadFile, this._downloadFile, arg0));
+                return from_candid_vec_n19(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.bulkUpsertCatalogEntries(to_candid_vec_n16(this._uploadFile, this._downloadFile, arg0));
+            return from_candid_vec_n19(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async clearCatalog(): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.clearCatalog();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.clearCatalog();
+            return result;
+        }
+    }
+    async deleteCatalogEntry(arg0: string): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.deleteCatalogEntry(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.deleteCatalogEntry(arg0);
+            return result;
+        }
+    }
     async deleteContentBankEntry(arg0: string): Promise<boolean> {
         if (this.processError) {
             try {
@@ -386,28 +468,42 @@ export class Backend implements backendInterface {
         if (this.processError) {
             try {
                 const result = await this.actor.getCallerUserProfile();
-                return from_candid_opt_n16(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n23(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getCallerUserProfile();
-            return from_candid_opt_n16(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n23(this._uploadFile, this._downloadFile, result);
         }
     }
     async getCallerUserRole(): Promise<UserRole> {
         if (this.processError) {
             try {
                 const result = await this.actor.getCallerUserRole();
-                return from_candid_UserRole_n17(this._uploadFile, this._downloadFile, result);
+                return from_candid_UserRole_n24(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getCallerUserRole();
-            return from_candid_UserRole_n17(this._uploadFile, this._downloadFile, result);
+            return from_candid_UserRole_n24(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getCatalogEntries(): Promise<Array<CatalogEntry>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getCatalogEntries();
+                return from_candid_vec_n19(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getCatalogEntries();
+            return from_candid_vec_n19(this._uploadFile, this._downloadFile, result);
         }
     }
     async getContentBank(): Promise<Array<ContentBankEntry>> {
@@ -442,14 +538,14 @@ export class Backend implements backendInterface {
         if (this.processError) {
             try {
                 const result = await this.actor.getIdeaVault();
-                return from_candid_vec_n19(this._uploadFile, this._downloadFile, result);
+                return from_candid_vec_n26(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getIdeaVault();
-            return from_candid_vec_n19(this._uploadFile, this._downloadFile, result);
+            return from_candid_vec_n26(this._uploadFile, this._downloadFile, result);
         }
     }
     async getMerchPipelines(): Promise<Array<MerchPipeline>> {
@@ -470,14 +566,14 @@ export class Backend implements backendInterface {
         if (this.processError) {
             try {
                 const result = await this.actor.getUserProfile(arg0);
-                return from_candid_opt_n16(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n23(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getUserProfile(arg0);
-            return from_candid_opt_n16(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n23(this._uploadFile, this._downloadFile, result);
         }
     }
     async isCallerAdmin(): Promise<boolean> {
@@ -565,19 +661,25 @@ export class Backend implements backendInterface {
         }
     }
 }
+function from_candid_CatalogEntry_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _CatalogEntry): CatalogEntry {
+    return from_candid_record_n21(_uploadFile, _downloadFile, value);
+}
 function from_candid_IdeaVaultCategory_n12(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _IdeaVaultCategory): IdeaVaultCategory {
     return from_candid_variant_n13(_uploadFile, _downloadFile, value);
 }
 function from_candid_IdeaVaultEntry_n10(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _IdeaVaultEntry): IdeaVaultEntry {
     return from_candid_record_n11(_uploadFile, _downloadFile, value);
 }
-function from_candid_UserRole_n17(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserRole): UserRole {
-    return from_candid_variant_n18(_uploadFile, _downloadFile, value);
+function from_candid_UserRole_n24(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserRole): UserRole {
+    return from_candid_variant_n25(_uploadFile, _downloadFile, value);
 }
 function from_candid__CaffeineStorageRefillResult_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: __CaffeineStorageRefillResult): _CaffeineStorageRefillResult {
     return from_candid_record_n5(_uploadFile, _downloadFile, value);
 }
-function from_candid_opt_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_UserProfile]): UserProfile | null {
+function from_candid_opt_n22(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [string]): string | null {
+    return value.length === 0 ? null : value[0];
+}
+function from_candid_opt_n23(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_UserProfile]): UserProfile | null {
     return value.length === 0 ? null : value[0];
 }
 function from_candid_opt_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [boolean]): boolean | null {
@@ -604,6 +706,63 @@ function from_candid_record_n11(_uploadFile: (file: ExternalBlob) => Promise<Uin
         category: from_candid_IdeaVaultCategory_n12(_uploadFile, _downloadFile, value.category)
     };
 }
+function from_candid_record_n21(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    id: string;
+    production_cost: number;
+    linkedProductId: [] | [string];
+    merch_type: string;
+    createdAt: _Time;
+    size: string;
+    shipping: number;
+    az_tax_rate: number;
+    total_cost: number;
+    item_name: string;
+    quarter_sales: number;
+    az_tax_total: number;
+    quarterly_earnings: number;
+    profit_margin: number;
+    yearly_sales: number;
+    yearly_earnings: number;
+    profit_amount: number;
+}): {
+    id: string;
+    production_cost: number;
+    linkedProductId?: string;
+    merch_type: string;
+    createdAt: Time;
+    size: string;
+    shipping: number;
+    az_tax_rate: number;
+    total_cost: number;
+    item_name: string;
+    quarter_sales: number;
+    az_tax_total: number;
+    quarterly_earnings: number;
+    profit_margin: number;
+    yearly_sales: number;
+    yearly_earnings: number;
+    profit_amount: number;
+} {
+    return {
+        id: value.id,
+        production_cost: value.production_cost,
+        linkedProductId: record_opt_to_undefined(from_candid_opt_n22(_uploadFile, _downloadFile, value.linkedProductId)),
+        merch_type: value.merch_type,
+        createdAt: value.createdAt,
+        size: value.size,
+        shipping: value.shipping,
+        az_tax_rate: value.az_tax_rate,
+        total_cost: value.total_cost,
+        item_name: value.item_name,
+        quarter_sales: value.quarter_sales,
+        az_tax_total: value.az_tax_total,
+        quarterly_earnings: value.quarterly_earnings,
+        profit_margin: value.profit_margin,
+        yearly_sales: value.yearly_sales,
+        yearly_earnings: value.yearly_earnings,
+        profit_amount: value.profit_amount
+    };
+}
 function from_candid_record_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     success: [] | [boolean];
     topped_up_amount: [] | [bigint];
@@ -627,7 +786,7 @@ function from_candid_variant_n13(_uploadFile: (file: ExternalBlob) => Promise<Ui
 }): IdeaVaultCategory {
     return "merch_idea" in value ? IdeaVaultCategory.merch_idea : "social_hook" in value ? IdeaVaultCategory.social_hook : "lore" in value ? IdeaVaultCategory.lore : "drawing_idea" in value ? IdeaVaultCategory.drawing_idea : value;
 }
-function from_candid_variant_n18(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_variant_n25(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     admin: null;
 } | {
     user: null;
@@ -636,8 +795,14 @@ function from_candid_variant_n18(_uploadFile: (file: ExternalBlob) => Promise<Ui
 }): UserRole {
     return "admin" in value ? UserRole.admin : "user" in value ? UserRole.user : "guest" in value ? UserRole.guest : value;
 }
-function from_candid_vec_n19(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_IdeaVaultEntry>): Array<IdeaVaultEntry> {
+function from_candid_vec_n19(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_CatalogEntry>): Array<CatalogEntry> {
+    return value.map((x)=>from_candid_CatalogEntry_n20(_uploadFile, _downloadFile, x));
+}
+function from_candid_vec_n26(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_IdeaVaultEntry>): Array<IdeaVaultEntry> {
     return value.map((x)=>from_candid_IdeaVaultEntry_n10(_uploadFile, _downloadFile, x));
+}
+function to_candid_CatalogEntryInput_n17(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: CatalogEntryInput): _CatalogEntryInput {
+    return to_candid_record_n18(_uploadFile, _downloadFile, value);
 }
 function to_candid_IdeaVaultCategory_n8(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: IdeaVaultCategory): _IdeaVaultCategory {
     return to_candid_variant_n9(_uploadFile, _downloadFile, value);
@@ -650,6 +815,57 @@ function to_candid__CaffeineStorageRefillInformation_n2(_uploadFile: (file: Exte
 }
 function to_candid_opt_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _CaffeineStorageRefillInformation | null): [] | [__CaffeineStorageRefillInformation] {
     return value === null ? candid_none() : candid_some(to_candid__CaffeineStorageRefillInformation_n2(_uploadFile, _downloadFile, value));
+}
+function to_candid_record_n18(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    production_cost: number;
+    linkedProductId?: string;
+    merch_type: string;
+    size: string;
+    shipping: number;
+    az_tax_rate: number;
+    total_cost: number;
+    item_name: string;
+    quarter_sales: number;
+    az_tax_total: number;
+    quarterly_earnings: number;
+    profit_margin: number;
+    yearly_sales: number;
+    yearly_earnings: number;
+    profit_amount: number;
+}): {
+    production_cost: number;
+    linkedProductId: [] | [string];
+    merch_type: string;
+    size: string;
+    shipping: number;
+    az_tax_rate: number;
+    total_cost: number;
+    item_name: string;
+    quarter_sales: number;
+    az_tax_total: number;
+    quarterly_earnings: number;
+    profit_margin: number;
+    yearly_sales: number;
+    yearly_earnings: number;
+    profit_amount: number;
+} {
+    return {
+        production_cost: value.production_cost,
+        linkedProductId: value.linkedProductId ? candid_some(value.linkedProductId) : candid_none(),
+        merch_type: value.merch_type,
+        size: value.size,
+        shipping: value.shipping,
+        az_tax_rate: value.az_tax_rate,
+        total_cost: value.total_cost,
+        item_name: value.item_name,
+        quarter_sales: value.quarter_sales,
+        az_tax_total: value.az_tax_total,
+        quarterly_earnings: value.quarterly_earnings,
+        profit_margin: value.profit_margin,
+        yearly_sales: value.yearly_sales,
+        yearly_earnings: value.yearly_earnings,
+        profit_amount: value.profit_amount
+    };
 }
 function to_candid_record_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     proposed_top_up_amount?: bigint;
@@ -693,6 +909,9 @@ function to_candid_variant_n9(_uploadFile: (file: ExternalBlob) => Promise<Uint8
     } : value == IdeaVaultCategory.drawing_idea ? {
         drawing_idea: null
     } : value;
+}
+function to_candid_vec_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<CatalogEntryInput>): Array<_CatalogEntryInput> {
+    return value.map((x)=>to_candid_CatalogEntryInput_n17(_uploadFile, _downloadFile, x));
 }
 export interface CreateActorOptions {
     agent?: Agent;

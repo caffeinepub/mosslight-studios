@@ -23,9 +23,11 @@ import {
 } from "lucide-react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import AdminGuard from "../components/AdminGuard";
-import { useGetCatalogEntries } from "../hooks/useProductCatalog";
+import {
+  type CatalogEntry,
+  useGetCatalogEntries,
+} from "../hooks/useProductCatalog";
 import { useSaleRecords } from "../hooks/useSaleRecords";
-import type { ProductCatalogEntry } from "../types/catalog";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -40,7 +42,7 @@ function fmtPct(n: number): string {
 // ─── Inline editable "Units Sold" cell ────────────────────────────────────────
 
 interface UnitsSoldCellProps {
-  variant: ProductCatalogEntry;
+  variant: CatalogEntry;
   idx: number;
   getSaleRecord: (
     item_name: string,

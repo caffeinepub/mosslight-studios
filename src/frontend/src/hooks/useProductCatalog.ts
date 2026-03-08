@@ -1,33 +1,17 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type {
-  ProductCatalogEntry,
-  ProductCatalogEntryInput,
-} from "../types/catalog";
+import type { CatalogEntry, CatalogEntryInput } from "../backend";
 import { useActor } from "./useActor";
 
-// The catalog methods exist on the deployed canister but are not yet reflected
-// in the generated backend.d.ts. We extend the actor type locally.
-interface CatalogActor {
-  getCatalogEntries(): Promise<ProductCatalogEntry[]>;
-  bulkUpsertCatalogEntries(
-    entries: ProductCatalogEntryInput[],
-  ): Promise<ProductCatalogEntry[]>;
-  clearCatalog(): Promise<void>;
-  deleteCatalogEntry(id: string): Promise<boolean>;
-}
-
-function asCatalogActor(actor: unknown): CatalogActor {
-  return actor as CatalogActor;
-}
+export type { CatalogEntry, CatalogEntryInput };
 
 export function useGetCatalogEntries() {
   const { actor, isFetching } = useActor();
 
-  return useQuery<ProductCatalogEntry[]>({
+  return useQuery<CatalogEntry[]>({
     queryKey: ["catalogEntries"],
     queryFn: async () => {
       if (!actor) return [];
-      return asCatalogActor(actor).getCatalogEntries();
+      return actor.getCatalogEntries();
     },
     enabled: !!actor && !isFetching,
   });
@@ -38,11 +22,11 @@ export function useBulkUpsertCatalogEntries() {
   const { actor, isFetching } = useActor();
 
   return useMutation({
-    mutationFn: async (entries: ProductCatalogEntryInput[]) => {
+    mutationFn: async (entries: CatalogEntryInput[]) => {
       if (!actor || isFetching) {
         throw new Error("Backend actor is not available.");
       }
-      return asCatalogActor(actor).bulkUpsertCatalogEntries(entries);
+      return actor.bulkUpsertCatalogEntries(entries);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["catalogEntries"] });
@@ -59,7 +43,7 @@ export function useClearCatalog() {
       if (!actor || isFetching) {
         throw new Error("Backend actor is not available.");
       }
-      return asCatalogActor(actor).clearCatalog();
+      return actor.clearCatalog();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["catalogEntries"] });
@@ -76,7 +60,7 @@ export function useDeleteCatalogEntry() {
       if (!actor || isFetching) {
         throw new Error("Backend actor is not available.");
       }
-      return asCatalogActor(actor).deleteCatalogEntry(id);
+      return actor.deleteCatalogEntry(id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["catalogEntries"] });

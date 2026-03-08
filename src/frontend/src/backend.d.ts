@@ -35,6 +35,42 @@ export interface IdeaVaultEntry {
     createdAt: Time;
     category: IdeaVaultCategory;
 }
+export interface CatalogEntryInput {
+    production_cost: number;
+    linkedProductId?: string;
+    merch_type: string;
+    size: string;
+    shipping: number;
+    az_tax_rate: number;
+    total_cost: number;
+    item_name: string;
+    quarter_sales: number;
+    az_tax_total: number;
+    quarterly_earnings: number;
+    profit_margin: number;
+    yearly_sales: number;
+    yearly_earnings: number;
+    profit_amount: number;
+}
+export interface CatalogEntry {
+    id: string;
+    production_cost: number;
+    linkedProductId?: string;
+    merch_type: string;
+    createdAt: Time;
+    size: string;
+    shipping: number;
+    az_tax_rate: number;
+    total_cost: number;
+    item_name: string;
+    quarter_sales: number;
+    az_tax_total: number;
+    quarterly_earnings: number;
+    profit_margin: number;
+    yearly_sales: number;
+    yearly_earnings: number;
+    profit_amount: number;
+}
 export interface UserProfile {
     name: string;
     email: string;
@@ -66,11 +102,15 @@ export interface backendInterface {
     addDrawing(title: string, scheduledDate: bigint, weekLabel: string): Promise<Drawing>;
     addIdeaVaultEntry(category: IdeaVaultCategory, content: string): Promise<IdeaVaultEntry>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
+    bulkUpsertCatalogEntries(entries: Array<CatalogEntryInput>): Promise<Array<CatalogEntry>>;
+    clearCatalog(): Promise<void>;
+    deleteCatalogEntry(id: string): Promise<boolean>;
     deleteContentBankEntry(id: string): Promise<boolean>;
     deleteDrawing(id: string): Promise<boolean>;
     deleteIdeaVaultEntry(id: string): Promise<boolean>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
+    getCatalogEntries(): Promise<Array<CatalogEntry>>;
     getContentBank(): Promise<Array<ContentBankEntry>>;
     getDrawings(): Promise<Array<Drawing>>;
     getIdeaVault(): Promise<Array<IdeaVaultEntry>>;
