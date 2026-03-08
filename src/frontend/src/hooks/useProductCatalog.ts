@@ -1,11 +1,24 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { CatalogEntry, CatalogEntryInput } from "../backend";
 import { useActor } from "./useActor";
+import { useInternetIdentity } from "./useInternetIdentity";
 
 export type { CatalogEntry, CatalogEntryInput };
 
-export function useGetCatalogEntries() {
+/** Returns true only when the actor is ready AND backed by a real (non-anonymous) II identity. */
+function useAuthenticatedActor() {
   const { actor, isFetching } = useActor();
+  const { identity } = useInternetIdentity();
+  const isReady =
+    !!actor &&
+    !isFetching &&
+    !!identity &&
+    !identity.getPrincipal().isAnonymous();
+  return { actor, isFetching, isReady, identity };
+}
+
+export function useGetCatalogEntries() {
+  const { actor, isFetching, isReady } = useAuthenticatedActor();
 
   return useQuery<CatalogEntry[]>({
     queryKey: ["catalogEntries"],
@@ -13,18 +26,20 @@ export function useGetCatalogEntries() {
       if (!actor) return [];
       return actor.getCatalogEntries();
     },
-    enabled: !!actor && !isFetching,
+    enabled: isReady && !isFetching,
   });
 }
 
 export function useBulkUpsertCatalogEntries() {
   const queryClient = useQueryClient();
-  const { actor, isFetching } = useActor();
+  const { actor, isFetching, isReady } = useAuthenticatedActor();
 
   return useMutation({
     mutationFn: async (entries: CatalogEntryInput[]) => {
-      if (!actor || isFetching) {
-        throw new Error("Backend actor is not available.");
+      if (!isReady || !actor || isFetching) {
+        throw new Error(
+          "Not signed in with Internet Identity. Please sign in and try again.",
+        );
       }
       return actor.bulkUpsertCatalogEntries(entries);
     },
@@ -36,12 +51,14 @@ export function useBulkUpsertCatalogEntries() {
 
 export function useClearCatalog() {
   const queryClient = useQueryClient();
-  const { actor, isFetching } = useActor();
+  const { actor, isFetching, isReady } = useAuthenticatedActor();
 
   return useMutation({
     mutationFn: async () => {
-      if (!actor || isFetching) {
-        throw new Error("Backend actor is not available.");
+      if (!isReady || !actor || isFetching) {
+        throw new Error(
+          "Not signed in with Internet Identity. Please sign in and try again.",
+        );
       }
       return actor.clearCatalog();
     },
@@ -53,12 +70,14 @@ export function useClearCatalog() {
 
 export function useDeleteCatalogEntry() {
   const queryClient = useQueryClient();
-  const { actor, isFetching } = useActor();
+  const { actor, isFetching, isReady } = useAuthenticatedActor();
 
   return useMutation({
     mutationFn: async (id: string) => {
-      if (!actor || isFetching) {
-        throw new Error("Backend actor is not available.");
+      if (!isReady || !actor || isFetching) {
+        throw new Error(
+          "Not signed in with Internet Identity. Please sign in and try again.",
+        );
       }
       return actor.deleteCatalogEntry(id);
     },

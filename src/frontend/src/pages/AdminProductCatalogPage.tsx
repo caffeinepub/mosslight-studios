@@ -52,6 +52,7 @@ import { AlertTriangle, LogIn } from "lucide-react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import AdminGuard from "../components/AdminGuard";
+import { useActor } from "../hooks/useActor";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
 import {
   type CatalogEntry,
@@ -131,8 +132,11 @@ export default function AdminProductCatalogPage() {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { identity, login: iiLogin } = useInternetIdentity();
+  const { isFetching: actorFetching } = useActor();
   const isIIAuthenticated =
     !!identity && !identity.getPrincipal().isAnonymous();
+  // True when II is connected but the actor is still being rebuilt with the new identity
+  const isActorInitializing = isIIAuthenticated && actorFetching;
 
   // Data
   const { data: entries = [], isLoading } = useGetCatalogEntries();
@@ -313,7 +317,7 @@ export default function AdminProductCatalogPage() {
           </Badge>
         </div>
 
-        {/* Internet Identity warning */}
+        {/* Internet Identity warning — shown when not signed in with II */}
         {!isIIAuthenticated && (
           <Alert className="border-amber-300 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-700">
             <AlertTriangle className="h-4 w-4 text-amber-600" />
@@ -335,6 +339,20 @@ export default function AdminProductCatalogPage() {
                 <LogIn className="mr-2 h-4 w-4" />
                 Sign in with Internet Identity
               </Button>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Actor initializing notice — shown briefly after II login while actor rebuilds */}
+        {isActorInitializing && (
+          <Alert className="border-blue-300 bg-blue-50 dark:bg-blue-950/30 dark:border-blue-700">
+            <Loader2 className="h-4 w-4 text-blue-600 animate-spin" />
+            <AlertTitle className="text-blue-800 dark:text-blue-400">
+              Connecting to backend…
+            </AlertTitle>
+            <AlertDescription className="text-blue-700 dark:text-blue-300">
+              Your Internet Identity is being verified. The upload button will
+              unlock in a moment.
             </AlertDescription>
           </Alert>
         )}
@@ -456,24 +474,29 @@ export default function AdminProductCatalogPage() {
                 disabled={
                   parsedRows.length === 0 ||
                   bulkUpsert.isPending ||
-                  !isIIAuthenticated
+                  !isIIAuthenticated ||
+                  isActorInitializing
                 }
                 className="bg-lime-700 hover:bg-lime-800 text-white"
                 title={
                   !isIIAuthenticated
                     ? "Sign in with Internet Identity first"
-                    : undefined
+                    : isActorInitializing
+                      ? "Connecting to backend, please wait…"
+                      : undefined
                 }
                 data-ocid="catalog.upload_button"
               >
-                {bulkUpsert.isPending ? (
+                {bulkUpsert.isPending || isActorInitializing ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : (
                   <Upload className="mr-2 h-4 w-4" />
                 )}
                 {bulkUpsert.isPending
                   ? "Uploading..."
-                  : `Upload ${parsedRows.length > 0 ? `${parsedRows.length} rows` : "to Catalog"}`}
+                  : isActorInitializing
+                    ? "Connecting…"
+                    : `Upload ${parsedRows.length > 0 ? `${parsedRows.length} rows` : "to Catalog"}`}
               </Button>
 
               {entries.length > 0 && (
