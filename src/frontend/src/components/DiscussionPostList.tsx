@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "@tanstack/react-router";
 import { MessageCircle } from "lucide-react";
-import type { DiscussionPost } from "../backend";
+import type { DiscussionPost } from "../backendTypes";
 import PostStatusBadge from "./PostStatusBadge";
 
 interface DiscussionPostListProps {

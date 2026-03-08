@@ -1,9 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { BlogPost, ExternalBlob } from "../backend";
-import { useActor } from "./useActor";
+import type { ExternalBlob } from "../backend";
+import type { BlogPost } from "../backendTypes";
+import { useFullActor } from "./useFullActor";
 
 export function useGetBlogPosts() {
-  const { actor, isFetching } = useActor();
+  const { actor, isFetching } = useFullActor();
 
   return useQuery<BlogPost[]>({
     queryKey: ["blogPosts"],
@@ -16,7 +17,7 @@ export function useGetBlogPosts() {
 }
 
 export function useAddBlogPost() {
-  const { actor } = useActor();
+  const { actor } = useFullActor();
   const queryClient = useQueryClient();
 
   return useMutation({

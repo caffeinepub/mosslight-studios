@@ -4,7 +4,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { ChevronDown, ChevronUp, SlidersHorizontal, X } from "lucide-react";
 import { useMemo, useState } from "react";
-import type { Product } from "../backend";
+import type { Product } from "../backendTypes";
 
 export interface ActiveFilters {
   categories: string[];

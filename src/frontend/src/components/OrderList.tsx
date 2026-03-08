@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/select";
 import { useState } from "react";
 import { toast } from "sonner";
-import type { Order, OrderStatus } from "../backend";
+import type { Order, OrderStatus } from "../backendTypes";
 import { useUpdateOrderStatus } from "../hooks/useOrders";
 import { useGetProducts } from "../hooks/useProducts";
 import OrderStatusBadge from "./OrderStatusBadge";

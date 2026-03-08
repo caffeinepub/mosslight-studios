@@ -10,175 +10,46 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
-export interface BlogPost {
+export interface ContentBankEntry {
   'id' : string,
+  'url' : string,
+  'note' : string,
+  'createdAt' : Time,
+  'contentLabel' : string,
+}
+export interface Drawing {
+  'id' : string,
+  'status_external_tl' : boolean,
   'title' : string,
+  'scheduledDate' : bigint,
+  'status_merch' : boolean,
   'createdAt' : Time,
-  'image' : [] | [ExternalBlob],
-  'bodyText' : string,
+  'status_posted' : boolean,
+  'status_bts' : boolean,
+  'status_pov' : boolean,
+  'status_procreate_tl' : boolean,
+  'weekLabel' : string,
+  'status_edited' : boolean,
 }
-export interface Comment {
-  'id' : string,
-  'name' : string,
-  'text' : string,
-  'timestamp' : Time,
-  'parentId' : string,
-  'parentType' : CommentParentType,
-}
-export type CommentParentType = { 'blogPost' : null } |
-  { 'galleryItem' : null };
-export interface Commission {
-  'id' : string,
-  'title' : string,
-  'createdAt' : Time,
-  'description' : string,
-  'totalSpots' : bigint,
-  'addons' : Array<CommissionAddon>,
-  'basePrice' : bigint,
-  'openSpots' : bigint,
-}
-export interface CommissionAddon { 'name' : string, 'price' : bigint }
-export interface CommissionRequest {
-  'id' : string,
-  'status' : CommissionRequestStatus,
-  'selectedAddons' : Array<CommissionAddon>,
-  'name' : string,
-  'createdAt' : Time,
-  'description' : string,
-  'email' : [] | [string],
-  'referenceImages' : Array<ExternalBlob>,
-  'discordUsername' : [] | [string],
-  'phoneNumber' : [] | [string],
-  'totalPrice' : bigint,
-  'commissionTitle' : string,
-  'commissionId' : string,
-}
-export type CommissionRequestStatus = { 'pending' : null } |
-  { 'completed' : null } |
-  { 'rejected' : null } |
-  { 'accepted' : null } |
-  { 'inProgress' : null };
-export interface CreateProductData {
-  'sku' : string,
-  'categories' : Array<string>,
-  'shippingPrice' : number,
-  'hasVariants' : boolean,
-  'inventory' : bigint,
-  'name' : string,
-  'description' : string,
-  'variants' : [] | [Array<ProductVariant>],
-  'sizes' : Array<string>,
-  'colors' : Array<string>,
-  'price' : bigint,
-  'taxRate' : number,
-}
-export type Customer = Principal;
-export interface DiscussionPost {
-  'id' : string,
-  'status' : PostStatus,
-  'question' : string,
-  'author' : Principal,
-  'timestamp' : Time,
-  'replies' : Array<Reply>,
-}
-export type ExternalBlob = Uint8Array;
-export interface GalleryItem {
-  'id' : string,
-  'title' : string,
-  'createdAt' : Time,
-  'description' : string,
-  'taggedProductIds' : Array<string>,
-  'image' : ExternalBlob,
-}
-export interface Message {
+export type IdeaVaultCategory = { 'merch_idea' : null } |
+  { 'social_hook' : null } |
+  { 'lore' : null } |
+  { 'drawing_idea' : null };
+export interface IdeaVaultEntry {
   'id' : string,
   'content' : string,
-  'recipient' : [] | [Customer],
-  'timestamp' : Time,
-}
-export interface Notification {
-  'id' : string,
-  'notifType' : NotificationType,
-  'read' : boolean,
-  'recipient' : Principal,
-  'message' : string,
-  'timestamp' : Time,
-  'relatedOrderId' : [] | [string],
-}
-export type NotificationType = { 'adminAlert' : null } |
-  { 'orderUpdate' : string } |
-  { 'lowInventory' : string };
-export interface Order {
-  'id' : string,
-  'status' : OrderStatus,
-  'total' : bigint,
-  'customer' : Customer,
-  'date' : Time,
-  'items' : Array<OrderItem>,
-}
-export interface OrderItem {
-  'color' : string,
-  'productId' : string,
-  'variantId' : [] | [string],
-  'quantity' : bigint,
-  'price' : bigint,
-}
-export type OrderStatus = { 'shipped' : null } |
-  { 'pending' : null } |
-  { 'delivered' : null };
-export interface PortfolioItem {
-  'id' : string,
-  'title' : string,
   'createdAt' : Time,
-  'description' : string,
-  'category' : string,
-  'image' : ExternalBlob,
+  'category' : IdeaVaultCategory,
 }
-export type PostStatus = { 'open' : null } |
-  { 'answered' : null };
-export interface Product {
-  'id' : string,
-  'sku' : string,
-  'categories' : Array<string>,
-  'shippingPrice' : number,
-  'hasVariants' : boolean,
-  'inventory' : bigint,
-  'name' : string,
-  'description' : string,
-  'variants' : [] | [Array<ProductVariant>],
-  'sizes' : Array<string>,
-  'colors' : Array<string>,
-  'price' : bigint,
-  'taxRate' : number,
-  'images' : Array<ExternalBlob>,
-}
-export interface ProductColor { 'inventory' : bigint, 'name' : string }
-export interface ProductVariant {
-  'id' : string,
-  'size' : string,
-  'parentProductId' : string,
-  'colors' : Array<ProductColor>,
-  'price' : bigint,
-}
-export interface Reply {
-  'content' : string,
-  'author' : Principal,
-  'timestamp' : Time,
-}
-export interface Review {
-  'reviewText' : string,
-  'productId' : string,
-  'variantId' : [] | [string],
-  'timestamp' : Time,
-  'rating' : bigint,
-  'reviewer' : Principal,
-  'verifiedPurchase' : boolean,
-}
-export interface SocialMediaContent {
-  'id' : string,
-  'media' : Array<ExternalBlob>,
-  'content' : string,
-  'timestamp' : Time,
+export interface MerchPipeline {
+  'live' : boolean,
+  'tote' : boolean,
+  'uploaded' : boolean,
+  'magnet' : boolean,
+  'sticker' : boolean,
+  'print' : boolean,
+  'drawingId' : string,
+  'keychain' : boolean,
 }
 export type Time = bigint;
 export interface UserProfile {
@@ -217,118 +88,35 @@ export interface _SERVICE {
   >,
   '_caffeineStorageUpdateGatewayPrincipals' : ActorMethod<[], undefined>,
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
-  'addBlogPost' : ActorMethod<[string, string, [] | [ExternalBlob]], string>,
-  'addComment' : ActorMethod<
-    [string, CommentParentType, string, string],
-    string
+  'addContentBankEntry' : ActorMethod<
+    [string, string, string],
+    ContentBankEntry
   >,
-  'addCommission' : ActorMethod<
-    [string, string, bigint, bigint, Array<CommissionAddon>],
-    string
+  'addDrawing' : ActorMethod<[string, bigint, string], Drawing>,
+  'addIdeaVaultEntry' : ActorMethod<
+    [IdeaVaultCategory, string],
+    IdeaVaultEntry
   >,
-  'addGalleryItem' : ActorMethod<
-    [string, string, ExternalBlob, Array<string>],
-    string
-  >,
-  'addItemToCart' : ActorMethod<[OrderItem], undefined>,
-  'addPortfolioItem' : ActorMethod<
-    [string, string, ExternalBlob, string],
-    string
-  >,
-  'addProduct' : ActorMethod<
-    [CreateProductData, Array<ExternalBlob>],
-    undefined
-  >,
-  'addReply' : ActorMethod<[string, string], undefined>,
-  'addToCart' : ActorMethod<[Array<OrderItem>], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
-  'checkout' : ActorMethod<[], string>,
-  'clearCart' : ActorMethod<[], undefined>,
-  'createDiscussionPost' : ActorMethod<[string], string>,
-  'deleteCommission' : ActorMethod<[string], undefined>,
-  'deleteGalleryItem' : ActorMethod<[string], undefined>,
-  'deleteProduct' : ActorMethod<[string], undefined>,
-  'getAllDiscussionPosts' : ActorMethod<[], Array<DiscussionPost>>,
-  'getAnalyticsData' : ActorMethod<
-    [],
-    {
-      'mostClickedProducts' : Array<[string, bigint]>,
-      'mostViewedContent' : Array<[string, bigint]>,
-      'orderCount' : bigint,
-      'totalRevenue' : bigint,
-      'lowInventoryProducts' : Array<Product>,
-    }
-  >,
-  'getBlogPosts' : ActorMethod<[], Array<BlogPost>>,
+  'deleteContentBankEntry' : ActorMethod<[string], boolean>,
+  'deleteDrawing' : ActorMethod<[string], boolean>,
+  'deleteIdeaVaultEntry' : ActorMethod<[string], boolean>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
-  'getCommentsByParent' : ActorMethod<
-    [string, CommentParentType],
-    Array<Comment>
-  >,
-  'getCommission' : ActorMethod<[string], [] | [Commission]>,
-  'getCommissionRequests' : ActorMethod<[], Array<CommissionRequest>>,
-  'getCommissions' : ActorMethod<[], Array<Commission>>,
-  'getGalleryItems' : ActorMethod<[], Array<GalleryItem>>,
-  'getMessages' : ActorMethod<[], Array<Message>>,
-  'getMyMessages' : ActorMethod<[], Array<Message>>,
-  'getMyOrder' : ActorMethod<[string], [] | [Order]>,
-  'getMyOrders' : ActorMethod<[], Array<Order>>,
-  'getOrders' : ActorMethod<[], Array<Order>>,
-  'getPortfolioItems' : ActorMethod<[], Array<PortfolioItem>>,
-  'getProduct' : ActorMethod<[string], [] | [Product]>,
-  'getProductReviews' : ActorMethod<[string], [Array<Review>, number]>,
-  'getProductVariants' : ActorMethod<[string], [] | [Array<ProductVariant>]>,
-  'getProducts' : ActorMethod<[], Array<Product>>,
-  'getSocialMediaContent' : ActorMethod<[], Array<SocialMediaContent>>,
-  'getUnreadNotifications' : ActorMethod<[], Array<Notification>>,
+  'getContentBank' : ActorMethod<[], Array<ContentBankEntry>>,
+  'getDrawings' : ActorMethod<[], Array<Drawing>>,
+  'getIdeaVault' : ActorMethod<[], Array<IdeaVaultEntry>>,
+  'getMerchPipelines' : ActorMethod<[], Array<MerchPipeline>>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
-  'markNotificationAsRead' : ActorMethod<[string], undefined>,
-  'recordAnalyticsEvent' : ActorMethod<
-    [
-      { 'orderComplete' : null } |
-        { 'contentView' : string } |
-        { 'productClick' : string },
-    ],
-    undefined
-  >,
   'registerOrLogin' : ActorMethod<[], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
-  'sendAdminBroadcastAlert' : ActorMethod<[string], undefined>,
-  'sendMessage' : ActorMethod<[string, [] | [Customer]], undefined>,
-  'submitCommissionRequest' : ActorMethod<
-    [
-      string,
-      string,
-      [] | [string],
-      [] | [string],
-      [] | [string],
-      string,
-      Array<CommissionAddon>,
-      Array<ExternalBlob>,
-    ],
-    string
+  'updateDrawingDate' : ActorMethod<[string, bigint], Drawing>,
+  'updateDrawingStatus' : ActorMethod<[string, string, boolean], Drawing>,
+  'upsertMerchPipeline' : ActorMethod<
+    [string, boolean, boolean, boolean, boolean, boolean, boolean, boolean],
+    MerchPipeline
   >,
-  'submitReview' : ActorMethod<
-    [string, bigint, string, [] | [string]],
-    undefined
-  >,
-  'updateCommission' : ActorMethod<
-    [string, string, string, bigint, bigint, Array<CommissionAddon>],
-    undefined
-  >,
-  'updateCommissionRequestStatus' : ActorMethod<
-    [string, CommissionRequestStatus],
-    undefined
-  >,
-  'updateGalleryItemTags' : ActorMethod<[string, Array<string>], undefined>,
-  'updateOrderStatus' : ActorMethod<[string, OrderStatus], undefined>,
-  'updateProduct' : ActorMethod<
-    [string, CreateProductData, Array<ExternalBlob>],
-    undefined
-  >,
-  'viewCart' : ActorMethod<[], Array<OrderItem>>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

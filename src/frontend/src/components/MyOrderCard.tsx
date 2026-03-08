@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Tag, Truck } from "lucide-react";
-import type { Order } from "../backend";
+import type { Order } from "../backendTypes";
 import { useGetProducts } from "../hooks/useProducts";
 import OrderStatusBadge from "./OrderStatusBadge";
 

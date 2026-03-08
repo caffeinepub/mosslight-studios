@@ -28,12 +28,12 @@ import {
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { CommissionRequestStatus } from "../backend";
-import type {
-  Commission,
-  CommissionAddon,
-  CommissionRequest,
-} from "../backend";
+import {
+  type Commission,
+  type CommissionAddon,
+  type CommissionRequest,
+  CommissionRequestStatus,
+} from "../backendTypes";
 import AdminGuard from "../components/AdminGuard";
 import {
   useAddCommission,

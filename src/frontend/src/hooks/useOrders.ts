@@ -1,9 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { Order, OrderStatus } from "../backend";
-import { useActor } from "./useActor";
+import type { Order, OrderStatus } from "../backendTypes";
+import { useFullActor } from "./useFullActor";
 
 export function useGetOrders() {
-  const { actor, isFetching } = useActor();
+  const { actor, isFetching } = useFullActor();
 
   return useQuery<Order[]>({
     queryKey: ["orders"],
@@ -16,7 +16,7 @@ export function useGetOrders() {
 }
 
 export function useUpdateOrderStatus() {
-  const { actor } = useActor();
+  const { actor } = useFullActor();
   const queryClient = useQueryClient();
 
   return useMutation({

@@ -1,10 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { CreateProductData, ExternalBlob } from "../backend";
-import { useActor } from "./useActor";
+import type { ExternalBlob } from "../backend";
+import type { CreateProductData } from "../backendTypes";
+import { useFullActor } from "./useFullActor";
 import { useInternetIdentity } from "./useInternetIdentity";
 
 export function useGetProducts() {
-  const { actor, isFetching } = useActor();
+  const { actor, isFetching } = useFullActor();
 
   return useQuery({
     queryKey: ["products"],
@@ -17,7 +18,7 @@ export function useGetProducts() {
 }
 
 export function useGetProduct(productId: string) {
-  const { actor, isFetching } = useActor();
+  const { actor, isFetching } = useFullActor();
 
   return useQuery({
     queryKey: ["product", productId],
@@ -31,7 +32,7 @@ export function useGetProduct(productId: string) {
 
 export function useAddProduct() {
   const queryClient = useQueryClient();
-  const { actor, isFetching } = useActor();
+  const { actor, isFetching } = useFullActor();
   const { identity } = useInternetIdentity();
 
   return useMutation({
@@ -79,7 +80,7 @@ export function useAddProduct() {
 
 export function useUpdateProduct() {
   const queryClient = useQueryClient();
-  const { actor, isFetching } = useActor();
+  const { actor, isFetching } = useFullActor();
   const { identity } = useInternetIdentity();
 
   return useMutation({
@@ -130,7 +131,7 @@ export function useUpdateProduct() {
 
 export function useDeleteProduct() {
   const queryClient = useQueryClient();
-  const { actor, isFetching } = useActor();
+  const { actor, isFetching } = useFullActor();
 
   return useMutation({
     mutationFn: async (productId: string) => {

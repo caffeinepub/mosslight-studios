@@ -9,13 +9,13 @@ import { Info, Loader2, Palette, Plus, Trash2, Upload, X } from "lucide-react";
 import type React from "react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import type { ExternalBlob } from "../backend";
 import type {
-  ExternalBlob,
+  CreateProductData,
   Product,
   ProductColor,
   ProductVariant,
-} from "../backend";
-import type { CreateProductData } from "../backend";
+} from "../backendTypes";
 import { useAddProduct, useUpdateProduct } from "../hooks/useProducts";
 import VariantManager from "./VariantManager";
 
@@ -264,9 +264,7 @@ export default function ProductForm({
         inventory: BigInt(Math.round(inventory)),
         hasVariants,
         variants:
-          hasVariants && preparedVariants.length > 0
-            ? preparedVariants
-            : undefined,
+          hasVariants && preparedVariants.length > 0 ? preparedVariants : null,
         sku: sku.trim(),
         categories,
         colors: colorNames,

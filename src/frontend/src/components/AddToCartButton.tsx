@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Loader2, ShoppingCart } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import type { Product, ProductVariant } from "../backend";
+import type { Product, ProductVariant } from "../backendTypes";
 import { useAddItemToCart } from "../hooks/useCart";
 
 interface AddToCartButtonProps {
@@ -105,7 +105,7 @@ export default function AddToCartButton({
       await addToCart.mutateAsync({
         productId: product.id,
         quantity: BigInt(quantity),
-        variantId: selectedVariant?.id || undefined,
+        variantId: selectedVariant?.id ?? null,
         color: colorToSend,
         price: itemPrice,
       });

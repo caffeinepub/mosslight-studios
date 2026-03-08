@@ -1,9 +1,9 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import type { Product } from "../backend";
-import { useActor } from "./useActor";
+import type { Product } from "../backendTypes";
+import { useFullActor } from "./useFullActor";
 
 export function useGetAnalyticsData() {
-  const { actor, isFetching } = useActor();
+  const { actor, isFetching } = useFullActor();
 
   return useQuery<{
     mostClickedProducts: [string, bigint][];
@@ -30,7 +30,7 @@ export function useGetAnalyticsData() {
 }
 
 export function useRecordAnalyticsEvent() {
-  const { actor } = useActor();
+  const { actor } = useFullActor();
 
   return useMutation({
     mutationFn: async (

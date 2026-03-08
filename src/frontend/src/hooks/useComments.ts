@@ -1,13 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { Comment } from "../backend";
-import type { CommentParentType } from "../backend";
-import { useActor } from "./useActor";
+import type { Comment, CommentParentType } from "../backendTypes";
+import { useFullActor } from "./useFullActor";
 
 export function useGetCommentsByParent(
   parentId: string,
   parentType: CommentParentType,
 ) {
-  const { actor, isFetching } = useActor();
+  const { actor, isFetching } = useFullActor();
 
   return useQuery<Comment[]>({
     queryKey: ["comments", parentId, parentType],
@@ -20,7 +19,7 @@ export function useGetCommentsByParent(
 }
 
 export function useAddComment() {
-  const { actor } = useActor();
+  const { actor } = useFullActor();
   const queryClient = useQueryClient();
 
   return useMutation({

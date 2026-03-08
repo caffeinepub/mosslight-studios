@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import type { Order } from "../backend";
-import { useActor } from "./useActor";
+import type { Order } from "../backendTypes";
+import { useFullActor } from "./useFullActor";
 import { useInternetIdentity } from "./useInternetIdentity";
 
 export function useGetMyOrders() {
-  const { actor, isFetching } = useActor();
+  const { actor, isFetching } = useFullActor();
   const { identity } = useInternetIdentity();
 
   return useQuery<Order[]>({
@@ -18,7 +18,7 @@ export function useGetMyOrders() {
 }
 
 export function useGetMyOrder(orderId: string) {
-  const { actor, isFetching } = useActor();
+  const { actor, isFetching } = useFullActor();
   const { identity } = useInternetIdentity();
 
   return useQuery<Order | null>({

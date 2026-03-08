@@ -10,7 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { useNavigate } from "@tanstack/react-router";
 import { Loader2, ShoppingBag, Tag, Trash2, Truck } from "lucide-react";
 import { toast } from "sonner";
-import type { ProductVariant } from "../backend";
+import type { ProductVariant } from "../backendTypes";
 import { useClearCart, useViewCart } from "../hooks/useCart";
 import { useGetProducts } from "../hooks/useProducts";
 

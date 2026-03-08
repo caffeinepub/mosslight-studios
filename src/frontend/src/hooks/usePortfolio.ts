@@ -1,9 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { ExternalBlob, PortfolioItem } from "../backend";
-import { useActor } from "./useActor";
+import type { ExternalBlob } from "../backend";
+import type { PortfolioItem } from "../backendTypes";
+import { useFullActor } from "./useFullActor";
 
 export function useGetPortfolioItems() {
-  const { actor, isFetching } = useActor();
+  const { actor, isFetching } = useFullActor();
 
   return useQuery<PortfolioItem[]>({
     queryKey: ["portfolioItems"],
@@ -16,7 +17,7 @@ export function useGetPortfolioItems() {
 }
 
 export function useAddPortfolioItem() {
-  const { actor } = useActor();
+  const { actor } = useFullActor();
   const queryClient = useQueryClient();
 
   return useMutation({

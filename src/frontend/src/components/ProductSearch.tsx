@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/select";
 import { Search, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import type { Product } from "../backend";
+import type { Product } from "../backendTypes";
 
 interface ProductSearchProps {
   products: Product[];

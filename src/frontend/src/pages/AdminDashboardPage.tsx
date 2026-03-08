@@ -18,6 +18,7 @@ import {
   Package,
   Palette,
   ShoppingBag,
+  Sparkles,
 } from "lucide-react";
 import AdminGuard from "../components/AdminGuard";
 import AdminNotificationsPanel from "../components/AdminNotificationsPanel";
@@ -105,6 +106,15 @@ export default function AdminDashboardPage() {
       path: "/admin/commissions",
       color: "text-violet-600",
       bgColor: "bg-violet-50 dark:bg-violet-950",
+    },
+    {
+      title: "Creator Dashboard",
+      description:
+        "Manage your weekly workflow, batch tracker, merch pipeline, content bank, and idea vault",
+      icon: Sparkles,
+      path: "/admin/creator",
+      color: "text-pink-600",
+      bgColor: "bg-pink-50 dark:bg-pink-950",
     },
   ];
 

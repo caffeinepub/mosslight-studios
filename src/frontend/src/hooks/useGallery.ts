@@ -1,9 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { ExternalBlob, GalleryItem, SocialMediaContent } from "../backend";
-import { useActor } from "./useActor";
+import type { ExternalBlob } from "../backend";
+import type { GalleryItem, SocialMediaContent } from "../backendTypes";
+import { useFullActor } from "./useFullActor";
 
 export function useGetSocialMediaContent() {
-  const { actor, isFetching } = useActor();
+  const { actor, isFetching } = useFullActor();
 
   return useQuery<SocialMediaContent[]>({
     queryKey: ["socialMediaContent"],
@@ -31,7 +32,7 @@ export function useAddSocialMediaContent() {
 }
 
 export function useGetGalleryItems() {
-  const { actor, isFetching } = useActor();
+  const { actor, isFetching } = useFullActor();
 
   return useQuery<GalleryItem[]>({
     queryKey: ["galleryItems"],
@@ -44,7 +45,7 @@ export function useGetGalleryItems() {
 }
 
 export function useAddGalleryItem() {
-  const { actor } = useActor();
+  const { actor } = useFullActor();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -69,7 +70,7 @@ export function useAddGalleryItem() {
 }
 
 export function useUpdateGalleryItemTags() {
-  const { actor } = useActor();
+  const { actor } = useFullActor();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -90,7 +91,7 @@ export function useUpdateGalleryItemTags() {
 }
 
 export function useDeleteGalleryItem() {
-  const { actor } = useActor();
+  const { actor } = useFullActor();
   const queryClient = useQueryClient();
 
   return useMutation({

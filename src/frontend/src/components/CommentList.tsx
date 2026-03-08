@@ -1,6 +1,6 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { MessageCircle } from "lucide-react";
-import type { CommentParentType } from "../backend";
+import type { CommentParentType } from "../backendTypes";
 import { useGetCommentsByParent } from "../hooks/useComments";
 
 interface CommentListProps {

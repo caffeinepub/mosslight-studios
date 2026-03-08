@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { useEffect } from "react";
-import type { SocialMediaContent } from "../backend";
+import type { SocialMediaContent } from "../backendTypes";
 import { useRecordAnalyticsEvent } from "../hooks/useAnalytics";
 
 interface GalleryItemProps {

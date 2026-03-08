@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Shield } from "lucide-react";
-import type { Reply } from "../backend";
+import type { Reply } from "../backendTypes";
 
 interface ReplyListProps {
   replies: Reply[];

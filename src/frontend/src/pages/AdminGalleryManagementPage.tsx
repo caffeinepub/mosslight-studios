@@ -36,7 +36,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import type { GalleryItem, Product } from "../backend";
+import type { GalleryItem, Product } from "../backendTypes";
 import AdminGuard from "../components/AdminGuard";
 import GalleryItemForm from "../components/GalleryItemForm";
 import {

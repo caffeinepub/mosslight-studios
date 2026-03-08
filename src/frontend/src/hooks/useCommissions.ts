@@ -3,13 +3,13 @@ import type {
   CommissionAddon,
   CommissionRequestStatus,
   ExternalBlob,
-} from "../backend";
-import { useActor } from "./useActor";
+} from "../backendTypes";
+import { useFullActor } from "./useFullActor";
 
 // ─── Queries ────────────────────────────────────────────────────────────────
 
 export function useGetCommissions() {
-  const { actor, isFetching } = useActor();
+  const { actor, isFetching } = useFullActor();
 
   return useQuery({
     queryKey: ["commissions"],
@@ -22,7 +22,7 @@ export function useGetCommissions() {
 }
 
 export function useGetCommission(commissionId: string) {
-  const { actor, isFetching } = useActor();
+  const { actor, isFetching } = useFullActor();
 
   return useQuery({
     queryKey: ["commission", commissionId],
@@ -35,7 +35,7 @@ export function useGetCommission(commissionId: string) {
 }
 
 export function useGetCommissionRequests() {
-  const { actor, isFetching } = useActor();
+  const { actor, isFetching } = useFullActor();
 
   return useQuery({
     queryKey: ["commissionRequests"],
@@ -51,7 +51,7 @@ export function useGetCommissionRequests() {
 
 export function useAddCommission() {
   const queryClient = useQueryClient();
-  const { actor, isFetching } = useActor();
+  const { actor, isFetching } = useFullActor();
 
   return useMutation({
     mutationFn: async ({
@@ -86,7 +86,7 @@ export function useAddCommission() {
 
 export function useUpdateCommission() {
   const queryClient = useQueryClient();
-  const { actor, isFetching } = useActor();
+  const { actor, isFetching } = useFullActor();
 
   return useMutation({
     mutationFn: async ({
@@ -125,7 +125,7 @@ export function useUpdateCommission() {
 
 export function useDeleteCommission() {
   const queryClient = useQueryClient();
-  const { actor, isFetching } = useActor();
+  const { actor, isFetching } = useFullActor();
 
   return useMutation({
     mutationFn: async (commissionId: string) => {
@@ -142,7 +142,7 @@ export function useDeleteCommission() {
 
 export function useSubmitCommissionRequest() {
   const queryClient = useQueryClient();
-  const { actor, isFetching } = useActor();
+  const { actor, isFetching } = useFullActor();
 
   return useMutation({
     mutationFn: async ({
@@ -186,7 +186,7 @@ export function useSubmitCommissionRequest() {
 
 export function useUpdateCommissionRequestStatus() {
   const queryClient = useQueryClient();
-  const { actor, isFetching } = useActor();
+  const { actor, isFetching } = useFullActor();
 
   return useMutation({
     mutationFn: async ({

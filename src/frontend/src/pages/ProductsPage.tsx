@@ -1,6 +1,6 @@
 import { Loader2 } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
-import type { Product } from "../backend";
+import type { Product } from "../backendTypes";
 import ProductCard from "../components/ProductCard";
 import ProductFilterSidebar, {
   type ActiveFilters,

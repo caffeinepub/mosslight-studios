@@ -11,7 +11,7 @@ import {
   Trash2,
 } from "lucide-react";
 import React, { useState } from "react";
-import type { ProductColor, ProductVariant } from "../backend";
+import type { ProductColor, ProductVariant } from "../backendTypes";
 
 interface VariantManagerProps {
   variants: ProductVariant[];

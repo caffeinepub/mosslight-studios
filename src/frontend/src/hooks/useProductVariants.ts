@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import type { ProductVariant } from "../backend";
-import { useActor } from "./useActor";
+import type { ProductVariant } from "../backendTypes";
+import { useFullActor } from "./useFullActor";
 
 export function useGetProductVariants(productId: string) {
-  const { actor, isFetching } = useActor();
+  const { actor, isFetching } = useFullActor();
 
   return useQuery<ProductVariant[]>({
     queryKey: ["productVariants", productId],

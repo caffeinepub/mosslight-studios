@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Loader2, MessageCircle } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import type { CommentParentType } from "../backend";
+import type { CommentParentType } from "../backendTypes";
 import { useAddComment } from "../hooks/useComments";
 
 interface CommentFormProps {

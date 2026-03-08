@@ -21,7 +21,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { type ChangeEvent, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ExternalBlob } from "../backend";
-import type { CommissionAddon } from "../backend";
+import type { CommissionAddon } from "../backendTypes";
 import { useGetCommission } from "../hooks/useCommissions";
 import { useSubmitCommissionRequest } from "../hooks/useCommissions";
 

@@ -1,9 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { Customer, Message } from "../backend";
-import { useActor } from "./useActor";
+import type { Customer, Message } from "../backendTypes";
+import { useFullActor } from "./useFullActor";
 
 export function useGetMessages() {
-  const { actor, isFetching } = useActor();
+  const { actor, isFetching } = useFullActor();
 
   return useQuery<Message[]>({
     queryKey: ["messages"],
@@ -16,7 +16,7 @@ export function useGetMessages() {
 }
 
 export function useSendMessage() {
-  const { actor } = useActor();
+  const { actor } = useFullActor();
   const queryClient = useQueryClient();
 
   return useMutation({

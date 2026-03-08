@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { PortfolioItem } from "../backend";
+import type { PortfolioItem } from "../backendTypes";
 
 interface PortfolioGridProps {
   items: PortfolioItem[];

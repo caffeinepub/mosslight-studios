@@ -3,7 +3,7 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate, useParams } from "@tanstack/react-router";
 import { ArrowLeft, CalendarDays } from "lucide-react";
-import { CommentParentType } from "../backend";
+import { CommentParentType } from "../backendTypes";
 import CommentForm from "../components/CommentForm";
 import CommentList from "../components/CommentList";
 import { useGetBlogPosts } from "../hooks/useBlog";

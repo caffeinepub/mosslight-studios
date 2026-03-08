@@ -1,10 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { Notification } from "../backend";
-import { useActor } from "./useActor";
+import type { Notification } from "../backendTypes";
+import { useFullActor } from "./useFullActor";
 import { useInternetIdentity } from "./useInternetIdentity";
 
 export function useGetUnreadNotifications() {
-  const { actor, isFetching } = useActor();
+  const { actor, isFetching } = useFullActor();
   const { identity } = useInternetIdentity();
 
   return useQuery<Notification[]>({
@@ -18,7 +18,7 @@ export function useGetUnreadNotifications() {
 }
 
 export function useMarkNotificationAsRead() {
-  const { actor } = useActor();
+  const { actor } = useFullActor();
   const queryClient = useQueryClient();
 
   return useMutation({

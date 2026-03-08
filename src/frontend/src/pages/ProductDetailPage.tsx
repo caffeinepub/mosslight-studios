@@ -12,7 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { useNavigate, useParams } from "@tanstack/react-router";
 import { ArrowLeft, Loader2, Tag, Truck } from "lucide-react";
 import { useMemo, useState } from "react";
-import type { ProductColor } from "../backend";
+import type { ProductColor } from "../backendTypes";
 import AddToCartButton from "../components/AddToCartButton";
 import ProductReviews from "../components/ProductReviews";
 import ReviewForm from "../components/ReviewForm";

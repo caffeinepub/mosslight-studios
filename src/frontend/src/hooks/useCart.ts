@@ -1,10 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { OrderItem } from "../backend";
-import { useActor } from "./useActor";
+import type { OrderItem } from "../backendTypes";
+import { useFullActor } from "./useFullActor";
 import { useInternetIdentity } from "./useInternetIdentity";
 
 export function useViewCart() {
-  const { actor, isFetching } = useActor();
+  const { actor, isFetching } = useFullActor();
   const { identity } = useInternetIdentity();
 
   return useQuery<OrderItem[]>({
@@ -18,7 +18,7 @@ export function useViewCart() {
 }
 
 export function useAddItemToCart() {
-  const { actor } = useActor();
+  const { actor } = useFullActor();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -33,7 +33,7 @@ export function useAddItemToCart() {
 }
 
 export function useClearCart() {
-  const { actor } = useActor();
+  const { actor } = useFullActor();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -48,7 +48,7 @@ export function useClearCart() {
 }
 
 export function useCheckout() {
-  const { actor } = useActor();
+  const { actor } = useFullActor();
   const queryClient = useQueryClient();
 
   return useMutation({

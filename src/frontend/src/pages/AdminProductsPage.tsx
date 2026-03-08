@@ -20,7 +20,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2, Pencil, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import type { Product } from "../backend";
+import type { Product } from "../backendTypes";
 import AdminGuard from "../components/AdminGuard";
 import ProductForm from "../components/ProductForm";
 import { useDeleteProduct, useGetProducts } from "../hooks/useProducts";

@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate } from "@tanstack/react-router";
 import { CalendarDays } from "lucide-react";
-import type { BlogPost } from "../backend";
+import type { BlogPost } from "../backendTypes";
 
 interface BlogCardProps {
   post: BlogPost;

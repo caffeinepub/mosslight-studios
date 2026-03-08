@@ -7,7 +7,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { Loader2, Tag, Truck } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import type { ProductVariant } from "../backend";
+import type { ProductVariant } from "../backendTypes";
 import AccessDeniedScreen from "../components/AccessDeniedScreen";
 import ProfileSetupModal from "../components/ProfileSetupModal";
 import { useCheckout, useViewCart } from "../hooks/useCart";

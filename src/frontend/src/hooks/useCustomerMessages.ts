@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import type { Message } from "../backend";
-import { useActor } from "./useActor";
+import type { Message } from "../backendTypes";
+import { useFullActor } from "./useFullActor";
 import { useInternetIdentity } from "./useInternetIdentity";
 
 export function useGetMyMessages() {
-  const { actor, isFetching } = useActor();
+  const { actor, isFetching } = useFullActor();
   const { identity } = useInternetIdentity();
 
   return useQuery<Message[]>({

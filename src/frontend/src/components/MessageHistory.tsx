@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { Message } from "../backend";
+import type { Message } from "../backendTypes";
 
 interface MessageHistoryProps {
   messages: Message[];

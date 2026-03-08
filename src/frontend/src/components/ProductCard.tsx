@@ -2,7 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Link } from "@tanstack/react-router";
 import { Star } from "lucide-react";
-import type { Product } from "../backend";
+import type { Product } from "../backendTypes";
 import { useRecordAnalyticsEvent } from "../hooks/useAnalytics";
 import { useGetProductVariants } from "../hooks/useProductVariants";
 import { useGetProductReviews } from "../hooks/useReviews";

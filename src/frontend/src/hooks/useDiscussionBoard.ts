@@ -1,9 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { DiscussionPost } from "../backend";
-import { useActor } from "./useActor";
+import type { DiscussionPost } from "../backendTypes";
+import { useFullActor } from "./useFullActor";
 
 export function useDiscussionPosts() {
-  const { actor, isFetching } = useActor();
+  const { actor, isFetching } = useFullActor();
 
   return useQuery<DiscussionPost[]>({
     queryKey: ["discussionPosts"],
@@ -16,7 +16,7 @@ export function useDiscussionPosts() {
 }
 
 export function useDiscussionThread(postId: string) {
-  const { actor, isFetching } = useActor();
+  const { actor, isFetching } = useFullActor();
 
   return useQuery<DiscussionPost | undefined>({
     queryKey: ["discussionPost", postId],
@@ -30,7 +30,7 @@ export function useDiscussionThread(postId: string) {
 }
 
 export function useCreateDiscussionPost() {
-  const { actor } = useActor();
+  const { actor } = useFullActor();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -45,7 +45,7 @@ export function useCreateDiscussionPost() {
 }
 
 export function useReplyToPost() {
-  const { actor } = useActor();
+  const { actor } = useFullActor();
   const queryClient = useQueryClient();
 
   return useMutation({

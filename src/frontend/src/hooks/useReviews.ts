@@ -1,9 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { Review } from "../backend";
-import { useActor } from "./useActor";
+import type { Review } from "../backendTypes";
+import { useFullActor } from "./useFullActor";
 
 export function useGetProductReviews(productId: string) {
-  const { actor, isFetching } = useActor();
+  const { actor, isFetching } = useFullActor();
 
   return useQuery<{ reviews: Review[]; averageRating: number }>({
     queryKey: ["productReviews", productId],
@@ -17,7 +17,7 @@ export function useGetProductReviews(productId: string) {
 }
 
 export function useSubmitReview() {
-  const { actor } = useActor();
+  const { actor } = useFullActor();
   const queryClient = useQueryClient();
 
   return useMutation({
