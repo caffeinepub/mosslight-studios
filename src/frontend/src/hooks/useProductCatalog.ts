@@ -1,101 +1,26 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useRef, useState } from "react";
 import type { CatalogEntry, CatalogEntryInput } from "../backend";
-import { createActorWithConfig } from "../config";
-import { getSecretParameter } from "../utils/urlParams";
+import { useActor } from "./useActor";
 import { useInternetIdentity } from "./useInternetIdentity";
 
 export type { CatalogEntry, CatalogEntryInput };
 
 /**
- * Creates a fresh actor directly tied to the current II identity.
- * This bypasses the shared actor cache so the catalog never accidentally
- * uses an anonymous/stale actor.
+ * Returns status info about whether the shared actor is ready for admin calls.
  */
-async function createCatalogActor(identity: unknown) {
-  const actorOptions = {
-    agentOptions: {
-      identity,
-    },
-  };
-  const actor = await createActorWithConfig(
-    actorOptions as Parameters<typeof createActorWithConfig>[0],
-  );
-  const adminToken = getSecretParameter("caffeineAdminToken") || "";
-  await actor._initializeAccessControlWithSecret(adminToken);
-  return actor;
-}
-
-/**
- * Returns a freshly-created actor that is always backed by the current
- * non-anonymous II identity.  `isReady` is only true once the actor has
- * been created and is not currently being (re)built.
- */
-function useCatalogActor() {
-  const { identity } = useInternetIdentity();
-  const principalKey = identity?.getPrincipal().toString() ?? "anonymous";
-  const isAuthenticated = !!identity && !identity.getPrincipal().isAnonymous();
-
-  // Keep a ref to the latest actor to avoid re-renders
-  const actorRef = useRef<Awaited<
-    ReturnType<typeof createActorWithConfig>
-  > | null>(null);
-  const [isBuilding, setIsBuilding] = useState(false);
-  const [isBuilt, setIsBuilt] = useState(false);
-  const lastPrincipalRef = useRef<string>("anonymous");
-
-  useEffect(() => {
-    if (!isAuthenticated || !identity) {
-      actorRef.current = null;
-      setIsBuilt(false);
-      lastPrincipalRef.current = "anonymous";
-      return;
-    }
-
-    // Only rebuild if the principal changed
-    if (principalKey === lastPrincipalRef.current && actorRef.current) {
-      return;
-    }
-
-    let cancelled = false;
-    setIsBuilding(true);
-    setIsBuilt(false);
-
-    createCatalogActor(identity)
-      .then((actor) => {
-        if (cancelled) return;
-        actorRef.current = actor;
-        lastPrincipalRef.current = principalKey;
-        setIsBuilding(false);
-        setIsBuilt(true);
-      })
-      .catch(() => {
-        if (cancelled) return;
-        actorRef.current = null;
-        setIsBuilding(false);
-        setIsBuilt(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [identity, principalKey, isAuthenticated]);
-
-  return {
-    actor: actorRef.current,
-    isReady: isAuthenticated && isBuilt && !isBuilding,
-    isBuilding,
-    isAuthenticated,
-  };
-}
-
 export function useCatalogActorStatus() {
-  const { isReady, isBuilding, isAuthenticated } = useCatalogActor();
+  const { actor, isFetching } = useActor();
+  const { identity } = useInternetIdentity();
+  const isAuthenticated = !!identity && !identity.getPrincipal().isAnonymous();
+  const isReady = !!actor && !isFetching && isAuthenticated;
+  const isBuilding = isFetching && isAuthenticated;
   return { isReady, isBuilding, isAuthenticated };
 }
 
 export function useGetCatalogEntries() {
-  const { actor, isReady } = useCatalogActor();
+  const { actor, isFetching } = useActor();
+  const { identity } = useInternetIdentity();
+  const isAuthenticated = !!identity && !identity.getPrincipal().isAnonymous();
 
   return useQuery<CatalogEntry[]>({
     queryKey: ["catalogEntries"],
@@ -103,13 +28,17 @@ export function useGetCatalogEntries() {
       if (!actor) return [];
       return actor.getCatalogEntries();
     },
-    enabled: isReady,
+    enabled: !!actor && !isFetching && isAuthenticated,
   });
 }
 
 export function useBulkUpsertCatalogEntries() {
   const queryClient = useQueryClient();
-  const { actor, isReady, isBuilding, isAuthenticated } = useCatalogActor();
+  const { actor, isFetching } = useActor();
+  const { identity } = useInternetIdentity();
+  const isAuthenticated = !!identity && !identity.getPrincipal().isAnonymous();
+  const isBuilding = isFetching && isAuthenticated;
+  const isReady = !!actor && !isFetching && isAuthenticated;
 
   return {
     ...useMutation({
@@ -119,7 +48,7 @@ export function useBulkUpsertCatalogEntries() {
             "Not signed in with Internet Identity. Please sign in and try again.",
           );
         }
-        if (isBuilding || !actor) {
+        if (isFetching || !actor) {
           throw new Error(
             "Still connecting to backend. Please wait a moment and try again.",
           );
@@ -138,7 +67,9 @@ export function useBulkUpsertCatalogEntries() {
 
 export function useClearCatalog() {
   const queryClient = useQueryClient();
-  const { actor, isBuilding, isAuthenticated } = useCatalogActor();
+  const { actor, isFetching } = useActor();
+  const { identity } = useInternetIdentity();
+  const isAuthenticated = !!identity && !identity.getPrincipal().isAnonymous();
 
   return useMutation({
     mutationFn: async () => {
@@ -147,7 +78,7 @@ export function useClearCatalog() {
           "Not signed in with Internet Identity. Please sign in and try again.",
         );
       }
-      if (isBuilding || !actor) {
+      if (isFetching || !actor) {
         throw new Error(
           "Still connecting to backend. Please wait a moment and try again.",
         );
@@ -162,7 +93,9 @@ export function useClearCatalog() {
 
 export function useDeleteCatalogEntry() {
   const queryClient = useQueryClient();
-  const { actor, isBuilding, isAuthenticated } = useCatalogActor();
+  const { actor, isFetching } = useActor();
+  const { identity } = useInternetIdentity();
+  const isAuthenticated = !!identity && !identity.getPrincipal().isAnonymous();
 
   return useMutation({
     mutationFn: async (id: string) => {
@@ -171,7 +104,7 @@ export function useDeleteCatalogEntry() {
           "Not signed in with Internet Identity. Please sign in and try again.",
         );
       }
-      if (isBuilding || !actor) {
+      if (isFetching || !actor) {
         throw new Error(
           "Still connecting to backend. Please wait a moment and try again.",
         );
