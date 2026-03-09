@@ -52,12 +52,12 @@ import { AlertTriangle, LogIn } from "lucide-react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import AdminGuard from "../components/AdminGuard";
-import { useActor } from "../hooks/useActor";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
 import {
   type CatalogEntry,
   type CatalogEntryInput,
   useBulkUpsertCatalogEntries,
+  useCatalogActorStatus,
   useClearCatalog,
   useGetCatalogEntries,
 } from "../hooks/useProductCatalog";
@@ -131,12 +131,14 @@ type SortDir = "asc" | "desc";
 export default function AdminProductCatalogPage() {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { identity, login: iiLogin } = useInternetIdentity();
-  const { isFetching: actorFetching } = useActor();
-  const isIIAuthenticated =
-    !!identity && !identity.getPrincipal().isAnonymous();
-  // True when II is connected but the actor is still being rebuilt with the new identity
-  const isActorInitializing = isIIAuthenticated && actorFetching;
+  const { login: iiLogin } = useInternetIdentity();
+  const {
+    isReady,
+    isBuilding,
+    isAuthenticated: isIIAuthenticated,
+  } = useCatalogActorStatus();
+  // True when II is connected but the catalog actor is still being built
+  const isActorInitializing = isIIAuthenticated && isBuilding;
 
   // Data
   const { data: entries = [], isLoading } = useGetCatalogEntries();
@@ -475,6 +477,7 @@ export default function AdminProductCatalogPage() {
                   parsedRows.length === 0 ||
                   bulkUpsert.isPending ||
                   !isIIAuthenticated ||
+                  !isReady ||
                   isActorInitializing
                 }
                 className="bg-lime-700 hover:bg-lime-800 text-white"
