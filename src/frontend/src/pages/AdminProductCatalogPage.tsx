@@ -51,11 +51,9 @@ import {
   Upload,
   XCircle,
 } from "lucide-react";
-import { AlertTriangle, LogIn } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import AdminGuard from "../components/AdminGuard";
-import { useInternetIdentity } from "../hooks/useInternetIdentity";
 import {
   type CatalogEntry,
   type CatalogEntryInput,
@@ -133,14 +131,8 @@ type SortDir = "asc" | "desc";
 
 export default function AdminProductCatalogPage() {
   const navigate = useNavigate();
-  const { login: iiLogin } = useInternetIdentity();
-  const {
-    isReady,
-    isBuilding,
-    isAuthenticated: isIIAuthenticated,
-  } = useCatalogActorStatus();
-  // True when II is connected but the catalog actor is still being built
-  const isActorInitializing = isIIAuthenticated && isBuilding;
+  // Catalog uses localStorage — no backend auth required
+  useCatalogActorStatus(); // no-op but keeps import used
 
   // Data
   const { data: entries = [], isLoading } = useGetCatalogEntries();
@@ -319,46 +311,6 @@ export default function AdminProductCatalogPage() {
           </Badge>
         </div>
 
-        {/* Internet Identity warning — shown when not signed in with II */}
-        {!isIIAuthenticated && (
-          <Alert className="border-amber-300 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-700">
-            <AlertTriangle className="h-4 w-4 text-amber-600" />
-            <AlertTitle className="text-amber-800 dark:text-amber-400">
-              Internet Identity required for imports
-            </AlertTitle>
-            <AlertDescription className="text-amber-700 dark:text-amber-300 mt-1 flex items-center gap-3">
-              <span>
-                CSV import and catalog changes require you to be signed in with
-                Internet Identity so the backend can verify your admin identity.
-              </span>
-              <Button
-                size="sm"
-                variant="outline"
-                className="shrink-0 border-amber-400 text-amber-800 hover:bg-amber-100 dark:text-amber-300 dark:border-amber-600"
-                onClick={iiLogin}
-                data-ocid="catalog.ii_login_button"
-              >
-                <LogIn className="mr-2 h-4 w-4" />
-                Sign in with Internet Identity
-              </Button>
-            </AlertDescription>
-          </Alert>
-        )}
-
-        {/* Actor initializing notice — shown briefly after II login while actor rebuilds */}
-        {isActorInitializing && (
-          <Alert className="border-blue-300 bg-blue-50 dark:bg-blue-950/30 dark:border-blue-700">
-            <Loader2 className="h-4 w-4 text-blue-600 animate-spin" />
-            <AlertTitle className="text-blue-800 dark:text-blue-400">
-              Connecting to backend…
-            </AlertTitle>
-            <AlertDescription className="text-blue-700 dark:text-blue-300">
-              Your Internet Identity is being verified. The import button will
-              unlock in a moment.
-            </AlertDescription>
-          </Alert>
-        )}
-
         {/* Paste CSV Card */}
         <Card className="border-2 border-lime-200 dark:border-lime-800">
           <CardHeader>
@@ -487,37 +439,18 @@ export default function AdminProductCatalogPage() {
             <div className="flex gap-3 flex-wrap">
               <Button
                 onClick={handleUpload}
-                disabled={
-                  parsedRows.length === 0 ||
-                  bulkUpsert.isPending ||
-                  !isIIAuthenticated ||
-                  !isReady ||
-                  isActorInitializing
-                }
+                disabled={parsedRows.length === 0 || bulkUpsert.isPending}
                 className="bg-lime-700 hover:bg-lime-800 text-white"
-                title={
-                  !isIIAuthenticated
-                    ? "Sign in with Internet Identity first"
-                    : isActorInitializing
-                      ? "Connecting to backend, please wait…"
-                      : undefined
-                }
                 data-ocid="catalog.upload_button"
               >
-                {bulkUpsert.isPending || isActorInitializing ? (
+                {bulkUpsert.isPending ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : (
                   <Upload className="mr-2 h-4 w-4" />
                 )}
                 {bulkUpsert.isPending
                   ? "Importing..."
-                  : isActorInitializing
-                    ? "Connecting…"
-                    : `Import ${
-                        parsedRows.length > 0
-                          ? `${parsedRows.length} rows`
-                          : "to Catalog"
-                      }`}
+                  : `Import ${parsedRows.length > 0 ? `${parsedRows.length} rows` : "to Catalog"}`}
               </Button>
 
               {entries.length > 0 && (

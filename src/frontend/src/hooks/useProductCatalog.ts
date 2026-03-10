@@ -1,139 +1,117 @@
+// useProductCatalog.ts
+// Stores catalog data in localStorage — no backend auth needed.
+// Financial data is private and only viewed by the admin on their own device.
+
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { CatalogEntry, CatalogEntryInput } from "../backend";
-import { getSecretParameter } from "../utils/urlParams";
-import { useActor } from "./useActor";
-import { useInternetIdentity } from "./useInternetIdentity";
 
 export type { CatalogEntry, CatalogEntryInput };
 
-/**
- * Re-initialize access control on the actor so the backend freshly recognizes
- * the caller as admin. Must be called before any admin-only mutation.
- */
-async function reAuthActor(
-  actor: NonNullable<ReturnType<typeof useActor>["actor"]>,
-) {
+const CATALOG_STORAGE_KEY = "mosslight_product_catalog";
+const QUERY_KEY = ["catalogEntries"];
+
+// ─── localStorage helpers ────────────────────────────────────────────────────
+
+function loadEntries(): CatalogEntry[] {
   try {
-    const adminToken = getSecretParameter("caffeineAdminToken") || "";
-    await actor._initializeAccessControlWithSecret(adminToken);
+    const raw = localStorage.getItem(CATALOG_STORAGE_KEY);
+    return raw ? (JSON.parse(raw) as CatalogEntry[]) : [];
   } catch {
-    // If re-auth fails, the mutation itself will surface the unauthorized error
+    return [];
   }
 }
 
-/**
- * Returns status info about whether the shared actor is ready for admin calls.
- */
-export function useCatalogActorStatus() {
-  const { actor, isFetching } = useActor();
-  const { identity } = useInternetIdentity();
-  const isAuthenticated = !!identity && !identity.getPrincipal().isAnonymous();
-  const isReady = !!actor && !isFetching && isAuthenticated;
-  const isBuilding = isFetching && isAuthenticated;
-  return { isReady, isBuilding, isAuthenticated };
+function saveEntries(entries: CatalogEntry[]): void {
+  localStorage.setItem(CATALOG_STORAGE_KEY, JSON.stringify(entries));
 }
 
-export function useGetCatalogEntries() {
-  const { actor, isFetching } = useActor();
-  const { identity } = useInternetIdentity();
-  const isAuthenticated = !!identity && !identity.getPrincipal().isAnonymous();
+// ─── Always-ready status (no backend needed) ─────────────────────────────────
 
+export function useCatalogActorStatus() {
+  return { isReady: true, isBuilding: false, isAuthenticated: true };
+}
+
+// ─── Hooks ───────────────────────────────────────────────────────────────────
+
+export function useGetCatalogEntries() {
   return useQuery<CatalogEntry[]>({
-    queryKey: ["catalogEntries"],
-    queryFn: async () => {
-      if (!actor) return [];
-      return actor.getCatalogEntries();
-    },
-    enabled: !!actor && !isFetching && isAuthenticated,
+    queryKey: QUERY_KEY,
+    queryFn: loadEntries,
+    staleTime: 0,
   });
 }
 
 export function useBulkUpsertCatalogEntries() {
   const queryClient = useQueryClient();
-  const { actor, isFetching } = useActor();
-  const { identity } = useInternetIdentity();
-  const isAuthenticated = !!identity && !identity.getPrincipal().isAnonymous();
-  const isBuilding = isFetching && isAuthenticated;
-  const isReady = !!actor && !isFetching && isAuthenticated;
 
   return {
     ...useMutation({
-      mutationFn: async (entries: CatalogEntryInput[]) => {
-        if (!isAuthenticated) {
-          throw new Error(
-            "Not signed in with Internet Identity. Please sign in and try again.",
-          );
-        }
-        if (isFetching || !actor) {
-          throw new Error(
-            "Still connecting to backend. Please wait a moment and try again.",
-          );
-        }
-        // Re-initialize access control so the backend recognizes the caller as
-        // admin even if the canister was restarted since the actor was cached.
-        await reAuthActor(actor);
-        return actor.bulkUpsertCatalogEntries(entries);
+      mutationFn: async (
+        inputs: CatalogEntryInput[],
+      ): Promise<CatalogEntry[]> => {
+        const existing = loadEntries();
+        const map = new Map<string, CatalogEntry>(
+          existing.map((e) => [e.id, e]),
+        );
+
+        const now = BigInt(Date.now()) * BigInt(1_000_000);
+
+        const upserted: CatalogEntry[] = inputs.map((input, idx) => {
+          // Use a deterministic key so re-uploading the same CSV updates rows
+          const key = `${input.item_name}::${input.size}::${input.merch_type}`;
+          const existing_entry = [...map.values()].find((e) => {
+            const eKey = `${e.item_name}::${e.size}::${e.merch_type}`;
+            return eKey === key;
+          });
+
+          const id = existing_entry?.id ?? `catalog_${idx}_${Date.now()}`;
+          const entry: CatalogEntry = {
+            ...input,
+            id,
+            linkedProductId: input.linkedProductId ?? "",
+            createdAt: existing_entry?.createdAt ?? now,
+          };
+          map.set(id, entry);
+          return entry;
+        });
+
+        saveEntries([...map.values()]);
+        return upserted;
       },
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["catalogEntries"] });
+        queryClient.invalidateQueries({ queryKey: QUERY_KEY });
       },
     }),
-    isReady,
-    isBuilding,
-    isAuthenticated,
+    isReady: true,
+    isBuilding: false,
+    isAuthenticated: true,
   };
 }
 
 export function useClearCatalog() {
   const queryClient = useQueryClient();
-  const { actor, isFetching } = useActor();
-  const { identity } = useInternetIdentity();
-  const isAuthenticated = !!identity && !identity.getPrincipal().isAnonymous();
 
   return useMutation({
     mutationFn: async () => {
-      if (!isAuthenticated) {
-        throw new Error(
-          "Not signed in with Internet Identity. Please sign in and try again.",
-        );
-      }
-      if (isFetching || !actor) {
-        throw new Error(
-          "Still connecting to backend. Please wait a moment and try again.",
-        );
-      }
-      await reAuthActor(actor);
-      return actor.clearCatalog();
+      saveEntries([]);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["catalogEntries"] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEY });
     },
   });
 }
 
 export function useDeleteCatalogEntry() {
   const queryClient = useQueryClient();
-  const { actor, isFetching } = useActor();
-  const { identity } = useInternetIdentity();
-  const isAuthenticated = !!identity && !identity.getPrincipal().isAnonymous();
 
   return useMutation({
     mutationFn: async (id: string) => {
-      if (!isAuthenticated) {
-        throw new Error(
-          "Not signed in with Internet Identity. Please sign in and try again.",
-        );
-      }
-      if (isFetching || !actor) {
-        throw new Error(
-          "Still connecting to backend. Please wait a moment and try again.",
-        );
-      }
-      await reAuthActor(actor);
-      return actor.deleteCatalogEntry(id);
+      const entries = loadEntries().filter((e) => e.id !== id);
+      saveEntries(entries);
+      return true;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["catalogEntries"] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEY });
     },
   });
 }
