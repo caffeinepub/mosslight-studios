@@ -1,9 +1,25 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { CatalogEntry, CatalogEntryInput } from "../backend";
+import { getSecretParameter } from "../utils/urlParams";
 import { useActor } from "./useActor";
 import { useInternetIdentity } from "./useInternetIdentity";
 
 export type { CatalogEntry, CatalogEntryInput };
+
+/**
+ * Re-initialize access control on the actor so the backend freshly recognizes
+ * the caller as admin. Must be called before any admin-only mutation.
+ */
+async function reAuthActor(
+  actor: NonNullable<ReturnType<typeof useActor>["actor"]>,
+) {
+  try {
+    const adminToken = getSecretParameter("caffeineAdminToken") || "";
+    await actor._initializeAccessControlWithSecret(adminToken);
+  } catch {
+    // If re-auth fails, the mutation itself will surface the unauthorized error
+  }
+}
 
 /**
  * Returns status info about whether the shared actor is ready for admin calls.
@@ -53,6 +69,9 @@ export function useBulkUpsertCatalogEntries() {
             "Still connecting to backend. Please wait a moment and try again.",
           );
         }
+        // Re-initialize access control so the backend recognizes the caller as
+        // admin even if the canister was restarted since the actor was cached.
+        await reAuthActor(actor);
         return actor.bulkUpsertCatalogEntries(entries);
       },
       onSuccess: () => {
@@ -83,6 +102,7 @@ export function useClearCatalog() {
           "Still connecting to backend. Please wait a moment and try again.",
         );
       }
+      await reAuthActor(actor);
       return actor.clearCatalog();
     },
     onSuccess: () => {
@@ -109,6 +129,7 @@ export function useDeleteCatalogEntry() {
           "Still connecting to backend. Please wait a moment and try again.",
         );
       }
+      await reAuthActor(actor);
       return actor.deleteCatalogEntry(id);
     },
     onSuccess: () => {
