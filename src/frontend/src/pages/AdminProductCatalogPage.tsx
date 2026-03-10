@@ -84,33 +84,63 @@ type CSVRow = {
   [key: string]: string;
 };
 
+/** Strip currency/percent symbols and thousand-separator commas before parsing */
+function parseNum(raw: string): number {
+  const cleaned = (raw ?? "").replace(/[$%,\s]/g, "");
+  const n = Number.parseFloat(cleaned);
+  return Number.isFinite(n) ? n : 0;
+}
+
+/** Split a single CSV line respecting double-quoted fields */
+function splitCSVLine(line: string): string[] {
+  const result: string[] = [];
+  let current = "";
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') {
+      inQuotes = !inQuotes;
+    } else if (ch === "," && !inQuotes) {
+      result.push(current.trim());
+      current = "";
+    } else {
+      current += ch;
+    }
+  }
+  result.push(current.trim());
+  return result;
+}
+
 function parseCSV(text: string): CatalogEntryInput[] {
-  const lines = text.trim().split("\n");
+  const lines = text.trim().split(/\r?\n/);
   if (lines.length < 2) return [];
-  const headers = lines[0].split(",").map((h) => h.trim().replace(/"/g, ""));
-  return lines.slice(1).map((line) => {
-    const values = line.split(",").map((v) => v.trim().replace(/"/g, ""));
-    const row = {} as CSVRow;
-    headers.forEach((h, i) => {
-      row[h] = values[i] || "";
+  const headers = splitCSVLine(lines[0]).map((h) => h.replace(/"/g, ""));
+  return lines
+    .slice(1)
+    .filter((l) => l.trim())
+    .map((line) => {
+      const values = splitCSVLine(line).map((v) => v.replace(/"/g, ""));
+      const row = {} as CSVRow;
+      headers.forEach((h, i) => {
+        row[h] = values[i] ?? "";
+      });
+      return {
+        merch_type: row.merch_type || "",
+        item_name: row.item_name || "",
+        size: row.size || "",
+        total_cost: parseNum(row.total_cost),
+        production_cost: parseNum(row.production_cost),
+        profit_margin: parseNum(row.profit_margin),
+        profit_amount: parseNum(row.profit_amount),
+        shipping: parseNum(row.shipping),
+        az_tax_rate: parseNum(row.az_tax_rate),
+        az_tax_total: parseNum(row.az_tax_total),
+        quarter_sales: parseNum(row.quarter_sales),
+        quarterly_earnings: parseNum(row.quarterly_earnings),
+        yearly_sales: parseNum(row.yearly_sales),
+        yearly_earnings: parseNum(row.yearly_earnings),
+      };
     });
-    return {
-      merch_type: row.merch_type || "",
-      item_name: row.item_name || "",
-      size: row.size || "",
-      total_cost: Number.parseFloat(row.total_cost) || 0,
-      production_cost: Number.parseFloat(row.production_cost) || 0,
-      profit_margin: Number.parseFloat(row.profit_margin) || 0,
-      profit_amount: Number.parseFloat(row.profit_amount) || 0,
-      shipping: Number.parseFloat(row.shipping) || 0,
-      az_tax_rate: Number.parseFloat(row.az_tax_rate) || 0,
-      az_tax_total: Number.parseFloat(row.az_tax_total) || 0,
-      quarter_sales: Number.parseFloat(row.quarter_sales) || 0,
-      quarterly_earnings: Number.parseFloat(row.quarterly_earnings) || 0,
-      yearly_sales: Number.parseFloat(row.yearly_sales) || 0,
-      yearly_earnings: Number.parseFloat(row.yearly_earnings) || 0,
-    };
-  });
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -320,7 +350,9 @@ export default function AdminProductCatalogPage() {
             </CardTitle>
             <CardDescription>
               Paste your Mosslight product catalog CSV below. Existing rows will
-              be updated; new rows will be added. Columns required:{" "}
+              be updated; new rows will be added. Dollar signs, percent signs,
+              and comma-formatted numbers are handled automatically. Columns
+              required:{" "}
               <code className="text-xs bg-muted px-1 rounded">
                 merch_type, item_name, size, total_cost, production_cost,
                 profit_margin, profit_amount, shipping, az_tax_rate,
@@ -344,7 +376,7 @@ export default function AdminProductCatalogPage() {
                 }}
                 rows={12}
                 placeholder={
-                  "Paste your CSV data here2026\n\nFirst row should be headers:\nmerch_type, item_name, size, total_cost, production_cost, profit_margin, profit_amount, shipping, az_tax_rate, az_tax_total, quarter_sales, quarterly_earnings, yearly_sales, yearly_earnings"
+                  "Paste your CSV data here\n\nFirst row should be headers:\nmerch_type, item_name, size, total_cost, production_cost, profit_margin, profit_amount, shipping, az_tax_rate, az_tax_total, quarter_sales, quarterly_earnings, yearly_sales, yearly_earnings"
                 }
                 className="font-mono text-xs resize-y min-h-[200px] bg-muted/20 focus-visible:ring-lime-500"
                 data-ocid="catalog.textarea"
@@ -450,7 +482,11 @@ export default function AdminProductCatalogPage() {
                 )}
                 {bulkUpsert.isPending
                   ? "Importing..."
-                  : `Import ${parsedRows.length > 0 ? `${parsedRows.length} rows` : "to Catalog"}`}
+                  : `Import ${
+                      parsedRows.length > 0
+                        ? `${parsedRows.length} rows`
+                        : "to Catalog"
+                    }`}
               </Button>
 
               {entries.length > 0 && (
@@ -459,7 +495,7 @@ export default function AdminProductCatalogPage() {
                     <Button
                       variant="outline"
                       className="border-destructive text-destructive hover:bg-destructive/10"
-                      data-ocid="catalog.clear_button"
+                      data-ocid="catalog.delete_button"
                     >
                       <Trash2 className="mr-2 h-4 w-4" />
                       Clear Catalog
