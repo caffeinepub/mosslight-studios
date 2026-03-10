@@ -36,9 +36,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Textarea } from "@/components/ui/textarea";
 import { useNavigate } from "@tanstack/react-router";
 import {
   ArrowUpDown,
+  CheckCircle2,
   ChevronDown,
   ChevronUp,
   DatabaseZap,
@@ -47,9 +49,10 @@ import {
   Search,
   Trash2,
   Upload,
+  XCircle,
 } from "lucide-react";
 import { AlertTriangle, LogIn } from "lucide-react";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import AdminGuard from "../components/AdminGuard";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
@@ -130,7 +133,6 @@ type SortDir = "asc" | "desc";
 
 export default function AdminProductCatalogPage() {
   const navigate = useNavigate();
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const { login: iiLogin } = useInternetIdentity();
   const {
     isReady,
@@ -148,10 +150,13 @@ export default function AdminProductCatalogPage() {
   // Units sold (localStorage)
   const { getSaleRecord } = useSaleRecords();
 
-  // CSV state
+  // Paste CSV state
+  const [csvText, setCsvText] = useState("");
   const [parsedRows, setParsedRows] = useState<CatalogEntryInput[]>([]);
-  const [fileName, setFileName] = useState<string | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
+  const [parseStatus, setParseStatus] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
 
   // Filter / sort state
   const [searchTerm, setSearchTerm] = useState("");
@@ -227,54 +232,49 @@ export default function AdminProductCatalogPage() {
     );
   }
 
-  // ── File handling ──────────────────────────────────────────────────────────
+  // ── Parse CSV text ─────────────────────────────────────────────────────────
 
-  const handleFile = useCallback((file: File) => {
-    if (!file.name.endsWith(".csv")) {
-      toast.error("Please select a .csv file");
+  const handleParseCSV = () => {
+    if (!csvText.trim()) {
+      setParseStatus({
+        type: "error",
+        message: "Please paste CSV data first.",
+      });
+      setParsedRows([]);
       return;
     }
-    setFileName(file.name);
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const text = ev.target?.result as string;
-      const rows = parseCSV(text);
+    const rows = parseCSV(csvText);
+    if (rows.length === 0) {
+      setParseStatus({
+        type: "error",
+        message:
+          "No data rows found. Make sure the first row contains headers.",
+      });
+      setParsedRows([]);
+    } else {
       setParsedRows(rows);
-      if (rows.length === 0) {
-        toast.error("No data rows found in CSV");
-      } else {
-        toast.success(`Parsed ${rows.length} rows — ready to upload`);
-      }
-    };
-    reader.readAsText(file);
-  }, []);
-
-  const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) handleFile(file);
+      setParseStatus({
+        type: "success",
+        message: `${rows.length} rows ready to import`,
+      });
+    }
   };
 
-  const onDrop = (e: React.DragEvent<HTMLElement>) => {
-    e.preventDefault();
-    setIsDragging(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file) handleFile(file);
-  };
-
-  // ── Upload ─────────────────────────────────────────────────────────────────
+  // ── Import ─────────────────────────────────────────────────────────────────
 
   const handleUpload = async () => {
     if (parsedRows.length === 0) {
-      toast.error("No data to upload. Please select a CSV file first.");
+      toast.error("No data to import. Please paste and parse your CSV first.");
       return;
     }
     try {
       await bulkUpsert.mutateAsync(parsedRows);
       toast.success(
-        `Successfully uploaded ${parsedRows.length} catalog entries`,
+        `Successfully imported ${parsedRows.length} catalog entries`,
       );
       setParsedRows([]);
-      setFileName(null);
+      setCsvText("");
+      setParseStatus(null);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       toast.error(`Upload failed: ${msg}`);
@@ -324,11 +324,11 @@ export default function AdminProductCatalogPage() {
           <Alert className="border-amber-300 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-700">
             <AlertTriangle className="h-4 w-4 text-amber-600" />
             <AlertTitle className="text-amber-800 dark:text-amber-400">
-              Internet Identity required for uploads
+              Internet Identity required for imports
             </AlertTitle>
             <AlertDescription className="text-amber-700 dark:text-amber-300 mt-1 flex items-center gap-3">
               <span>
-                CSV upload and catalog changes require you to be signed in with
+                CSV import and catalog changes require you to be signed in with
                 Internet Identity so the backend can verify your admin identity.
               </span>
               <Button
@@ -353,21 +353,22 @@ export default function AdminProductCatalogPage() {
               Connecting to backend…
             </AlertTitle>
             <AlertDescription className="text-blue-700 dark:text-blue-300">
-              Your Internet Identity is being verified. The upload button will
+              Your Internet Identity is being verified. The import button will
               unlock in a moment.
             </AlertDescription>
           </Alert>
         )}
 
-        {/* CSV Upload Card */}
-        <Card className="border-dashed border-2 border-lime-200 dark:border-lime-800">
+        {/* Paste CSV Card */}
+        <Card className="border-2 border-lime-200 dark:border-lime-800">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg font-serif">
               <FileSpreadsheet className="h-5 w-5 text-lime-600" />
-              Upload CSV Data
+              Paste CSV Data
             </CardTitle>
             <CardDescription>
-              Upload your Mosslight product catalog CSV. Columns required:{" "}
+              Paste your Mosslight product catalog CSV below. Existing rows will
+              be updated; new rows will be added. Columns required:{" "}
               <code className="text-xs bg-muted px-1 rounded">
                 merch_type, item_name, size, total_cost, production_cost,
                 profit_margin, profit_amount, shipping, az_tax_rate,
@@ -377,49 +378,62 @@ export default function AdminProductCatalogPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Drag & drop zone */}
-            <label
-              htmlFor="csv-file-input"
-              className={`block relative rounded-lg border-2 border-dashed p-8 text-center cursor-pointer transition-colors ${
-                isDragging
-                  ? "border-lime-500 bg-lime-50 dark:bg-lime-950/30"
-                  : "border-border hover:border-lime-400 hover:bg-muted/40"
-              }`}
-              onDragOver={(e) => {
-                e.preventDefault();
-                setIsDragging(true);
-              }}
-              onDragLeave={() => setIsDragging(false)}
-              onDrop={onDrop}
-              data-ocid="catalog.dropzone"
-            >
-              <input
-                id="csv-file-input"
-                ref={fileInputRef}
-                type="file"
-                accept=".csv"
-                className="hidden"
-                onChange={onFileChange}
+            {/* Textarea + Parse button */}
+            <div className="flex flex-col gap-3">
+              <Textarea
+                value={csvText}
+                onChange={(e) => {
+                  setCsvText(e.target.value);
+                  // Reset parsed state when text changes
+                  if (parsedRows.length > 0) {
+                    setParsedRows([]);
+                    setParseStatus(null);
+                  }
+                }}
+                rows={12}
+                placeholder={
+                  "Paste your CSV data here2026\n\nFirst row should be headers:\nmerch_type, item_name, size, total_cost, production_cost, profit_margin, profit_amount, shipping, az_tax_rate, az_tax_total, quarter_sales, quarterly_earnings, yearly_sales, yearly_earnings"
+                }
+                className="font-mono text-xs resize-y min-h-[200px] bg-muted/20 focus-visible:ring-lime-500"
+                data-ocid="catalog.textarea"
               />
-              <Upload className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-              {fileName ? (
-                <div>
-                  <p className="font-medium text-foreground">{fileName}</p>
-                  <p className="text-sm text-lime-600 mt-1">
-                    {parsedRows.length} rows parsed and ready
-                  </p>
-                </div>
-              ) : (
-                <div>
-                  <p className="font-medium text-foreground">
-                    Drop your CSV here or click to browse
-                  </p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Accepts .csv files
-                  </p>
-                </div>
-              )}
-            </label>
+
+              <div className="flex items-center gap-3 flex-wrap">
+                <Button
+                  onClick={handleParseCSV}
+                  variant="outline"
+                  disabled={!csvText.trim()}
+                  className="border-lime-400 text-lime-700 hover:bg-lime-50 dark:text-lime-400 dark:border-lime-700 dark:hover:bg-lime-950/30"
+                  data-ocid="catalog.secondary_button"
+                >
+                  <FileSpreadsheet className="mr-2 h-4 w-4" />
+                  Parse &amp; Preview
+                </Button>
+
+                {/* Parse status message */}
+                {parseStatus && (
+                  <span
+                    className={`flex items-center gap-1.5 text-sm font-medium ${
+                      parseStatus.type === "success"
+                        ? "text-emerald-700 dark:text-emerald-400"
+                        : "text-destructive"
+                    }`}
+                    data-ocid={
+                      parseStatus.type === "success"
+                        ? "catalog.success_state"
+                        : "catalog.error_state"
+                    }
+                  >
+                    {parseStatus.type === "success" ? (
+                      <CheckCircle2 className="h-4 w-4" />
+                    ) : (
+                      <XCircle className="h-4 w-4" />
+                    )}
+                    {parseStatus.message}
+                  </span>
+                )}
+              </div>
+            </div>
 
             {/* Preview table */}
             {parsedRows.length > 0 && (
@@ -496,10 +510,14 @@ export default function AdminProductCatalogPage() {
                   <Upload className="mr-2 h-4 w-4" />
                 )}
                 {bulkUpsert.isPending
-                  ? "Uploading..."
+                  ? "Importing..."
                   : isActorInitializing
                     ? "Connecting…"
-                    : `Upload ${parsedRows.length > 0 ? `${parsedRows.length} rows` : "to Catalog"}`}
+                    : `Import ${
+                        parsedRows.length > 0
+                          ? `${parsedRows.length} rows`
+                          : "to Catalog"
+                      }`}
               </Button>
 
               {entries.length > 0 && (
@@ -643,7 +661,7 @@ export default function AdminProductCatalogPage() {
                 <DatabaseZap className="mx-auto h-12 w-12 opacity-20 mb-3" />
                 <p className="font-medium">No catalog data yet</p>
                 <p className="text-sm mt-1">
-                  Upload a CSV file above to populate the catalog
+                  Paste your CSV data above to populate the catalog
                 </p>
               </div>
             ) : (
