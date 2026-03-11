@@ -396,6 +396,8 @@ export interface FullBackendInterface extends backendInterface {
     status: CommissionRequestStatus,
   ): Promise<CommissionRequest>;
 
+  adminLoginWithPasscode(passcode: string): Promise<boolean>;
+
   // Legacy access control
   _initializeAccessControlWithSecret(secret: string): Promise<void>;
 }

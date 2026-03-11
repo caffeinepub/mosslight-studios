@@ -12,7 +12,6 @@ import { AdminAuthProvider } from "./hooks/useAdminAuth";
 import AboutPage from "./pages/AboutPage";
 import AdminAnalyticsPage from "./pages/AdminAnalyticsPage";
 import AdminBlogPage from "./pages/AdminBlogPage";
-import AdminCatalogDetailPage from "./pages/AdminCatalogDetailPage";
 import AdminCommissionsPage from "./pages/AdminCommissionsPage";
 import AdminCreatorDashboardPage from "./pages/AdminCreatorDashboardPage";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
@@ -21,8 +20,8 @@ import AdminGalleryPage from "./pages/AdminGalleryPage";
 import AdminMessagesPage from "./pages/AdminMessagesPage";
 import AdminOrdersPage from "./pages/AdminOrdersPage";
 import AdminPortfolioPage from "./pages/AdminPortfolioPage";
-import AdminProductCatalogPage from "./pages/AdminProductCatalogPage";
 import AdminProductsPage from "./pages/AdminProductsPage";
+import AdminTaskBoardPage from "./pages/AdminTaskBoardPage";
 import BlogDetailPage from "./pages/BlogDetailPage";
 import BlogPage from "./pages/BlogPage";
 import CartPage from "./pages/CartPage";
@@ -212,16 +211,10 @@ const adminCreatorRoute = createRoute({
   component: AdminCreatorDashboardPage,
 });
 
-const adminCatalogRoute = createRoute({
+const adminTasksRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: "/admin/catalog",
-  component: AdminProductCatalogPage,
-});
-
-const adminCatalogDetailRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/admin/catalog/$itemName",
-  component: AdminCatalogDetailPage,
+  path: "/admin/tasks",
+  component: AdminTaskBoardPage,
 });
 
 class ErrorBoundary extends React.Component<
@@ -290,8 +283,7 @@ const routeTree = rootRoute.addChildren([
   commissionDetailRoute,
   adminCommissionsRoute,
   adminCreatorRoute,
-  adminCatalogRoute,
-  adminCatalogDetailRoute,
+  adminTasksRoute,
 ]);
 
 const router = createRouter({ routeTree });

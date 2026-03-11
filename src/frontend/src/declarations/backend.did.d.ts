@@ -153,6 +153,7 @@ export interface _SERVICE {
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'registerOrLogin' : ActorMethod<[], undefined>,
+  'adminLoginWithPasscode' : ActorMethod<[string], boolean>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'updateDrawingDate' : ActorMethod<[string, bigint], Drawing>,
   'updateDrawingStatus' : ActorMethod<[string, string, boolean], Drawing>,

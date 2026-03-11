@@ -218,6 +218,7 @@ export interface backendInterface {
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
     registerOrLogin(): Promise<void>;
+    adminLoginWithPasscode(passcode: string): Promise<boolean>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     updateDrawingDate(id: string, newDate: bigint): Promise<Drawing>;
     updateDrawingStatus(id: string, field: string, value: boolean): Promise<Drawing>;
@@ -657,6 +658,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.upsertMerchPipeline(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+            return result;
+        }
+    }
+    async adminLoginWithPasscode(arg0: string): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.adminLoginWithPasscode(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.adminLoginWithPasscode(arg0);
             return result;
         }
     }

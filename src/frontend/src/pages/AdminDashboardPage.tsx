@@ -12,6 +12,7 @@ import {
   BookOpen,
   Brush,
   Camera,
+  ClipboardList,
   Image,
   MessageCircle,
   MessageSquare,
@@ -19,7 +20,6 @@ import {
   Palette,
   ShoppingBag,
   Sparkles,
-  TableProperties,
 } from "lucide-react";
 import AdminGuard from "../components/AdminGuard";
 import AdminNotificationsPanel from "../components/AdminNotificationsPanel";
@@ -118,12 +118,12 @@ export default function AdminDashboardPage() {
       bgColor: "bg-pink-50 dark:bg-pink-950",
     },
     {
-      title: "Product Catalog",
-      description: "Upload and analyze your financial product data (CSV)",
-      icon: TableProperties,
-      path: "/admin/catalog",
-      color: "text-lime-600",
-      bgColor: "bg-lime-50 dark:bg-lime-950",
+      title: "Task Board",
+      description: "Manage your to-do list and track progress Monday.com style",
+      icon: ClipboardList,
+      path: "/admin/tasks",
+      color: "text-emerald-600",
+      bgColor: "bg-emerald-50 dark:bg-emerald-950",
     },
   ];
 

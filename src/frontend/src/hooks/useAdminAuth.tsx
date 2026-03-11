@@ -4,15 +4,13 @@ import {
   useCallback,
   useContext,
   useEffect,
-  useRef,
   useState,
 } from "react";
-import { useActor } from "./useActor";
-import { useInternetIdentity } from "./useInternetIdentity";
+import { useFullActor } from "./useFullActor";
 
 const ADMIN_PASSCODE = "09131991";
 const ADMIN_SESSION_KEY = "adminSession";
-const SESSION_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+const SESSION_DURATION = 24 * 60 * 60 * 1000;
 
 interface AdminSession {
   authenticated: boolean;
@@ -36,13 +34,9 @@ const AdminAuthContext = createContext<AdminAuthContextType>({
 export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [isInitializingAdmin, setIsInitializingAdmin] = useState(false);
-  const { actor, isFetching: actorFetching } = useActor();
-  const { identity } = useInternetIdentity();
-  const registrationAttempted = useRef(false);
+  const { actor } = useFullActor();
 
-  const isAuthenticated = !!identity;
-
-  // Check for existing valid passcode session on mount
+  // Check for existing valid session on mount
   useEffect(() => {
     const stored = localStorage.getItem(ADMIN_SESSION_KEY);
     if (stored) {
@@ -62,66 +56,44 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // When actor is ready and user is authenticated via Internet Identity,
-  // call registerOrLogin() to auto-register the first user as admin,
-  // then check if the caller is admin.
+  // When actor becomes available and we have a valid session, re-register with backend
   useEffect(() => {
-    if (
-      !actor ||
-      actorFetching ||
-      !isAuthenticated ||
-      registrationAttempted.current
-    ) {
-      return;
-    }
-
-    registrationAttempted.current = true;
+    if (!actor || !isAdminAuthenticated) return;
     setIsInitializingAdmin(true);
+    actor
+      .adminLoginWithPasscode(ADMIN_PASSCODE)
+      .catch(() => {})
+      .finally(() => setIsInitializingAdmin(false));
+  }, [actor, isAdminAuthenticated]);
 
-    (async () => {
-      try {
-        // This registers the caller as admin if no admin exists yet,
-        // or is a no-op if an admin is already registered.
-        await actor.registerOrLogin();
+  const login = useCallback(
+    async (passcode: string): Promise<boolean> => {
+      if (passcode !== ADMIN_PASSCODE) {
+        return false;
+      }
 
-        // Now check if this caller is actually the admin
-        const isAdmin = await actor.isCallerAdmin();
-        if (isAdmin) {
-          setIsAdminAuthenticated(true);
+      // Register with backend
+      if (actor) {
+        try {
+          const success = await actor.adminLoginWithPasscode(passcode);
+          if (!success) {
+            return false;
+          }
+        } catch {
+          // Backend call failed but continue - local session still works
         }
-      } catch (_err) {
-        // Silently handle errors (e.g., anonymous principal)
-      } finally {
-        setIsInitializingAdmin(false);
       }
-    })();
-  }, [actor, actorFetching, isAuthenticated]);
 
-  // Reset registration flag when identity changes (login/logout)
-  useEffect(() => {
-    registrationAttempted.current = false;
-    if (!isAuthenticated) {
-      // Clear admin state when user logs out (unless passcode session exists)
-      const stored = localStorage.getItem(ADMIN_SESSION_KEY);
-      if (!stored) {
-        setIsAdminAuthenticated(false);
-      }
-    }
-  }, [isAuthenticated]);
-
-  const login = useCallback(async (passcode: string): Promise<boolean> => {
-    if (passcode !== ADMIN_PASSCODE) {
-      return false;
-    }
-
-    const session: AdminSession = {
-      authenticated: true,
-      timestamp: Date.now(),
-    };
-    localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(session));
-    setIsAdminAuthenticated(true);
-    return true;
-  }, []);
+      const session: AdminSession = {
+        authenticated: true,
+        timestamp: Date.now(),
+      };
+      localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(session));
+      setIsAdminAuthenticated(true);
+      return true;
+    },
+    [actor],
+  );
 
   const logout = useCallback(() => {
     localStorage.removeItem(ADMIN_SESSION_KEY);

@@ -24,6 +24,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -73,6 +80,7 @@ import {
   useUpdateDrawingStatus,
   useUpsertMerchPipeline,
 } from "../hooks/useCreatorDashboard";
+import { dateToMs, useAddTask } from "../hooks/useTasks";
 
 // ─── Utilities ────────────────────────────────────────────────────────────────
 
@@ -416,6 +424,106 @@ function TodayTab({ drawings }: { drawings: Drawing[] }) {
           })}
         </div>
       )}
+      <QuickAddTask />
+    </div>
+  );
+}
+
+// Quick Add Task
+function QuickAddTask() {
+  const addTask = useAddTask();
+  const [title, setTitle] = useState("");
+  const [dueDate, setDueDate] = useState("");
+  const [priority, setPriority] = useState<"high" | "medium" | "low">("medium");
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title.trim() || !dueDate) {
+      toast.error("Please fill in task title and due date");
+      return;
+    }
+    const p =
+      priority === "high"
+        ? { high: null }
+        : priority === "medium"
+          ? { medium: null }
+          : { low: null };
+    addTask.mutate(
+      {
+        title: title.trim(),
+        date: dateToMs(new Date()),
+        dueDate: dateToMs(new Date(dueDate)),
+        priority: p,
+        status: { notStarted: null },
+      },
+      {
+        onSuccess: () => {
+          setTitle("");
+          setDueDate("");
+          setPriority("medium");
+          toast.success("Task added to board!");
+        },
+        onError: () => toast.error("Failed to add task"),
+      },
+    );
+  };
+
+  return (
+    <div className="rounded-xl border border-border bg-card p-5 space-y-4">
+      <div className="flex items-center gap-2">
+        <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+          <Plus className="h-4 w-4 text-emerald-700" />
+        </div>
+        <div>
+          <h3 className="font-semibold text-sm">Quick Add Task</h3>
+          <p className="text-xs text-muted-foreground">
+            Add to your Task Board instantly
+          </p>
+        </div>
+      </div>
+      <form onSubmit={handleSubmit} className="flex flex-wrap gap-2 items-end">
+        <div className="flex-1 min-w-[200px]">
+          <Input
+            placeholder="Task title..."
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            data-ocid="task.input"
+          />
+        </div>
+        <Input
+          type="date"
+          value={dueDate}
+          onChange={(e) => setDueDate(e.target.value)}
+          data-ocid="task.input"
+          className="w-40"
+        />
+        <Select
+          value={priority}
+          onValueChange={(v) => setPriority(v as "high" | "medium" | "low")}
+        >
+          <SelectTrigger className="w-32" data-ocid="task.select">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="high">High</SelectItem>
+            <SelectItem value="medium">Medium</SelectItem>
+            <SelectItem value="low">Low</SelectItem>
+          </SelectContent>
+        </Select>
+        <Button
+          type="submit"
+          disabled={addTask.isPending}
+          data-ocid="task.primary_button"
+          className="bg-emerald-700 hover:bg-emerald-800 text-white gap-1.5"
+        >
+          {addTask.isPending ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <Plus className="h-3.5 w-3.5" />
+          )}
+          Add Task
+        </Button>
+      </form>
     </div>
   );
 }

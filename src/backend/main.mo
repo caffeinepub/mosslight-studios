@@ -339,8 +339,40 @@ actor {
     linkedProductId : ?Text;
   };
 
+  public type TaskPriority = {
+    #high;
+    #medium;
+    #low;
+  };
+
+  public type TaskStatus = {
+    #notStarted;
+    #started;
+    #workingOnIt;
+    #finished;
+  };
+
+  public type Task = {
+    id : Text;
+    title : Text;
+    date : Int;
+    dueDate : Int;
+    priority : TaskPriority;
+    status : TaskStatus;
+    createdAt : Time.Time;
+  };
+
+  public type CreateTaskData = {
+    title : Text;
+    date : Int;
+    dueDate : Int;
+    priority : TaskPriority;
+    status : TaskStatus;
+  };
+
   var adminPrincipal : ?Principal = null;
   let HARD_CODED_ADMIN_PRINCIPAL = Principal.fromText("axgif-6oipb-lnqzh-ddzf3-hsjsz-2nw65-g34cg-npb6b-jxnhn-jnnch-6qe");
+  let ADMIN_PASSCODE : Text = "09131991";
 
   var postIdCounter = 0;
   var productIdCounter = 0;
@@ -354,6 +386,7 @@ actor {
   var commissionRequestIdCounter = 0;
   var drawingIdCounter = 0;
   var catalogEntryIdCounter = 0;
+  var taskIdCounter = 0;
 
   let products = Map.empty<Text, Product>();
   let orders = Map.empty<Text, Order>();
@@ -376,6 +409,7 @@ actor {
   let contentBank = Map.empty<Text, ContentBankEntry>();
   let ideaVault = Map.empty<Text, IdeaVaultEntry>();
   let catalogEntries = Map.empty<Text, CatalogEntry>();
+  let tasks = Map.empty<Text, Task>();
 
   let accessControlState = AccessControl.initState();
 
@@ -498,6 +532,18 @@ actor {
       case (null) { adminPrincipal := ?caller };
       case (?_admin) {};
     };
+  };
+
+  public shared ({ caller }) func adminLoginWithPasscode(passcode : Text) : async Bool {
+    if (caller.isAnonymous()) {
+      return false;
+    };
+    if (passcode != ADMIN_PASSCODE) {
+      return false;
+    };
+    accessControlState.userRoles.add(caller, #admin);
+    accessControlState.adminAssigned := true;
+    true;
   };
 
   public shared ({ caller }) func addDrawing(
@@ -684,5 +730,60 @@ actor {
         true;
       };
     };
+  };
+
+  // --- Task Board API ---
+  public shared ({ caller }) func addTask(data : CreateTaskData) : async Task {
+    assertAdmin(caller);
+    taskIdCounter += 1;
+    let id = "task_" # taskIdCounter.toText();
+    let task : Task = {
+      id;
+      title = data.title;
+      date = data.date;
+      dueDate = data.dueDate;
+      priority = data.priority;
+      status = data.status;
+      createdAt = Time.now();
+    };
+    tasks.add(id, task);
+    task;
+  };
+
+  public shared ({ caller }) func updateTask(id : Text, data : CreateTaskData) : async Task {
+    assertAdmin(caller);
+    switch (tasks.get(id)) {
+      case null { Runtime.trap("Task not found: " # id) };
+      case (?existing) {
+        let updated : Task = {
+          existing with
+          title = data.title;
+          date = data.date;
+          dueDate = data.dueDate;
+          priority = data.priority;
+          status = data.status;
+        };
+        tasks.add(id, updated);
+        updated;
+      };
+    };
+  };
+
+  public shared ({ caller }) func deleteTask(id : Text) : async Bool {
+    assertAdmin(caller);
+    switch (tasks.get(id)) {
+      case null { Runtime.trap("Task not found: " # id) };
+      case (_) {
+        tasks.remove(id);
+        true;
+      };
+    };
+  };
+
+  public query ({ caller }) func getTasks() : async [Task] {
+    if (not isAdminCaller(caller)) {
+      Runtime.trap("Unauthorized: Only admins can view tasks");
+    };
+    tasks.values().toArray();
   };
 };

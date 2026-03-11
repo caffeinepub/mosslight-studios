@@ -174,6 +174,7 @@ export const idlService = IDL.Service({
     ),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'registerOrLogin' : IDL.Func([], [], []),
+    'adminLoginWithPasscode' : IDL.Func([IDL.Text], [IDL.Bool], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'updateDrawingDate' : IDL.Func([IDL.Text, IDL.Int], [Drawing], []),
   'updateDrawingStatus' : IDL.Func(
@@ -366,6 +367,7 @@ export const idlFactory = ({ IDL }) => {
       ),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'registerOrLogin' : IDL.Func([], [], []),
+    'adminLoginWithPasscode' : IDL.Func([IDL.Text], [IDL.Bool], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'updateDrawingDate' : IDL.Func([IDL.Text, IDL.Int], [Drawing], []),
     'updateDrawingStatus' : IDL.Func(

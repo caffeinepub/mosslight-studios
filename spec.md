@@ -1,61 +1,29 @@
 # Mosslight Studios
 
 ## Current State
-
-The app is a full-stack art merchandise store and portfolio platform. It already has:
-- Product management (add/edit/delete, variants, SKU, tax, shipping)
-- Order management, customer messaging, discussion board
-- Portfolio, gallery, blog with public comments
-- Commission system with addons and request management
-- Creator Dashboard (drawings tracker, merch pipeline, content bank, idea vault, monthly calendar)
-- Admin auth via hardcoded principal + passcode
-- Analytics, notifications
+The app has an admin dashboard at `/admin-dashboard` with cards for products, orders, messages, gallery, analytics, portfolio, blog, and commissions. A Creator Dashboard exists at `/admin/creator`. No Task Board exists yet.
 
 ## Requested Changes (Diff)
 
 ### Add
-
-- **ProductCatalogEntry type** in backend: stores all 14 CSV columns per row (merch_type, item_name, size, total_cost, production_cost, profit_margin, profit_amount, shipping, az_tax_rate, az_tax_total, quarter_sales, quarterly_earnings, yearly_sales, yearly_earnings) plus an auto-generated id, optional linkedProductId (to connect to a live shop product), and createdAt timestamp.
-- **Backend APIs**:
-  - `bulkUpsertCatalogEntries(entries)` — admin-only, accepts an array of catalog entry input records and replaces the entire catalog (for CSV re-upload)
-  - `getCatalogEntries()` — admin-only, returns all catalog entries
-  - `getCatalogEntry(id)` — admin-only, returns a single entry
-  - `deleteCatalogEntry(id)` — admin-only, deletes a single entry
-  - `clearCatalog()` — admin-only, wipes all entries (for fresh re-upload)
-- **Frontend: Admin Product Catalog page** (`/admin/catalog`) — admin-only, added as a new card in the Admin Dashboard
-  - CSV upload area: user uploads a `.csv` file, frontend parses it client-side, previews row count, then calls `bulkUpsertCatalogEntries` to store all rows
-  - Main table view showing: merch_type, item_name, size, total_cost, profit_amount, quarterly_earnings, yearly_earnings
-  - Filters at top: dropdown filter by merch_type, dropdown filter by size, text search by item_name
-  - Sortable columns: item_name, size, profit_amount, quarterly_earnings, yearly_earnings (click column header to sort asc/desc)
-  - Each row links to a Design Detail page
-- **Frontend: Design Detail page** (`/admin/catalog/$itemName`) — admin-only
-  - Shows all variants of a single item_name grouped together
-  - Displays: all sizes available, all merch types available, profit_amount, total_cost, quarterly_earnings, yearly_earnings per row
-  - Back button to return to catalog table
+- `Task` type in backend with fields: id, title, date (created), dueDate, priority (#high | #medium | #low), status (#notStarted | #started | #workingOnIt | #finished), createdAt
+- Backend CRUD: `addTask`, `updateTask`, `deleteTask`, `getTasks`
+- New admin page `/admin/tasks` with Monday.com-style board table
+- Task Board card on the main admin dashboard (`/admin-dashboard`)
+- Quick-add task form in the Creator Dashboard Today tab
 
 ### Modify
-
-- **AdminDashboardPage.tsx** — add a new "Product Catalog" card linking to `/admin/catalog`
-- **App.tsx** — add routes for `/admin/catalog` and `/admin/catalog/$itemName`
+- `src/backend/main.mo` — add Task type, counter, map, and CRUD functions
+- `src/frontend/src/App.tsx` — register `/admin/tasks` route
+- `src/frontend/src/pages/AdminDashboardPage.tsx` — add Task Board card
+- `src/frontend/src/pages/AdminCreatorDashboardPage.tsx` — add quick-add task in Today tab
 
 ### Remove
-
-Nothing removed.
+- Nothing
 
 ## Implementation Plan
-
-1. Add `ProductCatalogEntry` and `ProductCatalogEntryInput` types to `main.mo`
-2. Add `catalogEntries` map and `catalogIdCounter` state to backend
-3. Implement `bulkUpsertCatalogEntries`, `getCatalogEntries`, `getCatalogEntry`, `deleteCatalogEntry`, `clearCatalog` — all admin-gated
-4. Regenerate `backend.d.ts` bindings
-5. Create `AdminProductCatalogPage.tsx`:
-   - CSV file input using `papaparse` (or manual parsing) to parse the uploaded file
-   - Preview parsed rows, call `bulkUpsertCatalogEntries` on confirm
-   - Filtered/sortable table with column headers and filter controls
-   - Row click navigates to design detail page
-6. Create `AdminCatalogDetailPage.tsx`:
-   - Accepts `$itemName` as route param
-   - Fetches all catalog entries, filters by item_name
-   - Displays a detail table with all columns
-7. Add routes in `App.tsx`
-8. Add card in `AdminDashboardPage.tsx`
+1. Add Task type + CRUD to main.mo
+2. Create AdminTaskBoardPage.tsx with Monday.com-style columns (Task, Date, Due Date, Priority, Started, Working On It, Finished), sortable by priority and status
+3. Register route in App.tsx
+4. Add Task Board card to AdminDashboardPage
+5. Add quick-add task button/form in Creator Dashboard Today tab
