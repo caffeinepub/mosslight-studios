@@ -13,6 +13,8 @@ import {
   Brush,
   Camera,
   ClipboardList,
+  Clock,
+  DollarSign,
   Image,
   MessageCircle,
   MessageSquare,
@@ -124,6 +126,23 @@ export default function AdminDashboardPage() {
       path: "/admin/tasks",
       color: "text-emerald-600",
       bgColor: "bg-emerald-50 dark:bg-emerald-950",
+    },
+    {
+      title: "Time Tracker",
+      description: "Log your working hours, activities, and notes",
+      icon: Clock,
+      path: "/admin/timesheet",
+      color: "text-teal-600",
+      bgColor: "bg-teal-50 dark:bg-teal-950",
+    },
+    {
+      title: "Sales Tracker",
+      description:
+        "Track all sales for taxes, see popular items, and review purchases grouped by customer",
+      icon: DollarSign,
+      path: "/admin/sales",
+      color: "text-green-700",
+      bgColor: "bg-green-50 dark:bg-green-950",
     },
   ];
 

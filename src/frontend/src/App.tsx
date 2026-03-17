@@ -21,7 +21,9 @@ import AdminMessagesPage from "./pages/AdminMessagesPage";
 import AdminOrdersPage from "./pages/AdminOrdersPage";
 import AdminPortfolioPage from "./pages/AdminPortfolioPage";
 import AdminProductsPage from "./pages/AdminProductsPage";
+import AdminSalesPage from "./pages/AdminSalesPage";
 import AdminTaskBoardPage from "./pages/AdminTaskBoardPage";
+import AdminTimesheetPage from "./pages/AdminTimesheetPage";
 import BlogDetailPage from "./pages/BlogDetailPage";
 import BlogPage from "./pages/BlogPage";
 import CartPage from "./pages/CartPage";
@@ -217,6 +219,18 @@ const adminTasksRoute = createRoute({
   component: AdminTaskBoardPage,
 });
 
+const adminTimesheetRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/admin/timesheet",
+  component: AdminTimesheetPage,
+});
+
+const adminSalesRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/admin/sales",
+  component: AdminSalesPage,
+});
+
 class ErrorBoundary extends React.Component<
   { children: React.ReactNode },
   { hasError: boolean }
@@ -284,6 +298,8 @@ const routeTree = rootRoute.addChildren([
   adminCommissionsRoute,
   adminCreatorRoute,
   adminTasksRoute,
+  adminTimesheetRoute,
+  adminSalesRoute,
 ]);
 
 const router = createRouter({ routeTree });
