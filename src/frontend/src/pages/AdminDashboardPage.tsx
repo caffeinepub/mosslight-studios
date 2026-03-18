@@ -19,6 +19,7 @@ import {
   MessageCircle,
   MessageSquare,
   Package,
+  Paintbrush,
   Palette,
   ShoppingBag,
   Sparkles,
@@ -143,6 +144,14 @@ export default function AdminDashboardPage() {
       path: "/admin/sales",
       color: "text-green-700",
       bgColor: "bg-green-50 dark:bg-green-950",
+    },
+    {
+      title: "Design Tracker",
+      description: "Track your designs from drawn to Printify to live in shop",
+      icon: Paintbrush,
+      path: "/admin/designs",
+      color: "text-rose-600",
+      bgColor: "bg-rose-50 dark:bg-rose-950",
     },
   ];
 

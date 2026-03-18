@@ -36,6 +36,18 @@ import { useFullActor } from "../hooks/useFullActor";
 
 const TAX_RATE = 0.085;
 
+type DateFilterKey = "all" | "q1" | "q2" | "q3" | "q4" | "year" | "custom";
+
+const DATE_FILTER_OPTIONS: { key: DateFilterKey; label: string }[] = [
+  { key: "all", label: "All Time" },
+  { key: "q1", label: "Q1 Jan–Mar" },
+  { key: "q2", label: "Q2 Apr–Jun" },
+  { key: "q3", label: "Q3 Jul–Sep" },
+  { key: "q4", label: "Q4 Oct–Dec" },
+  { key: "year", label: "This Year" },
+  { key: "custom", label: "Custom" },
+];
+
 function centsToUsd(cents: bigint | number): number {
   return Number(cents) / 100;
 }
@@ -91,10 +103,57 @@ function useSortedRows<T extends Record<string, unknown>>(
   }, [rows, key, dir]);
 }
 
+function buildIsOrderInRange(
+  dateFilter: DateFilterKey,
+  customStart: string,
+  customEnd: string,
+) {
+  const now = new Date();
+  const currentYear = now.getFullYear();
+
+  return function isOrderInRange(order: Order): boolean {
+    const d = new Date(Number(order.date) / 1_000_000);
+    const month = d.getMonth(); // 0-based
+    const year = d.getFullYear();
+
+    switch (dateFilter) {
+      case "all":
+        return true;
+      case "q1":
+        return year === currentYear && month >= 0 && month <= 2;
+      case "q2":
+        return year === currentYear && month >= 3 && month <= 5;
+      case "q3":
+        return year === currentYear && month >= 6 && month <= 8;
+      case "q4":
+        return year === currentYear && month >= 9 && month <= 11;
+      case "year":
+        return year === currentYear;
+      case "custom": {
+        if (!customStart && !customEnd) return true;
+        const start = customStart ? new Date(customStart) : null;
+        const end = customEnd ? new Date(customEnd) : null;
+        if (start) start.setHours(0, 0, 0, 0);
+        if (end) end.setHours(23, 59, 59, 999);
+        if (start && d < start) return false;
+        if (end && d > end) return false;
+        return true;
+      }
+      default:
+        return true;
+    }
+  };
+}
+
 // ─── Sales Page ──────────────────────────────────────────────────────────────
 
 export default function AdminSalesPage() {
   const { actor, isFetching } = useFullActor();
+
+  // ── Date filter state ─────────────────────────────────────────────────────
+  const [dateFilter, setDateFilter] = useState<DateFilterKey>("all");
+  const [customStart, setCustomStart] = useState("");
+  const [customEnd, setCustomEnd] = useState("");
 
   const { data: orders = [], isLoading: ordersLoading } = useQuery<Order[]>({
     queryKey: ["admin-orders"],
@@ -119,13 +178,24 @@ export default function AdminSalesPage() {
     return m;
   }, [products]);
 
+  // ── Apply date filter globally ─────────────────────────────────────────────
+  const isOrderInRange = useMemo(
+    () => buildIsOrderInRange(dateFilter, customStart, customEnd),
+    [dateFilter, customStart, customEnd],
+  );
+
+  const filteredOrders = useMemo(
+    () => orders.filter(isOrderInRange),
+    [orders, isOrderInRange],
+  );
+
   // ── Summary stats ─────────────────────────────────────────────────────────
   const summary = useMemo(() => {
     let totalRevenue = 0;
     let totalTax = 0;
     const unitsByProduct = new Map<string, number>();
 
-    for (const order of orders) {
+    for (const order of filteredOrders) {
       totalRevenue += centsToUsd(order.total);
       for (const item of order.items) {
         totalTax += calcItemTax(item);
@@ -144,10 +214,15 @@ export default function AdminSalesPage() {
     }
     const bestName =
       productMap.get(bestProductId)?.name ??
-      (orders.length ? "—" : "No sales yet");
+      (filteredOrders.length ? "—" : "No sales yet");
 
-    return { totalRevenue, totalTax, bestName, totalOrders: orders.length };
-  }, [orders, productMap]);
+    return {
+      totalRevenue,
+      totalTax,
+      bestName,
+      totalOrders: filteredOrders.length,
+    };
+  }, [filteredOrders, productMap]);
 
   // ── Item popularity ────────────────────────────────────────────────────────
   type PopRow = {
@@ -162,7 +237,7 @@ export default function AdminSalesPage() {
       string,
       { name: string; unitsSold: number; revenue: number; taxCollected: number }
     >();
-    for (const order of orders) {
+    for (const order of filteredOrders) {
       for (const item of order.items) {
         const name = productMap.get(item.productId)?.name ?? item.productId;
         const prev = map.get(item.productId) ?? {
@@ -181,7 +256,7 @@ export default function AdminSalesPage() {
       }
     }
     return [...map.values()].sort((a, b) => b.unitsSold - a.unitsSold);
-  }, [orders, productMap]);
+  }, [filteredOrders, productMap]);
 
   const maxUnits = popularityRows[0]?.unitsSold ?? 1;
 
@@ -222,7 +297,7 @@ export default function AdminSalesPage() {
         taxPaid: number;
       }
     >();
-    for (const order of orders) {
+    for (const order of filteredOrders) {
       const id = shortenPrincipal(order.customer);
       const prev = map.get(id) ?? {
         orderCount: 0,
@@ -248,14 +323,14 @@ export default function AdminSalesPage() {
         taxPaid: v.taxPaid,
       }))
       .sort((a, b) => b.totalSpent - a.totalSpent);
-  }, [orders, productMap]);
+  }, [filteredOrders, productMap]);
 
   // ── All sales table ────────────────────────────────────────────────────────
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
 
   const allSalesRows = useMemo(() => {
-    return [...orders]
+    return [...filteredOrders]
       .sort((a, b) => Number(b.date) - Number(a.date))
       .filter((o) => statusFilter === "all" || o.status === statusFilter)
       .filter((o) => {
@@ -288,7 +363,7 @@ export default function AdminSalesPage() {
           status: order.status,
         };
       });
-  }, [orders, statusFilter, searchQuery, productMap]);
+  }, [filteredOrders, statusFilter, searchQuery, productMap]);
 
   // ── CSV Export ────────────────────────────────────────────────────────────
   function exportCsv() {
@@ -306,6 +381,10 @@ export default function AdminSalesPage() {
     a.click();
     URL.revokeObjectURL(url);
   }
+
+  // ── Active filter label ───────────────────────────────────────────────────
+  const activeLabel =
+    DATE_FILTER_OPTIONS.find((o) => o.key === dateFilter)?.label ?? "All Time";
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
@@ -328,6 +407,108 @@ export default function AdminSalesPage() {
             Export CSV
           </Button>
         </div>
+
+        {/* ── Date / Quarter Filter Bar ────────────────────────────────────── */}
+        <section
+          className="bg-card border rounded-xl p-4 space-y-3"
+          data-ocid="sales.date_filter.section"
+        >
+          <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+            Filter by Period
+          </p>
+
+          {/* Toggle buttons */}
+          <div className="flex flex-wrap gap-2">
+            {DATE_FILTER_OPTIONS.map((opt) => (
+              <button
+                key={opt.key}
+                type="button"
+                onClick={() => setDateFilter(opt.key)}
+                data-ocid={`sales.date_filter.${opt.key}.toggle`}
+                className={[
+                  "px-3 py-1.5 rounded-lg text-sm font-medium border transition-all",
+                  dateFilter === opt.key
+                    ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                    : "bg-background text-muted-foreground border-border hover:border-primary hover:text-foreground",
+                ].join(" ")}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Custom date range inputs */}
+          {dateFilter === "custom" && (
+            <div className="flex flex-wrap items-center gap-3 pt-1">
+              <div className="flex items-center gap-2">
+                <label
+                  htmlFor="custom-start"
+                  className="text-sm text-muted-foreground whitespace-nowrap"
+                >
+                  Start
+                </label>
+                <Input
+                  id="custom-start"
+                  type="date"
+                  value={customStart}
+                  onChange={(e) => setCustomStart(e.target.value)}
+                  className="w-40"
+                  data-ocid="sales.custom_start.input"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <label
+                  htmlFor="custom-end"
+                  className="text-sm text-muted-foreground whitespace-nowrap"
+                >
+                  End
+                </label>
+                <Input
+                  id="custom-end"
+                  type="date"
+                  value={customEnd}
+                  onChange={(e) => setCustomEnd(e.target.value)}
+                  className="w-40"
+                  data-ocid="sales.custom_end.input"
+                />
+              </div>
+              {(customStart || customEnd) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCustomStart("");
+                    setCustomEnd("");
+                  }}
+                  className="text-xs text-muted-foreground hover:text-foreground underline"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Active period badge */}
+          {dateFilter !== "all" && (
+            <p className="text-xs text-muted-foreground">
+              Showing results for:{" "}
+              <span className="font-semibold text-foreground">
+                {activeLabel}
+                {dateFilter === "custom" && customStart && customEnd
+                  ? ` (${customStart} → ${customEnd})`
+                  : ""}
+              </span>
+              {" · "}
+              <button
+                type="button"
+                onClick={() => setDateFilter("all")}
+                className="underline hover:text-foreground"
+                data-ocid="sales.date_filter.clear.button"
+              >
+                Clear
+              </button>
+            </p>
+          )}
+        </section>
 
         {isLoading ? (
           <div

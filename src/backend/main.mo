@@ -301,6 +301,7 @@ actor {
     createdAt : Time.Time;
   };
 
+
   public type CatalogEntry = {
     id : Text;
     merch_type : Text;
@@ -319,24 +320,6 @@ actor {
     yearly_earnings : Float;
     linkedProductId : ?Text;
     createdAt : Time.Time;
-  };
-
-  public type CatalogEntryInput = {
-    merch_type : Text;
-    item_name : Text;
-    size : Text;
-    total_cost : Float;
-    production_cost : Float;
-    profit_margin : Float;
-    profit_amount : Float;
-    shipping : Float;
-    az_tax_rate : Float;
-    az_tax_total : Float;
-    quarter_sales : Float;
-    quarterly_earnings : Float;
-    yearly_sales : Float;
-    yearly_earnings : Float;
-    linkedProductId : ?Text;
   };
 
   public type TaskPriority = {
@@ -370,6 +353,31 @@ actor {
     status : TaskStatus;
   };
 
+  public type DesignStatus = {
+    #notStarted;
+    #inProgress;
+    #done;
+  };
+
+  public type DesignEntry = {
+    id : Text;
+    title : Text;
+    tags : [Text];
+    status : DesignStatus;
+    createdAt : Time.Time;
+  };
+
+  public type CreateDesignData = {
+    title : Text;
+    tags : [Text];
+  };
+
+  public type UpdateDesignData = {
+    title : Text;
+    tags : [Text];
+    status : DesignStatus;
+  };
+
   var adminPrincipal : ?Principal = null;
   let HARD_CODED_ADMIN_PRINCIPAL = Principal.fromText("axgif-6oipb-lnqzh-ddzf3-hsjsz-2nw65-g34cg-npb6b-jxnhn-jnnch-6qe");
   let ADMIN_PASSCODE : Text = "09131991";
@@ -387,6 +395,7 @@ actor {
   var drawingIdCounter = 0;
   var catalogEntryIdCounter = 0;
   var taskIdCounter = 0;
+  var designIdCounter = 0;
 
   let products = Map.empty<Text, Product>();
   let orders = Map.empty<Text, Order>();
@@ -410,76 +419,12 @@ actor {
   let ideaVault = Map.empty<Text, IdeaVaultEntry>();
   let catalogEntries = Map.empty<Text, CatalogEntry>();
   let tasks = Map.empty<Text, Task>();
+  let designEntries = Map.empty<Text, DesignEntry>();
 
   let accessControlState = AccessControl.initState();
 
   include MixinAuthorization(accessControlState);
   include MixinStorage();
-
-  // --- Product Catalog API ---
-  public query ({ caller }) func getCatalogEntries() : async [CatalogEntry] {
-    if (not isAdminCaller(caller)) {
-      Runtime.trap("Unauthorized: Only admins can view catalog entries");
-    };
-    catalogEntries.values().toArray();
-  };
-
-  public shared ({ caller }) func bulkUpsertCatalogEntries(entries : [CatalogEntryInput]) : async [CatalogEntry] {
-    if (not isAdminCaller(caller)) {
-      Runtime.trap("Unauthorized: Only admins can bulk upsert catalog entries");
-    };
-    catalogEntries.clear();
-
-    let newEntries = entries.map(
-      func(entry) {
-        catalogEntryIdCounter += 1;
-        let catalogEntry : CatalogEntry = {
-          id = "catalog_entry_" # catalogEntryIdCounter.toText();
-          merch_type = entry.merch_type;
-          item_name = entry.item_name;
-          size = entry.size;
-          total_cost = entry.total_cost;
-          production_cost = entry.production_cost;
-          profit_margin = entry.profit_margin;
-          profit_amount = entry.profit_amount;
-          shipping = entry.shipping;
-          az_tax_rate = entry.az_tax_rate;
-          az_tax_total = entry.az_tax_total;
-          quarter_sales = entry.quarter_sales;
-          quarterly_earnings = entry.quarterly_earnings;
-          yearly_sales = entry.yearly_sales;
-          yearly_earnings = entry.yearly_earnings;
-          linkedProductId = entry.linkedProductId;
-          createdAt = Time.now();
-        };
-        catalogEntries.add(catalogEntry.id, catalogEntry);
-        catalogEntry;
-      }
-    );
-    newEntries;
-  };
-
-  public shared ({ caller }) func clearCatalog() : async () {
-    if (not isAdminCaller(caller)) {
-      Runtime.trap("Unauthorized: Only admins can clear catalog");
-    };
-    catalogEntries.clear();
-  };
-
-  public shared ({ caller }) func deleteCatalogEntry(id : Text) : async Bool {
-    if (not isAdminCaller(caller)) {
-      Runtime.trap("Unauthorized: Only admins can delete catalog entries");
-    };
-    switch (catalogEntries.get(id)) {
-      case null {
-        Runtime.trap("Catalog entry not found: " # id);
-      };
-      case (_) {
-        catalogEntries.remove(id);
-        true;
-      };
-    };
-  };
 
   func assertAdmin(caller : Principal) {
     if (not isAdminCaller(caller)) {
@@ -785,5 +730,56 @@ actor {
       Runtime.trap("Unauthorized: Only admins can view tasks");
     };
     tasks.values().toArray();
+  };
+
+  // --- Design Tracker API ---
+  public shared ({ caller }) func addDesignEntry(data : CreateDesignData) : async DesignEntry {
+    assertAdmin(caller);
+    designIdCounter += 1;
+    let id = "design_" # designIdCounter.toText();
+    let entry : DesignEntry = {
+      id;
+      title = data.title;
+      tags = data.tags;
+      status = #notStarted;
+      createdAt = Time.now();
+    };
+    designEntries.add(id, entry);
+    entry;
+  };
+
+  public shared ({ caller }) func updateDesignEntry(id : Text, data : UpdateDesignData) : async DesignEntry {
+    assertAdmin(caller);
+    switch (designEntries.get(id)) {
+      case null { Runtime.trap("Design entry not found: " # id) };
+      case (?existing) {
+        let updated : DesignEntry = {
+          existing with
+          title = data.title;
+          tags = data.tags;
+          status = data.status;
+        };
+        designEntries.add(id, updated);
+        updated;
+      };
+    };
+  };
+
+  public shared ({ caller }) func deleteDesignEntry(id : Text) : async Bool {
+    assertAdmin(caller);
+    switch (designEntries.get(id)) {
+      case null { Runtime.trap("Design entry not found: " # id) };
+      case (_) {
+        designEntries.remove(id);
+        true;
+      };
+    };
+  };
+
+  public query ({ caller }) func getDesignEntries() : async [DesignEntry] {
+    if (not isAdminCaller(caller)) {
+      Runtime.trap("Unauthorized: Only admins can view design entries");
+    };
+    designEntries.values().toArray();
   };
 };

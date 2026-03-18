@@ -15,6 +15,7 @@ import AdminBlogPage from "./pages/AdminBlogPage";
 import AdminCommissionsPage from "./pages/AdminCommissionsPage";
 import AdminCreatorDashboardPage from "./pages/AdminCreatorDashboardPage";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
+import AdminDesignTrackerPage from "./pages/AdminDesignTrackerPage";
 import AdminGalleryManagementPage from "./pages/AdminGalleryManagementPage";
 import AdminGalleryPage from "./pages/AdminGalleryPage";
 import AdminMessagesPage from "./pages/AdminMessagesPage";
@@ -231,6 +232,12 @@ const adminSalesRoute = createRoute({
   component: AdminSalesPage,
 });
 
+const adminDesignsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/admin/designs",
+  component: AdminDesignTrackerPage,
+});
+
 class ErrorBoundary extends React.Component<
   { children: React.ReactNode },
   { hasError: boolean }
@@ -300,6 +307,7 @@ const routeTree = rootRoute.addChildren([
   adminTasksRoute,
   adminTimesheetRoute,
   adminSalesRoute,
+  adminDesignsRoute,
 ]);
 
 const router = createRouter({ routeTree });
