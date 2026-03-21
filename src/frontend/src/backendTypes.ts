@@ -27,6 +27,7 @@ export type ProductVariant = {
   colors: ProductColor[];
   price: bigint;
   parentProductId: string;
+  sku?: string;
 };
 
 export type Product = {

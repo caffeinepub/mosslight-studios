@@ -23,6 +23,7 @@ interface VariantFormState {
   id: string;
   size: string;
   price: string;
+  sku: string;
 }
 
 interface VariantFormErrors {
@@ -34,6 +35,7 @@ const emptyVariantForm = (): VariantFormState => ({
   id: `variant_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
   size: "",
   price: "",
+  sku: "",
 });
 
 export default function VariantManager({
@@ -67,6 +69,7 @@ export default function VariantManager({
       colors: [],
       price: BigInt(Math.round(Number(form.price))),
       parentProductId: productId || "pending",
+      sku: form.sku.trim(),
     };
 
     if (editingIndex !== null) {
@@ -94,6 +97,7 @@ export default function VariantManager({
       id: v.id,
       size: v.size,
       price: String(Number(v.price)),
+      sku: v.sku || "",
     });
     setFormErrors({});
     setEditingIndex(index);
@@ -117,6 +121,7 @@ export default function VariantManager({
       colors: copiedColors,
       price: source.price,
       parentProductId: productId || "pending",
+      sku: source.sku || "",
     };
 
     // Append the duplicate right after the source variant
@@ -134,6 +139,7 @@ export default function VariantManager({
       id: newId,
       size: duplicatedVariant.size,
       price: String(Number(duplicatedVariant.price)),
+      sku: duplicatedVariant.sku || "",
     });
     setFormErrors({});
     setEditingIndex(newIndex);
@@ -257,6 +263,20 @@ export default function VariantManager({
                       {variant.colors.length !== 1 ? "s" : ""}
                       {variant.colors.length > 0 &&
                         ` · ${totalStock} total stock`}
+                    </span>
+                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <span className="font-medium">SKU:</span>
+                      <Input
+                        value={variant.sku || ""}
+                        onChange={(e) => {
+                          const updated = [...variants];
+                          updated[index] = { ...variant, sku: e.target.value };
+                          onChange(updated);
+                        }}
+                        placeholder="SKU #"
+                        className="h-7 w-36 text-xs"
+                        onClick={(e) => e.stopPropagation()}
+                      />
                     </span>
                     {isBeingEdited && (
                       <span className="text-xs text-primary font-medium">
@@ -464,6 +484,18 @@ export default function VariantManager({
                   <p className="text-xs text-destructive">{formErrors.price}</p>
                 )}
               </div>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">
+                SKU # <span className="text-muted-foreground">(optional)</span>
+              </Label>
+              <Input
+                value={form.sku}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, sku: e.target.value }))
+                }
+                placeholder="SKU #"
+              />
             </div>
             <div className="flex gap-2 justify-end">
               <Button

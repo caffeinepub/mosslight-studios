@@ -235,21 +235,30 @@ export default function AdminDesignTrackerPage() {
 
     setIsImporting(true);
 
-    for (const title of newTitles) {
-      await addDesign.mutateAsync({ title, tags: [] });
+    try {
+      for (const title of newTitles) {
+        await addDesign.mutateAsync({ title, tags: [] });
+      }
+
+      const parts: string[] = [];
+      if (newTitles.length > 0) parts.push(`${newTitles.length} added`);
+      if (skipped > 0)
+        parts.push(
+          `${skipped} skipped as duplicate${skipped !== 1 ? "s" : ""}`,
+        );
+      setImportResult(parts.join(", "));
+      setTimeout(() => setImportResult(null), 5000);
+      setPasteText("");
+      setShowPasteBox(false);
+    } catch (_err) {
+      setImportResult("Import failed — please try again.");
+      setTimeout(() => setImportResult(null), 5000);
+    } finally {
+      setIsImporting(false);
     }
-
-    setIsImporting(false);
-
-    const parts: string[] = [];
-    if (newTitles.length > 0) parts.push(`${newTitles.length} added`);
-    if (skipped > 0)
-      parts.push(`${skipped} skipped as duplicate${skipped !== 1 ? "s" : ""}`);
-    setImportResult(parts.join(", "));
-    setTimeout(() => setImportResult(null), 5000);
-    setPasteText("");
-    setShowPasteBox(false);
   };
+
+  const importIsError = importResult?.startsWith("Import failed") ?? false;
 
   return (
     <AdminGuard>
@@ -357,10 +366,16 @@ export default function AdminDesignTrackerPage() {
         {/* Import result message */}
         {importResult && (
           <p
-            className="text-sm text-emerald-700 dark:text-emerald-400 mb-4 font-medium"
-            data-ocid="design.success_state"
+            className={`text-sm mb-4 font-medium ${
+              importIsError
+                ? "text-destructive"
+                : "text-emerald-700 dark:text-emerald-400"
+            }`}
+            data-ocid={
+              importIsError ? "design.error_state" : "design.success_state"
+            }
           >
-            ✓ {importResult}
+            {importIsError ? "✕" : "✓"} {importResult}
           </p>
         )}
 

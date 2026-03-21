@@ -5,7 +5,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { Info, Loader2, Palette, Plus, Trash2, Upload, X } from "lucide-react";
+import {
+  CheckCircle2,
+  Info,
+  Loader2,
+  Palette,
+  Plus,
+  Trash2,
+  Upload,
+  X,
+  Zap,
+} from "lucide-react";
 import type React from "react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -25,6 +35,73 @@ interface ProductFormProps {
   onCancel?: () => void;
 }
 
+// --- Preset Data ---
+type PresetType = "Sticker" | "Magnet" | "Keychain";
+
+interface SizePreset {
+  size: string;
+  price: number; // in dollars
+}
+
+interface TypePreset {
+  label: PresetType;
+  shipping: number;
+  inventory: number;
+  category: string;
+  sizes: SizePreset[];
+  /** If true, all sizes become variants automatically when the type is selected */
+  allSizesAsVariants: boolean;
+}
+
+const PRESETS: TypePreset[] = [
+  {
+    label: "Sticker",
+    shipping: 4.59,
+    inventory: 1000,
+    category: "Sticker",
+    allSizesAsVariants: true,
+    sizes: [
+      { size: "2x2", price: 1.75 },
+      { size: "3x3", price: 2.0 },
+      { size: "4x4", price: 2.5 },
+      { size: "6x6", price: 3.0 },
+    ],
+  },
+  {
+    label: "Magnet",
+    shipping: 4.99,
+    inventory: 1000,
+    category: "Magnet",
+    allSizesAsVariants: true,
+    sizes: [
+      { size: "2x2", price: 6.25 },
+      { size: "3x3", price: 7.25 },
+      { size: "4x4", price: 8.25 },
+      { size: "5x5", price: 10.0 },
+      { size: "6x6", price: 11.5 },
+    ],
+  },
+  {
+    label: "Keychain",
+    shipping: 1.99,
+    inventory: 1000,
+    category: "Keychain",
+    allSizesAsVariants: false,
+    sizes: [{ size: "Standard", price: 2.75 }],
+  },
+];
+
+function buildVariantsFromPreset(preset: TypePreset): ProductVariant[] {
+  return preset.sizes.map((s, i) => ({
+    id: `preset_variant_${Date.now()}_${i}_${Math.random().toString(36).slice(2, 6)}`,
+    size: s.size,
+    colors: [],
+    price: BigInt(Math.round(s.price)),
+    parentProductId: "pending",
+    sku: "",
+  }));
+}
+
 export default function ProductForm({
   product,
   onSuccess,
@@ -41,9 +118,7 @@ export default function ProductForm({
   const [variants, setVariants] = useState<ProductVariant[]>(
     product?.variants ? product.variants.map((v) => ({ ...v })) : [],
   );
-  // Product-level color entries (for unsized products)
   const [productColors, setProductColors] = useState<ProductColor[]>(
-    // If product has no variants, try to reconstruct from product.colors (legacy) or empty
     product && !product.hasVariants
       ? (product.colors || []).map((name) => ({ name, inventory: BigInt(0) }))
       : [],
@@ -64,6 +139,12 @@ export default function ProductForm({
   const [shippingPrice, setShippingPrice] = useState<number>(
     product?.shippingPrice !== undefined ? product.shippingPrice : 0,
   );
+
+  // Preset state
+  const [activePresetType, setActivePresetType] = useState<PresetType | null>(
+    null,
+  );
+  const [presetApplied, setPresetApplied] = useState(false);
 
   const addProductMutation = useAddProduct();
   const updateProductMutation = useUpdateProduct();
@@ -104,6 +185,60 @@ export default function ProductForm({
     }
   }, [product]);
 
+  const handlePresetTypeClick = (typePreset: TypePreset) => {
+    if (activePresetType === typePreset.label) {
+      // Deselect — clear everything set by the preset
+      setActivePresetType(null);
+      setPresetApplied(false);
+      if (typePreset.allSizesAsVariants) {
+        setHasVariants(false);
+        setVariants([]);
+      } else {
+        setPrice(0);
+        setInventory(0);
+        setShippingPrice(0);
+        setSizes([]);
+      }
+      setCategories([]);
+      return;
+    }
+
+    setActivePresetType(typePreset.label);
+    setShippingPrice(typePreset.shipping);
+    setCategories([typePreset.category]);
+    setPresetApplied(true);
+
+    if (typePreset.allSizesAsVariants) {
+      // Sticker / Magnet — enable variants and load all sizes
+      setHasVariants(true);
+      setProductColors([]);
+      setVariants(buildVariantsFromPreset(typePreset));
+      setSizes(typePreset.sizes.map((s) => s.size));
+      // Base price not relevant when variants exist
+      setPrice(0);
+      setInventory(typePreset.inventory);
+    } else {
+      // Keychain — auto-fill base fields, no variants
+      setHasVariants(false);
+      setVariants([]);
+      setPrice(typePreset.sizes[0].price);
+      setInventory(typePreset.inventory);
+      setSizes([typePreset.sizes[0].size]);
+    }
+  };
+
+  const clearPreset = () => {
+    setActivePresetType(null);
+    setPresetApplied(false);
+    setHasVariants(false);
+    setVariants([]);
+    setPrice(0);
+    setInventory(0);
+    setShippingPrice(0);
+    setCategories([]);
+    setSizes([]);
+  };
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       setImageFiles(Array.from(e.target.files));
@@ -134,7 +269,6 @@ export default function ProductForm({
     setList((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // Product-level color management (for unsized products)
   const addProductColor = () => {
     setProductColors((prev) => [...prev, { name: "", inventory: BigInt(0) }]);
   };
@@ -200,7 +334,6 @@ export default function ProductForm({
       }
     }
 
-    // Validate product-level colors for unsized products
     if (!hasVariants) {
       for (const color of productColors) {
         if (!color.name.trim()) {
@@ -248,7 +381,6 @@ export default function ProductForm({
             }))
           : [];
 
-      // Derive the colors string array from product-level color entries (for filter sidebar)
       const colorNames = !hasVariants
         ? productColors.map((c) => c.name.trim()).filter(Boolean)
         : [
@@ -299,6 +431,84 @@ export default function ProductForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Quick Fill Preset Panel — new products only */}
+      {!isEditing && (
+        <Card className="border-2 border-dashed border-emerald-600/40 bg-emerald-50/30 dark:bg-emerald-950/10">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Zap className="w-4 h-4 text-emerald-600" />
+              Quick Fill
+              <span className="text-xs font-normal text-muted-foreground ml-1">
+                Auto-fill all sizes as variants
+              </span>
+              {(presetApplied || activePresetType) && (
+                <button
+                  type="button"
+                  onClick={clearPreset}
+                  className="ml-auto text-xs text-muted-foreground hover:text-destructive flex items-center gap-1 transition-colors"
+                  data-ocid="product_preset.close_button"
+                >
+                  <X className="w-3 h-3" />
+                  Clear
+                </button>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {/* Type selector */}
+            <div className="flex gap-2 flex-wrap">
+              {PRESETS.map((preset) => (
+                <button
+                  key={preset.label}
+                  type="button"
+                  onClick={() => handlePresetTypeClick(preset)}
+                  data-ocid={`product_preset.${preset.label.toLowerCase()}.button`}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium border-2 transition-all ${
+                    activePresetType === preset.label
+                      ? "border-emerald-600 bg-emerald-600 text-white shadow-sm"
+                      : "border-border bg-background hover:border-emerald-600/60 hover:bg-emerald-50/50 dark:hover:bg-emerald-950/20"
+                  }`}
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Info row showing what was applied */}
+            {presetApplied &&
+              activePresetType &&
+              (() => {
+                const typePreset = PRESETS.find(
+                  (p) => p.label === activePresetType,
+                )!;
+                return (
+                  <div
+                    className="flex items-start gap-1.5 text-xs text-emerald-700 dark:text-emerald-400"
+                    data-ocid="product_preset.success_state"
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+                    <span>
+                      {typePreset.allSizesAsVariants ? (
+                        <>
+                          <strong>
+                            {typePreset.sizes.length} size variants
+                          </strong>{" "}
+                          added automatically (
+                          {typePreset.sizes.map((s) => s.size).join(", ")}) —
+                          click <strong>Colors</strong> on each variant to add
+                          color options.
+                        </>
+                      ) : (
+                        <>Preset applied — all fields are editable.</>
+                      )}
+                    </span>
+                  </div>
+                );
+              })()}
+          </CardContent>
+        </Card>
+      )}
+
       {/* Basic Information */}
       <Card>
         <CardHeader>
@@ -353,36 +563,57 @@ export default function ProductForm({
           <CardTitle className="text-base">Pricing & Inventory</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="price">Base Price (USD $) *</Label>
-              <Input
-                id="price"
-                type="number"
-                min="0"
-                step="0.01"
-                value={price}
-                onChange={(e) => setPrice(Number(e.target.value))}
-                placeholder="0.00"
-                required
-              />
-              <p className="text-xs text-muted-foreground">
-                Enter price in US dollars (e.g. 25.00)
-              </p>
+          {!hasVariants && (
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="price">Base Price (USD $) *</Label>
+                <Input
+                  id="price"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={price}
+                  onChange={(e) => setPrice(Number(e.target.value))}
+                  placeholder="0.00"
+                  required
+                />
+                <p className="text-xs text-muted-foreground">
+                  Enter price in US dollars (e.g. 25.00)
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="inventory">Inventory *</Label>
+                <Input
+                  id="inventory"
+                  type="number"
+                  min="0"
+                  value={inventory}
+                  onChange={(e) => setInventory(Number(e.target.value))}
+                  placeholder="0"
+                  required
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="inventory">Inventory *</Label>
-              <Input
-                id="inventory"
-                type="number"
-                min="0"
-                value={inventory}
-                onChange={(e) => setInventory(Number(e.target.value))}
-                placeholder="0"
-                required
-              />
+          )}
+
+          {hasVariants && (
+            <div className="grid grid-cols-1 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="inventory">Default Inventory per Variant</Label>
+                <Input
+                  id="inventory"
+                  type="number"
+                  min="0"
+                  value={inventory}
+                  onChange={(e) => setInventory(Number(e.target.value))}
+                  placeholder="0"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Price is set per variant/size below
+                </p>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Tax & Shipping */}
           <div className="grid grid-cols-2 gap-4 pt-2 border-t">
@@ -711,9 +942,8 @@ export default function ProductForm({
           {hasVariants && (
             <div className="space-y-2">
               <p className="text-xs text-muted-foreground">
-                Add size variants below. Each size has its own price. After
-                adding a size, click "Colors" to add color options with
-                individual stock quantities.
+                Each size has its own price. Click "Colors" on a variant to add
+                color options with individual stock quantities.
               </p>
               <VariantManager
                 variants={variants}
