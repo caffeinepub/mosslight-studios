@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, Heart, Package, Sparkles } from "lucide-react";
+import { ArrowRight, Heart, Mail, Package, Sparkles } from "lucide-react";
 
 export default function HomePage() {
   return (
@@ -36,6 +36,15 @@ export default function HomePage() {
               <Link to="/gallery">
                 View Gallery <Sparkles className="h-5 w-5" />
               </Link>
+            </Button>
+            <Button asChild size="lg" variant="outline" className="gap-2">
+              <a
+                href="https://docs.google.com/forms/d/e/1FAIpQLScpL6nguxVuopgxfGu_8p8BwM4OumZ6y3k6szu9kUJ_On-2vQ/viewform?usp=publish-editor"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Newsletter <Mail className="h-5 w-5" />
+              </a>
             </Button>
           </div>
         </div>
