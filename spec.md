@@ -1,26 +1,22 @@
 # Mosslight Studios
 
 ## Current State
-Variants (sizes) for Stickers and Magnets auto-populate via the Quick Fill preset. Each variant has a size, price, and colors. There is no per-variant SKU field. The product-level SKU field exists on the Basic Information card.
+The site has a main page with Shop Collection, View Gallery, and Newsletter buttons. There is a footer and an order confirmation/thank you page after checkout. The newsletter button links to an external Google Form.
 
 ## Requested Changes (Diff)
 
 ### Add
-- `sku` field (optional string) to `ProductVariant` type
-- Inline SKU input next to each size in the variant list in `VariantManager` — always visible and editable without entering edit mode
-- SKU field also present in the add/edit variant form
+- A "Share Your Feedback" button on the order confirmation/thank you page linking to https://forms.gle/iHpYScSV2sfthoPb8 (opens in new tab)
+- A subtle customer survey button/link in the footer (present on every page) linking to https://forms.gle/iHpYScSV2sfthoPb8 (opens in new tab)
 
 ### Modify
-- `VariantManager.tsx` — add inline SKU `<Input>` in each variant header row and in the add/edit form
-- `backendTypes.ts` — add `sku?: string` to `ProductVariant`
-- `ProductForm.tsx` — pass `sku` through in `buildVariantsFromPreset` and in `preparedVariants`
+- Footer component: add survey link
+- Order confirmation/thank you page: add feedback button after order details
 
 ### Remove
 - Nothing removed
 
 ## Implementation Plan
-1. Add `sku?: string` to `ProductVariant` in `backendTypes.ts`
-2. Update `VariantManager` form state to include `sku`, add SKU input to the add/edit form
-3. Add an inline always-visible SKU input in each variant row that calls `onChange` directly
-4. Update `ProductForm.buildVariantsFromPreset` to include `sku: ''` placeholder
-5. Update `preparedVariants` mapping to carry the `sku` field through to the backend call
+1. Find the footer component and add a "Customer Survey" or "Share Your Feedback" link
+2. Find the order confirmation/thank you page component and add a feedback button after the order summary
+3. Both links open https://forms.gle/iHpYScSV2sfthoPb8 in a new tab

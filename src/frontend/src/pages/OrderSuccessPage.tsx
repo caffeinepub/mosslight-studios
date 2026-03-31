@@ -1,7 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate, useSearch } from "@tanstack/react-router";
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, ClipboardList } from "lucide-react";
+
+const SURVEY_URL = "https://forms.gle/iHpYScSV2sfthoPb8";
 
 export default function OrderSuccessPage() {
   const navigate = useNavigate();
@@ -38,6 +40,29 @@ export default function OrderSuccessPage() {
             >
               Continue Shopping
             </Button>
+          </div>
+
+          <div className="pt-2 border-t border-border">
+            <p className="text-sm text-muted-foreground mb-3">
+              How was your experience? We&apos;d love to hear from you!
+            </p>
+            <a
+              href={SURVEY_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              data-ocid="order_success.survey_button"
+            >
+              <Button
+                variant="ghost"
+                className="gap-2 text-primary hover:text-primary hover:bg-primary/10"
+              >
+                <ClipboardList className="h-4 w-4" />
+                Share Your Feedback
+              </Button>
+            </a>
+            <p className="text-xs text-muted-foreground/60 mt-2">
+              Optional &middot; Takes less than a minute
+            </p>
           </div>
         </CardContent>
       </Card>
